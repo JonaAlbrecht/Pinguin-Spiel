@@ -6,7 +6,8 @@
 2. **Python validiert, C# portiert** (aus der Konzeptvorstellung): Jeder Solver existiert zuerst als Python-Referenz; Python erzeugt *Golden Files*, gegen die C# getestet wird.
 3. **Full-Code, aber Unity-importierbar.** Alles ist Text: C#-Quellen, JSON-Leveldaten, ink-Dialoge, Blender-Python-Exportskripte, Unity-YAML mit *Force Text*. Szenen und Prefabs werden möglichst per Editor-Skript aus Daten erzeugt, nicht von Hand (oder KI) im YAML editiert.
 4. **Unity ist Präsentationsschicht.** Unity rendert, animiert, nimmt Eingaben entgegen und ruft den Core auf.
-5. **Spec-driven Development.** Diese Dokumente sind der Kontext für KI-gestützte Entwicklung (Token-Budget sparen, weniger Rückfragen).
+5. **Zielgruppe Nicht-Techniker.** Technik bleibt unter der Haube: Die Unity-Schicht übersetzt Solver-Ergebnisse in Farben, Ampeln und Sterne. Formeln, Matrizen und Konvergenzplots werden nur im optionalen Modus „Blick unter die Haube“ gerendert (siehe [00_Zielgruppe_und_Siemens-Bezug.md](00_Zielgruppe_und_Siemens-Bezug.md)).
+6. **Spec-driven Development.** Diese Dokumente sind der Kontext für KI-gestützte Entwicklung (Token-Budget sparen, weniger Rückfragen).
 
 ---
 
@@ -181,7 +182,7 @@ public interface IMinigame
     string Id { get; }                          // z. B. "MG01_Heat"
     IReadOnlyList<DidacticPhase> Phases { get; }
     DidacticPhase FocusPhase { get; }
-    void Enter(MinigameContext context);        // Leveldaten, Schwierigkeit, Ingenieursmodus
+    void Enter(MinigameContext context);        // Leveldaten, Schwierigkeit, Flag „Blick unter die Haube“
     void BeginPhase(DidacticPhase phase);
     event Action<DidacticPhase> PhaseCompleted;
     MinigameResult Finish();                    // Score, Sterne, Screenshot für Transfer
@@ -219,10 +220,39 @@ Dieselbe Datei wird von Python (`simref`) und vom C#-Core gelesen → Level lass
 - **Heatmap:** Datentextur (32×32, `RGBAHalf` bzw. `R8` normiert als Fallback) + Colormap-LUT im Shader, auf Bodenkacheln projiziert. Farbskalen farbfehlsichtig-tauglich (viridis/cividis), Legende immer sichtbar.
 - **Stromlinien:** GPU-freundliche Partikel (VFX Graph nicht in WebGL → CPU-Partikel/Line Renderer, ≤ 500 Partikel).
 - **Spannungen:** Stab-Mesh mit Vertex-Color + Dicke.
-- **Matrix-View:** UI-Toolkit-Element, zeichnet Sparsity-Pattern, Einträge leuchten beim Assemblieren.
-- **Diagramme:** Konvergenzplot, Histogramm, Pareto-Front, Bildfahrplan – eigene leichte UI-Toolkit-Painter2D-Komponenten.
+- **Kopplungsfäden:** Linien zwischen Kacheln/Knoten, die beim Assemblieren aufleuchten (Standardmodus statt Matrix).
+- **Ampel- und Sterne-Bewertung:** Jedes Minigame liefert KPIs aus dem Core; ein `ResultTranslator` bildet sie auf Ampel (grün/gelb/rot) und Sterne ab. Keine Rohzahlen im Standardmodus.
+- **Nur „Blick unter die Haube“:** Matrix-View (Sparsity-Pattern), Konvergenzplot, Pareto-Front, Bildfahrplan, Formeln – UI-Toolkit-Painter2D-Komponenten.
+- **Standard-Diagramme:** nur einfache Balken (z. B. „gute und schlechte Tage“ in MG04).
 
-### 5.6 Kamera & Look
+### 5.6 UX-Anforderungen für Nicht-Techniker
+- Steuerung ausschließlich Maus/Touch (Gamepad optional), keine Tastenkombinationen nötig.
+- Kein Zeitdruck, kein Game Over; Hilfe-System: nach 2 Fehlversuchen Tipp, nach 3 Lösungshilfe.
+- Texte: max. 2 Zeilen pro Sprechblase, Vorlesefunktion optional, skalierbare Schrift, WCAG-AA-Kontraste, farbfehlsichtig-taugliche Farben (Ampeln zusätzlich mit Symbol ✔ / ! / ✘).
+- Jederzeit speicher- und unterbrechbar; ein Viertel ≤ 10 Min.
+- Optionales Vorher-/Nachher-Quiz (5 Fragen, anonym) zur Messung der Lernziele.
+- **Text-Lint im Build:** Ein Editor-Check prüft alle Standardmodus-Texte (ink, Lokalisierung, Transfer-Karten) gegen eine Sperrliste (z. B. `Matrix, FEM, CFD, DES, CBTC, Diskretisierung, Gleichungssystem`) und Formelzeichen; Treffer brechen den Build ab.
+
+### 5.7 Transfer-Karten „So macht's Siemens“ (Datenmodell)
+```json
+{
+  "id": "transfer_MG04_factory",
+  "minigame": "MG04_Harbor",
+  "siemensBusiness": "Digital Industries",
+  "headline": { "de": "Was du gemacht hast, macht Siemens für Fabriken weltweit", "en": "…" },
+  "body": { "de": "max. 60 Wörter …", "en": "…" },
+  "customerBenefits": [ { "de": "Engpässe vor dem Bau finden" }, { "de": "Teure Umbauten vermeiden" } ],
+  "product": "Tecnomatix Plant Simulation",
+  "media": { "image": "transfer/mg04_line.png", "video": null, "source": "…" },
+  "voiceClip": { "file": null, "speaker": "Name, Funktion", "approved": false },
+  "takeaway": { "de": "Bevor eine Fabrik gebaut wird, lässt man sie im Computer laufen …" },
+  "moreLink": null,
+  "approval": { "department": null, "communications": null, "date": null }
+}
+```
+Der Build schlägt fehl, wenn eine im Spiel referenzierte Karte kein vollständiges `approval` hat (Platzhalter-Karten sind nur in Entwicklungs-Builds erlaubt und deutlich als „Entwurf“ markiert).
+
+### 5.8 Kamera & Look
 - Hub: Perspektive, Pitch ~50°, niedriges FOV (~30°) für „Diorama“-Wirkung; optionaler „Curved World“-Vertex-Shader (Animal-Crossing-Effekt).
 - Minigames: Wechsel zu Top-Down/Orthografisch per Cinemachine-Blend.
 - Toon-Shading (2–3 Lichtstufen, Rim-Light), Outlines per Inverted Hull, weiche Schatten, leichter Bloom/Tilt-Shift.
@@ -296,7 +326,8 @@ Das ist der Hebel für das Token-Budget: Der Großteil der KI-generierten Arbeit
 | Unity EditMode | Unity Test Framework | CI (nightly, Lizenz nötig) |
 | Unity PlayMode (Smoke: jede Szene lädt, jedes Minigame startbar) | Unity Test Framework | CI (nightly) |
 | Performance | Profiler-Marker im Adapter, Budget-Test „Solve < 50 ms“ im WebGL-Build | manuell pro Meilenstein |
-| Didaktik/Usability | Playtests mit Siemens-Kolleg:innen ohne Simulations-Hintergrund | pro Meilenstein |
+| Didaktik/Usability | Playtests mit Siemens-Kolleg:innen **ohne technischen Hintergrund** (HR, Finance, Vertrieb, Kommunikation …); Erfolg = Abnahme-Kriterien aus Dokument 00 | pro Meilenstein |
+| Sprachregeln | Text-Lint (5.6) | jeder Build |
 
 **Performance-Budgets (WebGL, Office-Laptop mit iGPU):** 60 FPS Ziel / 30 FPS Minimum, < 300 Draw Calls, initialer Download ≤ 50 MB (Brotli), Ladezeit Hub ≤ 15 s.
 
@@ -310,7 +341,8 @@ Das ist der Hebel für das Token-Budget: Der Großteil der KI-generierten Arbeit
 | **Hosting** | WebGL-Build als statische Website im Siemens-Intranet (Brotli-Header korrekt setzen); kein Backend für das Kernspiel nötig | IT / Hosting-Verantwortliche |
 | **Leaderboard/Multiplayer** | Optional, eigener kleiner REST-Dienst mit Siemens-SSO; Pseudonyme statt Klarnamen | IT-Security, Datenschutz, **Betriebsrat** (Leistungsvergleich unter Mitarbeitenden) |
 | **Telemetrie** | Standardmäßig aus; falls gewünscht nur anonyme, aggregierte Lernmetriken | Datenschutz, Betriebsrat |
-| **Siemens-Inhalte in Transfer-Screens** | Nur freigegebene Bilder/Projekte, Quellen pro Karte | Fachbereiche, Kommunikation |
+| **Siemens-Inhalte in Transfer-Screens** | Nur freigegebene Bilder/Projekte/Zahlen, Quellen pro Karte; je Geschäft eine Ansprechperson für Inhalte und ggf. Videoclip | Fachbereiche (DI, SI, Mobility), Kommunikation |
+| **Verteilung** | Einbindung in Lernplattform/Onboarding-Pfade | HR / Learning |
 | **Token-Budget** | Spec-driven + Core außerhalb Unity reduziert Kontext und Iterationen | Projektleitung |
 | **Klassifizierung** | Dokumente/Build entsprechend „Restricted“ behandeln | Projektleitung |
 
@@ -323,7 +355,7 @@ Das ist der Hebel für das Token-Budget: Der Großteil der KI-generierten Arbeit
 | M0 | Setup | Repo-Struktur, CI (Python + dotnet), Unity-Projekt mit lokalem `simcore`-Paket, Blender-Exportskript, Stil-Test (1 Pinguin + 1 Gebäude im Toon-Look) |
 | M1 | Sim-Core Vertical Slice | `LinearAlgebra`, `Thermal`, `DiscreteEvent`, `Random` in Python + C#, Golden-Tests grün |
 | M2 | Vertical Slice spielbar | Hub-Ausschnitt, MG01 + MG04 mit allen Phasen, 2 Transfer-Screens, Akt-1-Dialoge, WebGL-Build intern gehostet |
-| M3 | Playtest & Auswertung | Playtest mit 10–15 Kolleg:innen, Anpassungen Didaktik/UX |
+| M3 | Playtest & Auswertung | Playtest mit 10–15 Kolleg:innen ohne technischen Hintergrund, Vorher-/Nachher-Quiz, Anpassungen Didaktik/UX |
 | M4 | Release 1 | + Prolog (Huddle), MG06, Speichern, Lokalisierung EN |
 | M5 | Release 2 | + MG02, MG03, MG05, Finale MG07, optional Leaderboard |
 
@@ -333,8 +365,11 @@ Das ist der Hebel für das Token-Budget: Der Großteil der KI-generierten Arbeit
 
 - [ ] Python-Referenz + Golden Files vorhanden, C#-Tests grün
 - [ ] Alle didaktischen Phasen spielbar, Schwerpunkt-Phase ausführlich
-- [ ] Ingenieursmodus zeigt Gleichung, Matrix/Modellstruktur und Konvergenz
-- [ ] Transfer-Karte mit freigegebenem Siemens-Inhalt
+- [ ] Abnahme-Kriterien für Nicht-Techniker aus Dokument 00, Abschnitt 6 erfüllt
+- [ ] Standardmodus ohne Formeln/Fachabkürzungen (Text-Lint grün)
+- [ ] Transfer-Karte „So macht's Siemens“ vollständig und freigegeben, inkl. Kundennutzen und „Das kannst du jetzt erzählen“
+- [ ] Viertel-Schild und Siemens-Landkarten-Eintrag vorhanden
+- [ ] Optional: „Blick unter die Haube“ zeigt Modellstruktur und Konvergenz
 - [ ] DE/EN-Texte, farbfehlsichtig-taugliche Darstellung, kein Zeitdruck-Zwang
 - [ ] Solve < 50 ms im WebGL-Build, keine GC-Spikes im Solver
-- [ ] Playtest mit mindestens 3 Personen ohne Simulations-Hintergrund
+- [ ] Playtest mit mindestens 3 Personen ohne technischen Hintergrund

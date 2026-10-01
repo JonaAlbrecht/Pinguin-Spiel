@@ -1,235 +1,225 @@
 # 03 – Minigames
 
+> Zielgruppe: Siemens-Mitarbeitende **ohne technischen Hintergrund** (siehe [00_Zielgruppe_und_Siemens-Bezug.md](00_Zielgruppe_und_Siemens-Bezug.md)).
+> Jedes Minigame ist deshalb zweigeteilt:
+> **„Für Spielende“** beschreibt, was man sieht und tut – ohne Formeln.
+> **„Technik (nur Entwicklerteam)“** beschreibt das Modell im Hintergrund. Davon sieht der Spieler nichts, außer im optionalen Modus „Blick unter die Haube“.
+
 ## Übersicht
 
-| # | Minigame | Viertel | Domäne | Schwerpunkt-Schritt | Simulationsmodell (im Spiel) | Siemens-Transfer (Vorschlag*) | Paket |
-|---|---|---|---|---|---|---|---|
-| 00 | **Huddle** (Prolog) | Alte Scholle | Wärme | Systemaufbau (Einführung) | Wärmenetzwerk, Pinguin = Knoten | Simcenter 3D Thermal | R1 |
-| 01 | **Hitzeinsel** | Frostgarten | Wärme | Gleichung + Systemaufbau | 2D-Wärmeleitung mit Quellen/Senken, FV-Gitter | Simcenter 3D / Simcenter FLOEFD (Gebäude-/Stadtklima) | **VS** |
-| 02 | **Windschneise** | Windkante | Strömung | Diskretisierung / Meshing | 2D-Potentialströmung auf Quadtree-Gitter | Simcenter STAR-CCM+ | R2 |
-| 03 | **Hochbahn-Brücke** | Kanalbogen | Struktur | Lösung + Interpretation | 2D-Fachwerk-FEM (Direkte Steifigkeitsmethode) | Simcenter 3D / Simcenter Nastran | R2 |
-| 04 | **Smart Harbor** | Fischhafen | Prozesse | Modellierung + Stochastik | Ereignisdiskrete Simulation (DES) | Tecnomatix Plant Simulation | **VS** |
-| 05 | **Pinguin-Express** | Express-Ring | Bahnbetrieb | Optimierung | Zeitdiskrete Zugfolge- + Fahrgastsimulation | Siemens Mobility (CBTC / Betriebssimulation) | R2 |
-| 06 | **Netz-Balance** | Voltkai | Energie | Systemaufbau (Analogie) | DC-Lastfluss (Kirchhoff) | PSS®SINCAL / Gridscale X | R1 |
-| 07 | **Hitzewelle** (Finale) | Zwillingsturm | Gekoppelt | Co-Simulation / Digital Twin | Kopplung der Modelle 01, 04, 05, 06 | Siemens Xcelerator / Digital Twin, Simcenter Amesim | R2 |
+| # | Minigame | Siemens-Geschäft | Kernbotschaft (1 Satz) | Paket |
+|---|---|---|---|---|
+| 00 | **Huddle** (Prolog) | – (Einstieg) | Wenn jeder nur seine Nachbarn wärmt, bleibt trotzdem die ganze Kolonie warm – alles hängt zusammen. | R1 |
+| 01 | **Hitzeinsel** | Smart Infrastructure (Gebäude) + DI Software | Wer vorher simuliert, plant kühle Plätze und sparsame Gebäude. | **VS** |
+| 02 | **Windschneise** | Digital Industries Software | Der Computer kann Wind sichtbar machen – genauer hinschauen, wo es wichtig ist. | R2 |
+| 03 | **Hochbahn-Brücke** | DI Software + Mobility | Bauteile werden virtuell belastet, bevor echter Stahl verbaut wird. | R2 |
+| 04 | **Smart Harbor** | Digital Industries (Fabrik) | Eine Fabrik erst im Computer laufen lassen zeigt Staus, bevor sie gebaut ist. | **VS** |
+| 05 | **Pinguin-Express** | Siemens Mobility | Kluge Steuerung bringt mehr Züge pünktlich auf dieselbe Strecke. | R2 |
+| 06 | **Netz-Balance** | Smart Infrastructure (Netze) | Netzbetreiber sehen Engpässe voraus, bevor die Leitung glüht. | R1 |
+| 07 | **Hitzewelle** (Finale) | Siemens Xcelerator / Digital Twin | Viele Modelle zusammen = Digitaler Zwilling: erst virtuell entscheiden, dann real handeln. | R2 |
 
-\* Transfer-Beispiele sind Vorschläge und müssen mit den jeweiligen Siemens-Fachbereichen abgestimmt werden (Freigabe von Bildern/Projekten).
-VS = Vertical Slice, R1/R2 = Release 1/2.
+VS = Vertical Slice, R1/R2 = Release 1/2. Produkt-Zuordnungen der Transfer-Screens: siehe Tabelle in Dokument 00, Abschnitt 3 (alle freigabepflichtig).
 
-### Gemeinsames Phasen-Gerüst (für alle Minigames)
+### Gemeinsames Phasen-Gerüst
 
-| Phase | Was der Spieler tut | UI-Element |
+| Phase im Spiel | Was der Spieler tut | Darstellung |
 |---|---|---|
-| **1 Modellierung** | Wählt aus „Einfluss-Karten“ die relevanten Faktoren (inkl. Ablenker wie „Farbe der Parkbank“) | Kartenauswahl, Frieda kommentiert |
-| **2 Gleichung** | Puzzle: Bausteine einer Bilanzgleichung in Slots legen (Standard: Symbole/Icons; Ingenieursmodus: Formel) | Drag-&-Drop-Gleichung |
-| **3 Systemaufbau** | Sieht/baut die Kopplung der Knoten; Matrix füllt sich live mit | Overlay „Kopplungsfäden“ + Mini-Matrix |
-| **4 Lösung** | Startet den Solver, beobachtet Iterationen (Heatmap breitet sich aus, Residuum fällt) | Solver-Animation, Konvergenzplot |
-| **5 Optimierung** | Ändert Parameter in Runden mit Budget, vergleicht Ergebnisse | Rundenzähler, Bestwert, optional Leaderboard |
-| **6 Transfer** | Liest Transfer-Karte: eigenes Ergebnis ↔ Siemens-Beispiel | Split-Screen, Karte ins Notizbuch |
+| **1 Was ist wichtig?** | Wählt aus Karten die Dinge, die das Problem beeinflussen (mit lustigen Ablenkern) | Kartenauswahl, Frieda kommentiert |
+| **2 Welche Regel gilt?** | Legt Bild-Symbole auf eine **Waage**: was kommt rein, was geht raus | Waage kippt sichtbar, kein Text-Rechnen |
+| **3 Alles hängt zusammen** | Verbindet Teile mit **Fäden** und sieht, wie eine Änderung durchs Netz läuft | Fäden leuchten, Wellen breiten sich aus |
+| **4 Der Computer probiert's aus** | Drückt „Simulieren“ und schaut zu | Farben, Pfeile, Figuren bewegen sich |
+| **5 Besser machen** | Ändert in 3 Runden mit Budget, vergleicht | Ampel-Bewertung, Sterne |
+| **6 So macht's Siemens** | Sieht das echte Siemens-Beispiel und den Satz zum Mitnehmen | Split-Screen, optional Kolleg:innen-Clip |
 
-Der *Schwerpunkt-Schritt* ist jeweils ausführlich spielbar, die anderen Phasen sind kurz (oft nur ein Klick oder eine Erklärung).
+Pro Minigame ist **eine** Phase der Schwerpunkt (ausführlich spielbar), die anderen dauern je 30–60 Sekunden.
+
+**Regeln für alle Minigames:** kein Zeitdruck, kein Scheitern ohne Ausweg (nach 2 Fehlversuchen bietet Frieda einen Tipp, nach 3 eine Lösungshilfe), nur Maus/Touch, Ergebnis immer als Ampel + Sterne statt Zahlenkolonnen.
 
 ---
 
 ## MG00 – Huddle (Prolog)
 
-Das ursprüngliche Konzept, als Tutorial gestrafft.
+### Für Spielende
+Schneesturm auf der Eisscholle. Pip schiebt Pinguine so zusammen, dass niemand friert. Pinguine am Rand werden blau, in der Mitte rot-warm. Der Wind dreht – die Gruppe muss sich bewegen.
+- **Ziel:** 60 Sekunden lang friert kein Pinguin (Zeit läuft nur, wenn der Spieler nichts tut – kein Stress).
+- **Aha:** Jeder Pinguin wärmt nur seine direkten Nachbarn, trotzdem entsteht ein warmer Kern → „Alles hängt zusammen“.
+- **Das kannst du jetzt erzählen:** „Auch komplizierte Systeme bestehen aus vielen kleinen Teilen, die sich gegenseitig beeinflussen – so rechnen Simulationen.“
 
-- **Szene:** Eisscholle im Schneesturm, 12–20 Pinguine.
-- **Modell:** Jeder Pinguin ist ein Knoten mit Temperatur `T_i`. Wärmeaustausch mit Nachbarn (Kontakt) und Verlust an die Luft (Wind abhängig von Position am Rand).
-  `C·dT_i/dt = q_körper + Σ_j G_ij (T_j − T_i) − h_i (T_i − T_luft)`
-- **Spieler:** schiebt Pinguine in Formation; Windrichtung dreht sich.
-- **Ziel:** Kein Pinguin unter Grenztemperatur für 60 s.
-- **Lernziel:** „Jeder Knoten kennt nur seine Nachbarn – trotzdem ergibt sich ein Gesamtbild.“ Pinguine sind *von Natur aus diskret* – keine Diskretisierung nötig.
+### Technik (nur Entwicklerteam)
+Wärmenetzwerk, Pinguin = Knoten: `C·dT_i/dt = q + Σ_j G_ij (T_j − T_i) − h_i (T_i − T_luft)`, implizites Euler. Natürlich diskret, keine Diskretisierung nötig.
 
 ---
 
-## MG01 – Hitzeinsel (Wärme) — *Vertical Slice*
+## MG01 – Hitzeinsel — *Vertical Slice*
 
+**Siemens-Bezug:** Smart Infrastructure (intelligente Gebäude) und Simulationssoftware von Digital Industries.
 **Auftrag (Flora):** „Der Spielplatz im Frostgarten wird mittags so heiß, dass die Küken nicht mehr rauswollen!“
-**Kalles Versuch:** Stellt einen riesigen Ventilator auf → bläst nur heiße Luft herum, Strom fällt aus.
+**Kalles Versuch:** Stellt einen Riesen-Ventilator auf → bläst nur heiße Luft herum, die Sicherung fliegt.
 
-### Simulationsmodell
-- **Domäne:** Stadtblock als 2D-Gitter, 32 × 32 Zellen à 4 m (Finite-Volumen).
-- **Stationäre Energiebilanz je Zelle:**
-  `0 = α_i·S  −  h_i (T_i − T_luft)  −  e_i  +  Σ_Nachbarn k (T_j − T_i)`
-  - `α_i·S` Sonneneinstrahlung × Absorptionsgrad des Materials (Asphalt hoch, weißes Dach niedrig)
-  - `h_i` Wärmeübergang (Wind, Verschattung)
-  - `e_i` Verdunstungskühlung (Bäume, Gründach, Wasser)
-  - `k` Kopplung zu Nachbarzellen (Leitung + vereinfachte Durchmischung)
-- **System:** `A·T = b`, A ist dünnbesetzt, symmetrisch positiv definit (5-Punkt-Stern) → **Conjugate Gradient**.
-- **Materialien (Kacheln):** Asphalt, Pflaster, Rasen, Baum, Gründach, weißes Dach, Wasserbecken, Solarüberdachung (verschattet + liefert Strom → Querverweis MG06).
+### Für Spielende
+Der Stadtblock ist ein Raster aus Kacheln (Asphalt, Pflaster, Rasen, Baum, Gründach, weißes Dach, Wasserbecken, Solar-Sonnensegel).
+1. **Was ist wichtig?** Karten: Sonne ✔, Bodenbelag ✔, Wind ✔, Schatten ✔ – *Farbe der Parkbänke* ✘, *Anzahl der Laternen* ✘.
+2. **Welche Regel gilt? (Schwerpunkt)** Eine Kachel als Waage: Rein: Sonne, warme Nachbarn. Raus: Wind, Schatten, Verdunstung (Bäume „schwitzen“). Spieler legt Symbole auf die richtige Seite; die Kachel wird wärmer oder kühler.
+3. **Alles hängt zusammen (Schwerpunkt):** Spieler zieht Wärmefäden zwischen benachbarten Kacheln; ein heißer Asphaltfleck „färbt“ sichtbar auf die Nachbarn ab. Dann verbindet der Computer den ganzen Block automatisch – Hunderte Fäden in Sekunden („Genau dafür braucht man Computer“).
+4. **Der Computer probiert's aus:** Eine Wärmekarte legt sich über die Stadt, die Farben „pendeln sich ein“.
+5. **Besser machen:** 3 Runden, Budget 1000 Fisch-Taler. Kacheln tauschen, neu simulieren.
+6. **So macht's Siemens:** Spieler-Wärmekarte neben einer echten Gebäude-Simulation (z. B. Temperaturverteilung in einem Bürogebäude) + Bezug zu intelligenter Gebäudetechnik.
 
-### Spielablauf
-1. **Modellierung:** Karten wählen: Sonne ✔, Material ✔, Wind ✔, Schatten ✔, *Farbe der Parkbank* ✘, *Anzahl der Laternen* ✘.
-2. **Gleichung (Schwerpunkt):** Bilanz einer Zelle als Waage: „Rein“ (Sonne, warme Nachbarn) vs. „Raus“ (Wind, Verdunstung, kalte Nachbarn). Spieler legt Icons auf die richtige Seite.
-3. **Systemaufbau (Schwerpunkt):** Zoom auf 3×3-Zellen: Spieler verbindet Nachbarn mit „Wärmefäden“; die zugehörigen Matrixeinträge leuchten auf. Danach wird automatisch der ganze Block gekoppelt (Animation: Matrix füllt sich, Bandstruktur wird sichtbar).
-4. **Lösung:** Solver startet. Heatmap wird iterationsweise über die Stadt gelegt (Iterationen sind sichtbar → „Simulation rechnet sich ein“).
-5. **Optimierung:** 3 Runden, Budget 1000 Fisch-Taler; Kacheln umbauen, neu rechnen.
-6. **Transfer:** Spieler-Heatmap neben thermischer Gebäude-/Stadtklima-Simulation.
+- **Bewertung:** Ampel für „Spielplatz angenehm“ und „Keine heißen Flecken“. ★ Ziel erreicht, ★★ unter 80 % Budget, ★★★ zusätzlich Solarstrom erzeugt.
+- **Das kannst du jetzt erzählen:** „Mit Simulation sieht man, wo es in einem Gebäude oder Stadtviertel zu warm wird – bevor gebaut wird. Das spart Energie und Geld.“
 
-### Ziele & Score
-- Hauptziel: Mittlere Temperatur auf der Spielplatzfläche ≤ 28 °C, keine Zelle > 35 °C.
-- Score = Komfortpunkte − Kosten + Bonus für Effizienz (wenige Runden).
-- **Sterne:** ★ Ziel erreicht, ★★ unter 80 % Budget, ★★★ zusätzlich Solarstrom ≥ X kWh.
+### Technik (nur Entwicklerteam)
+2D-Finite-Volumen-Gitter 32 × 32 (4 m), stationäre Bilanz je Zelle:
+`0 = α_i·S − h_i (T_i − T_luft) − e_i + Σ_N k (T_j − T_i)` → `A·T = b`, A dünnbesetzt, SPD (5-Punkt-Stern) → Conjugate Gradient. Zielwerte: Mittel Zielzone ≤ 28 °C, Max ≤ 35 °C.
 
 ---
 
-## MG02 – Windschneise (Strömung / Meshing)
+## MG02 – Windschneise
 
-**Auftrag (Dr. Rotor):** „Zwischen den Türmen der Windkante gibt es fiese Böen. Ich brauche eine Windkarte für sichere Drohnenrouten!“
-**Kalles Versuch:** Legt die Route „nach Gefühl“ → Drohne wird weggeweht, Fisch landet bei den Möwen.
+**Siemens-Bezug:** Simulationssoftware von Digital Industries – Strömungssimulation wird z. B. für Fahrzeuge, Flugzeuge, Gebäude und Maschinen eingesetzt.
+**Auftrag (Dr. Rotor):** „Zwischen den Türmen gibt es fiese Böen. Ich brauche eine Windkarte für sichere Drohnenrouten!“
+**Kalles Versuch:** Route „nach Gefühl“ → Drohne wird weggeweht, der Fisch landet bei den Möwen.
 
-### Simulationsmodell
-- **Domäne:** 2D-Schnitt durch die Straßenschluchten (Draufsicht), 128 m × 128 m.
-- **Physik (vereinfacht):** Potentialströmung, Stromfunktion `ψ` mit `∇²ψ = 0`, Gebäude als Hindernisse (Randbedingung `ψ = const`), Anströmung am Rand. Geschwindigkeit `u = ∂ψ/∂y, v = −∂ψ/∂x`.
-  - Ehrlich kommuniziert: echte CFD löst Navier-Stokes (Wirbel, Turbulenz). Optional: vorberechnetes LBM-Referenzfeld aus Python für „So sähe es mit Turbulenz aus“.
-- **Gitter:** Quadtree (Basis 8 × 8, max. 5 Verfeinerungsstufen), 2:1-Balance.
-- **Solver:** derselbe CG-Solver wie MG01 (Laplace-Operator) → Wiederverwendung im Code und als Lernbotschaft.
-- **Fehlermaß:** Abweichung zur vorberechneten Referenzlösung auf feinem Gitter.
+### Für Spielende
+1. **Was ist wichtig?** Welche Häuser stehen im Weg? Woher kommt der Wind?
+2. **Welche Regel gilt?** Bild: „Luft verschwindet nicht – wenn sie sich durch eine enge Gasse quetscht, wird sie schneller.“ (Gartenschlauch-Vergleich)
+3. **Alles hängt zusammen (Schwerpunkt) – „Genau hinschauen kostet Zeit“:** Der Computer teilt die Luft in Kästchen. Spieler malt mit einem Pinsel, wo die Kästchen klein (genau) sein sollen. Ein Kästchen-Budget steht für Rechenzeit. Zwei Anzeigen: „Wie genau?“ und „Wie lange rechnet's?“.
+   Lernmoment: An Hausecken lohnt sich Genauigkeit, auf freier Fläche nicht.
+4. **Der Computer probiert's aus:** Windpfeile und fließende Partikel zeigen den Wind.
+5. **Besser machen / Test:** Drei Lieferdrohnen fliegen nach der Windkarte des Spielers. Zu grob geplant → eine Drohne wackelt in eine Böe (lustig, nicht schlimm, neuer Versuch).
+6. **So macht's Siemens:** Spieler-Kästchen neben einem echten Simulationsnetz, z. B. um ein Auto oder eine Schiffsschraube.
 
-### Spielablauf
-1. **Modellierung:** Welche Gebäude sind relevant? Was ist die Anströmung?
-2. **Gleichung:** kurz – „Luft geht nicht verloren“ (Massenerhaltung) als Bild.
-3. **Diskretisierung (Schwerpunkt):** Spieler „malt“ Verfeinerung mit dem Pinsel. **Zellbudget** (z. B. 600 Zellen) = Rechenzeit. Eine Anzeige „Rechenzeit“ und „Genauigkeit“ schlägt bei jeder Änderung aus.
-   - Lernmoment: Verfeinern an Gebäudeecken bringt viel, auf freier Fläche wenig.
-4. **Lösung:** Stromlinien erscheinen als animierte Partikel.
-5. **Optimierung/Test:** Drohnen fliegen die Route, die auf der *Spieler*-Windkarte basiert, durch das *Referenz*-Windfeld. Zu grobes Gitter → Drohne wird von unerwarteter Böe getroffen.
-6. **Transfer:** Spieler-Quadtree neben einem echten CFD-Mesh (z. B. Polyeder-Mesh um eine Schiffsschraube oder ein Gebäude).
+- **Das kannst du jetzt erzählen:** „Statt alles im Windkanal zu testen, kann man Luft im Computer strömen lassen – Siemens-Software wird dafür von vielen Herstellern genutzt.“
 
-### Ziele & Score
-- Alle 3 Lieferdrohnen erreichen ihr Ziel; Score = Genauigkeit × Effizienz (1 / Zellen).
+### Technik (nur Entwicklerteam)
+2D-Potentialströmung (Stromfunktion `∇²ψ = 0`) auf Quadtree (Basis 8 × 8, max. 5 Stufen, 2:1-Balance); gleicher CG-Solver wie MG01. Fehler gegen vorberechnete Referenz (feines Gitter bzw. Python-LBM). Vereinfachung wird im Spiel ehrlich benannt.
 
 ---
 
-## MG03 – Hochbahn-Brücke (Struktur)
+## MG03 – Hochbahn-Brücke
 
-**Auftrag (Bruno):** „Die Hochbahn muss über den Kanal. Die alte Brücke hat Boreas mitgenommen.“
-**Kalles Versuch:** Drei Balken, viel Kleber → Brücke biegt sich, Zug bleibt stehen.
+**Siemens-Bezug:** Simulationssoftware (Digital Industries) und Siemens Mobility – z. B. Belastungsberechnung von Bauteilen in Schienenfahrzeugen (Beispiel durch Fachbereich zu bestätigen).
+**Auftrag (Bruno):** „Die Hochbahn muss über den Kanal. Die alte Brücke hat der Sturm mitgenommen.“
+**Kalles Versuch:** Drei Balken, viel Kleber → Brücke biegt sich wie Spaghetti, Zug bleibt stehen.
 
-### Simulationsmodell
-- **2D-Fachwerk-FEM**, Stäbe nur Zug/Druck.
-  Element-Steifigkeit `k_e = (E·A/L)·[…]` (4×4 in globalen Koordinaten), Assemblierung zu `K·u = f`.
-- Lagerbedingungen an den Ufern, Lasten = Zuggewicht an den Knoten der Fahrbahn (Wanderlast in 5 Positionen).
-- **Solver:** Cholesky (klein, < 200 Freiheitsgrade) oder CG.
-- **Versagen:** Spannung > Grenzspannung oder Knicken (Euler-Knicklast für Druckstäbe, vereinfacht).
-- **Materialien:** Holz (billig, schwach), Stahl, Carbon (teuer, leicht).
+### Für Spielende
+1. **Was ist wichtig?** Wo liegt die Brücke auf? Wie schwer ist der Zug? Welches Material?
+2. **Welche Regel gilt?** Jeder Balken ist wie eine Feder: Je mehr man drückt, desto mehr gibt er nach.
+3. **Alles hängt zusammen:** Spieler baut die Brücke aus Balken (Holz günstig, Stahl stabil, Carbon teuer & leicht).
+4. **Der Computer probiert's aus (Schwerpunkt: Ergebnis verstehen):** Der Zug rollt virtuell drüber. Balken leuchten: blau = wird zusammengedrückt, rot = wird auseinandergezogen, dick = stark belastet. Durchbiegung wird übertrieben gezeigt.
+   **Detektiv-Fragen:** „Welcher Balken gibt zuerst nach?“ – „Wo würdest du verstärken?“ – „Biegt sich die echte Brücke wirklich so stark?“ (Nein – das Bild übertreibt, damit man's sieht.)
+5. **Besser machen:** Möglichst günstig bauen, aber mit Sicherheitsreserve (Anzeige als Ampel „sicher / knapp / zu schwach“).
+6. **So macht's Siemens:** Farbbild des Spielers neben einer echten Belastungssimulation eines Bauteils.
 
-### Spielablauf
-1. **Modellierung:** Lager, Lasten, Material festlegen.
-2. **Gleichung:** „Feder-Analogie“: Ein Stab ist eine Feder `F = k·Δx`.
-3. **Systemaufbau:** Spieler zieht Stäbe zwischen Knoten (Poly-Bridge-artig); Matrix wächst mit.
-4. **Lösung + Interpretation (Schwerpunkt):** Belastungstest; Stäbe färben sich (blau = Druck, rot = Zug, Dicke = Betrag), Verformung überhöht dargestellt.
-   - **Interpretations-Quiz:** „Welcher Stab versagt zuerst?“, „Wo lohnt sich mehr Material?“, „Ist die Verformung realistisch oder überhöht?“ – Bonuspunkte.
-5. **Optimierung:** Gewicht/Kosten minimieren bei Sicherheitsfaktor ≥ 1,5.
-6. **Transfer:** Spannungsplot des Spielers neben einer echten FEM-Analyse (z. B. Brückenträger oder Drehgestell).
+- **Das kannst du jetzt erzählen:** „Bevor ein Bauteil gebaut wird, wird es im Computer belastet. So werden Züge, Maschinen und Brücken sicher – und man braucht weniger Prototypen.“
 
-### Ziele & Score
-- Zug fährt in allen Laststellungen sicher; Score = Sicherheitsfaktor-Ziel erfüllt + Kostenersparnis.
+### Technik (nur Entwicklerteam)
+2D-Fachwerk-FEM (Direkte Steifigkeitsmethode), `K·u = f`, ≤ 200 Freiheitsgrade, Cholesky/CG; Wanderlast in 5 Positionen; Versagen bei Spannung > Grenzwert oder Euler-Knicken; Sicherheitsfaktor-Ziel 1,5.
 
 ---
 
-## MG04 – Smart Harbor (Prozesse / ereignisdiskret) — *Vertical Slice*
+## MG04 – Smart Harbor — *Vertical Slice*
 
 Weiterentwicklung der ursprünglichen *Fisch-Fabrik*.
 
-**Auftrag (Olaf):** „Die Kutter liefern, die Robo-Robben fahren, aber die Kisten stapeln sich – und das Sushi für die Stadt kommt zu spät!“
-**Kalles Versuch:** Kauft einfach doppelt so viele Robo-Robben → sie blockieren sich gegenseitig, Durchsatz sinkt.
+**Siemens-Bezug:** Digital Industries – Fabrikautomatisierung und Fabrikplanung mit Digitalem Zwilling (Tecnomatix Plant Simulation).
+**Auftrag (Olaf):** „Die Kutter liefern, die Robo-Robben fahren, aber die Kisten stapeln sich – und das Sushi kommt zu spät!“
+**Kalles Versuch:** Kauft doppelt so viele Robo-Robben → sie stehen sich gegenseitig im Weg.
 
-### Simulationsmodell
-- **Ereignisdiskrete Simulation** (Event-Queue, Simulationszeit springt von Ereignis zu Ereignis).
-- **Objekte:** Quelle (Kutter, Ankunft ~ Exponentialverteilung), Puffer (Kühlregale, Kapazität), Stationen (Sortieren, Filetieren, Verpacken; Bearbeitungszeit ~ Dreiecks-/Normalverteilung, Störungen mit MTBF/MTTR), Förderer, AGVs (Robo-Robben, einfache Wegnetz-Reservierung), Senke (Auslieferung).
-- **Stochastik:** Seed-basierter PCG32-Zufallsgenerator; mehrere **Replikationen** pro Szenario → Mittelwert und Konfidenzintervall.
-- **KPIs:** Durchsatz/Stunde, Durchlaufzeit, Auslastung pro Station, Pufferfüllstände, Verderb (Fisch zu lange im Puffer).
+### Für Spielende
+1. **Was ist wichtig? (Schwerpunkt):** Spieler baut die Fischhalle aus Bausteinen: Anlegestelle, Kühlregal, Sortier-, Filetier- und Verpackungsstation, Förderband, Robo-Robben. Wie ein kleines Aufbauspiel.
+2. **Welche Regel gilt?** Bild: „Je länger etwas wartet, desto voller wird das Lager.“ (Supermarkt-Kassen-Vergleich)
+3. **Alles hängt zusammen:** Pfeile zeigen den Weg des Fischs von Station zu Station.
+4. **Der Computer probiert's aus:** Eine Schicht läuft im Zeitraffer (60 s). Wo es sich staut, wachsen sichtbar Kistenstapel, die Station blinkt.
+5. **Zufall (Schwerpunkt) – „Die Möwen-Frage“:** Die Kutter kommen nicht pünktlich, Maschinen machen mal Pause. Knopf „Noch ein Tag“ → gleicher Plan, anderes Ergebnis. Knopf „10 Tage simulieren“ zeigt gute und schlechte Tage als Balken. Lernmoment: Ein einziger Testlauf reicht nicht.
+6. **Besser machen:** Mit Budget Engpass finden und beheben.
+7. **So macht's Siemens:** Spieler-Halle neben dem Digitalen Zwilling einer echten Fertigungslinie.
 
-### Spielablauf
-1. **Modellierung (Schwerpunkt):** Spieler baut das Layout aus Bausteinen (Quelle, Puffer, Station, Förderband, AGV-Ladepunkt) – Plant-Simulation-artig, aber als 3D-Baukasten in der Halle.
-2. **Gleichung:** Little's Law als Bild: *Bestand = Durchsatz × Durchlaufzeit*.
-3. **Systemaufbau:** Verbindungen = Materialfluss; System ist schon diskret (Hinweis auf zentrale Erkenntnis).
-4. **Lösung:** Simulation läuft im Zeitraffer (1 Schicht = 60 s). Engpass blinkt, Warteschlangen wachsen sichtbar.
-5. **Stochastik (Schwerpunkt):** „Würfel nochmal“ – gleiches Layout, anderer Seed → anderes Ergebnis. Spieler lernt: ein Lauf reicht nicht. Knopf „10 Replikationen“ zeigt Verteilung als Histogramm.
-6. **Optimierung:** Budget für Stationen/Puffer/AGVs; Ziel-Durchsatz bei minimalem Verderb.
-7. **Transfer:** Spieler-Layout neben einem Plant-Simulation-Modell einer echten Fertigungslinie (Sankey/Gantt).
+- **Bewertung:** ★ Sushi im Schnitt pünktlich, ★★ kaum verdorbener Fisch, ★★★ **auch an schlechten Tagen** pünktlich („robust geplant“).
+- **Das kannst du jetzt erzählen:** „Bevor eine Fabrik gebaut oder umgebaut wird, lässt man sie im Computer laufen. So findet man Engpässe früh und spart teure Umbauten.“
 
-### Ziele & Score
-- Durchsatz ≥ Zielwert im Mittel über 10 Replikationen, Verderb < 5 %.
-- ★★★: zusätzlich untere Grenze des 90 %-Konfidenzintervalls ≥ Ziel („robust geplant“).
+### Technik (nur Entwicklerteam)
+Ereignisdiskrete Simulation (Event-Heap). Quelle: Exponential-Ankünfte; Stationen: Dreiecks-/Normalverteilung, Störungen MTBF/MTTR; Puffer mit Kapazität; AGVs mit Wegreservierung. PCG32-Seeds, 10 Replikationen, intern Mittelwert + 90 %-Konfidenzintervall (★★★ = Untergrenze ≥ Ziel). KPIs: Durchsatz, Durchlaufzeit, Auslastung, Verderb.
 
 ---
 
-## MG05 – Pinguin-Express (Bahnbetrieb / Optimierung)
+## MG05 – Pinguin-Express
 
-**Auftrag (Tilda):** „Zur Rushhour sind die Bahnsteige voll, und die Züge stehen im Stau vor den Signalen.“
-**Kalles Versuch:** Mehr Züge reinschicken → Züge blockieren sich in den Blockabschnitten.
+**Siemens-Bezug:** Siemens Mobility – Zugbeeinflussung und Betriebssteuerung für Metros und Bahnen.
+**Auftrag (Tilda):** „Zur Rushhour sind die Bahnsteige voll, und die Züge stehen vor roten Signalen.“
+**Kalles Versuch:** Mehr Züge reinschicken → sie blockieren sich gegenseitig.
 
-### Simulationsmodell
-- Ringlinie mit 6 Stationen, zeitdiskrete Simulation (Δt = 1 s).
-- **Zugfolge:** Festblock (feste Abschnitte, ein Zug pro Block) vs. **Moving Block** (Abstand = Bremsweg + Sicherheitsmarge) – Anknüpfung an CBTC.
-- **Fahrdynamik:** vereinfachtes Beschleunigungs-/Bremsmodell, Energiebedarf ~ Beschleunigungen.
-- **Fahrgäste:** Poisson-Ankünfte je Station mit Tagesganglinie, Haltezeit hängt von Ein-/Aussteigern ab.
+### Für Spielende
+1. **Was ist wichtig?** Wie viele Züge? Wie lange halten sie? Wie viel Abstand brauchen sie?
+2. **Welche Regel gilt?** Bild: Ein Zug braucht Abstand, damit er rechtzeitig bremsen kann – je schneller, desto mehr.
+3. **Alles hängt zusammen:** Ein verspäteter Zug bremst alle dahinter aus (Dominoeffekt sichtbar).
+4. **Der Computer probiert's aus:** Ein Morgen im Zeitraffer; Bahnsteige füllen sich sichtbar mit Pinguinen.
+5. **Besser machen (Schwerpunkt):** Regler für Zuganzahl, Takt und Haltezeit. Zwei Ziele gleichzeitig: wenig Warten und wenig Energie. Dann: Knopf „Lass den Computer suchen“ – viele Varianten werden automatisch ausprobiert und als Punkte gezeigt; der Spieler sieht, wo seine eigene Lösung liegt.
+   **Upgrade-Moment:** „Intelligente Zugsteuerung“ einschalten – Züge dürfen näher hintereinander fahren, weil sie miteinander kommunizieren → plötzlich passen mehr Züge auf die Strecke.
+6. **So macht's Siemens:** Echte Metro-Linie mit Siemens-Zugsteuerung.
 
-### Spielablauf
-1. **Modellierung:** Welche Größen sind Stellschrauben? (Zuganzahl, Takt, Haltezeit, Blocklänge, Höchstgeschwindigkeit)
-2. **Gleichung:** Abstand = Reaktionsweg + Bremsweg `v²/(2a)`.
-3. **Systemaufbau:** Züge sind Agenten auf einem Gleisnetz.
-4. **Lösung:** Simulation eines Morgens im Zeitraffer, Zeit-Weg-Diagramm (Bildfahrplan) wächst live mit.
-5. **Optimierung (Schwerpunkt):**
-   - Spieler optimiert manuell (Regler) gegen zwei Ziele: Wartezeit ↓ und Energie ↓.
-   - Danach: „Optimierer“-Knopf – ein einfacher Algorithmus (z. B. Hill-Climbing / genetischer Algorithmus, sichtbar als Punktwolke) sucht automatisch. Ergebnisse als **Pareto-Front**; Spieler sieht, wo sein eigener Punkt liegt.
-   - Upgrade-Moment: Umstieg Festblock → Moving Block verschiebt die Pareto-Front sichtbar.
-6. **Transfer:** Bildfahrplan des Spielers ↔ Betriebssimulation eines realen Metro-Systems mit CBTC.
+- **Das kannst du jetzt erzählen:** „Mit intelligenter Zugsteuerung von Siemens Mobility fahren mehr Züge sicher auf derselben Strecke – ohne neue Gleise zu bauen.“
 
-### Ziele & Score
-- Mittlere Wartezeit ≤ 3 min, keine Station überfüllt; Score = Abstand zur Pareto-Front.
+### Technik (nur Entwicklerteam)
+Ringlinie, 6 Stationen, Δt = 1 s. Festblock vs. Moving Block (Abstand = Reaktionsweg + `v²/2a` + Marge). Poisson-Fahrgastankünfte mit Tagesganglinie. Optimierer: Hill-Climbing/GA, Pareto-Front Wartezeit vs. Energie (im Spiel nur als Punktwolke ohne Fachbegriff).
 
 ---
 
-## MG06 – Netz-Balance (Energie / Systemaufbau-Analogie)
+## MG06 – Netz-Balance
 
+**Siemens-Bezug:** Smart Infrastructure – Stromnetze planen und betreiben, z. B. für mehr Solar und E-Mobilität.
 **Auftrag (Volta):** „Mittags speisen alle Solardächer ein, abends kochen alle Fischsuppe – und meine Leitungen glühen!“
-**Kalles Versuch:** Dickeres Kabel überall → Budget weg, Problem nur verschoben.
+**Kalles Versuch:** Überall dickere Kabel → Budget weg, Problem nur verschoben.
 
-### Simulationsmodell
-- **DC-Lastfluss:** Knoten (Häuser, PV, Batterie, Umspannwerk = Slack-Knoten), Leitungen mit Leitwert `B_ij`.
-  `B·θ = P` (Knotenadmittanz-/Suszeptanzmatrix), Leitungsfluss `P_ij = B_ij (θ_i − θ_j)`.
-- **Gleiche Struktur wie MG01:** gewichteter Graph-Laplace-Operator → ZWILLI-Aha: „Temperatur ↔ Spannungswinkel, Wärmeleitung ↔ Leitwert, Wärmequelle ↔ Einspeisung.“
-- **Zeitverlauf:** 24-h-Profil in 1-h-Schritten (quasistationär), Batterie als zeitkoppelnder Speicher.
-- **Solver:** CG (aus MG01) nach Elimination des Slack-Knotens.
+### Für Spielende
+1. **Was ist wichtig?** Wer verbraucht wann Strom, wer erzeugt wann Strom?
+2. **Welche Regel gilt?** Wie Wasser in Rohren: Was in eine Kreuzung reinfließt, muss auch wieder raus.
+3. **Alles hängt zusammen (Schwerpunkt):** Spieler verlegt Leitungen zwischen Häusern, Solaranlagen, Batterien und Umspannwerk.
+   **ZWILLI-Aha:** „Moment – das Muster kenne ich! Strom verteilt sich wie Wärme im Frostgarten.“ Ein Vergleichsbild zeigt beide Netze nebeneinander: dieselbe Logik. Botschaft: Wer Simulation einmal verstanden hat, erkennt sie überall.
+4. **Der Computer probiert's aus:** Ein Tag im Zeitraffer, Leitungen leuchten grün → gelb → rot je nach Belastung.
+5. **Besser machen:** Batterien aufstellen, einzelne Leitungen verstärken, Fischsuppen-Kocher auf später verschieben.
+6. **So macht's Siemens:** Spielernetz neben der Planung eines echten städtischen Stromnetzes.
 
-### Spielablauf
-1. **Modellierung:** Lastprofile und PV-Profile zuordnen.
-2. **Gleichung:** Kirchhoff: „Was in einen Knoten fließt, fließt wieder hinaus.“
-3. **Systemaufbau (Schwerpunkt):** Spieler verlegt Leitungen; **Split-Screen** zeigt die Matrix *neben* der Matrix aus MG01 – gleiche Muster. Mini-Quiz: „Welche Größe im Stromnetz entspricht der Temperatur?“
-4. **Lösung:** Leitungen glühen nach Auslastung (grün → gelb → rot), Tag-Nacht-Zeitraffer.
-5. **Optimierung:** Batterien platzieren, Leitungen verstärken, flexible Lasten (Fischsuppen-Kocher!) verschieben.
-6. **Transfer:** Spielernetz ↔ Netzplanung eines städtischen Verteilnetzes.
+- **Das kannst du jetzt erzählen:** „Netzbetreiber simulieren mit Siemens-Software ihr Stromnetz, damit Solaranlagen und Ladesäulen angeschlossen werden können, ohne dass Leitungen überlasten.“
 
-### Ziele & Score
-- Keine Leitung > 100 % in allen 24 Stunden; Score = Kostenersparnis + Eigenverbrauchsquote.
+### Technik (nur Entwicklerteam)
+DC-Lastfluss `B·θ = P`, Leitungsfluss `P_ij = B_ij (θ_i − θ_j)`, Slack = Umspannwerk; 24 quasistationäre Stunden, Batterie koppelt Zeitschritte. Gleicher Graph-Laplace-Operator und CG-Solver wie MG01.
 
 ---
 
-## MG07 – Hitzewelle (Finale / Co-Simulation)
+## MG07 – Hitzewelle (Finale)
 
-- **Leitstand-Ansicht** im Zwillingsturm, Stadt als Miniatur-Diorama.
-- Gekoppelte Modelle (vereinfachte, schnelle Varianten von MG01, MG04, MG05, MG06):
+**Siemens-Bezug:** Siemens Xcelerator / Digitaler Zwilling – alles verbunden.
+
+### Für Spielende
+- Leitstand im Zwillingsturm, die ganze Stadt als Miniatur.
+- Eine Hitzewelle kommt. Alles hängt zusammen:
   ```
-  Außentemperatur ─▶ MG01 Wärme ─▶ Kühlbedarf ─▶ MG06 Netzlast
-                                       │              │
-                                       ▼              ▼
-                           MG05 Fahrgastaufkommen   MG04 Produktionsplan (Lastverschiebung)
+  Hitze ─▶ Gebäude brauchen mehr Kühlung ─▶ Stromnetz wird voll
+                         │                          │
+                         ▼                          ▼
+          Alle wollen ins Hafenbad (Bahn)    Hafen verlegt Schicht in die Nacht
   ```
-- **Spieler:** trifft 4–5 Entscheidungen über 3 simulierte Tage (z. B. „Hafen-Schicht nachts statt mittags“, „Mehr Züge zum Hafenbad“). Vor jeder Entscheidung: Vorschau-Simulation durch ZWILLI („Was wäre, wenn …“).
-- **Lernziel:** Digitaler Zwilling = gekoppelte Modelle + Was-wäre-wenn-Analysen vor dem Eingriff in die reale Welt.
-- **Transfer:** Digital-Twin-Konzept (Siemens Xcelerator), System-/Multiphysik-Simulation (Simcenter Amesim).
+- Spieler trifft 4–5 Entscheidungen über 3 Tage. Vor jeder Entscheidung zeigt ZWILLI: „Was wäre, wenn …?“ – erst virtuell, dann echt.
+- **Das kannst du jetzt erzählen:** „Ein Digitaler Zwilling verbindet viele Simulationen zu einem Abbild der echten Welt. Damit können Siemens-Kunden Entscheidungen erst virtuell testen.“
+- **Abschluss:** Die vollständige **Siemens-Landkarte** wird gezeigt – jedes Viertel mit seinem Siemens-Geschäft.
+
+### Technik (nur Entwicklerteam)
+Co-Simulation mit festen Kopplungsschritten aus vereinfachten, schnellen Varianten von MG01, MG04, MG05, MG06.
 
 ---
 
-## Transfer-Karten (Datenstruktur, inhaltlich)
+## Transfer-Karte „So macht's Siemens“ (Inhaltsvorgabe)
 
-Jede Transfer-Karte enthält:
-- Titel + Ein-Satz-Botschaft („Was du gerade gemacht hast, heißt *Meshing* – so sieht es bei Siemens aus.“)
-- Spieler-Screenshot (zur Laufzeit erzeugt)
-- Freigegebenes Siemens-Bild/Video + Quellenangabe
-- Werkzeug, Branche, 2–3 Fakten
-- Link ins Intranet (optional, konfigurierbar)
+| Feld | Vorgabe |
+|---|---|
+| Überschrift | Alltagssprache, z. B. „Was du gemacht hast, macht Siemens für Fabriken auf der ganzen Welt“ |
+| Siemens-Geschäft | z. B. „Siemens Digital Industries“ |
+| Bild/Video | freigegebenes Material, Quellenangabe |
+| Text | max. 60 Wörter, keine Abkürzungen ohne Erklärung |
+| Kundennutzen | 1–3 Stichpunkte in Business-Sprache (Zeit, Kosten, Risiko, Energie/CO₂) |
+| Produktname | dezent, als Zusatzinfo („Software: Tecnomatix Plant Simulation“) |
+| Siemens-Stimme | optionaler 30–45-s-Clip einer Kollegin / eines Kollegen |
+| „Das kannst du jetzt erzählen“ | genau ein Satz |
+| Mehr erfahren | optionaler Intranet-Link |
+| Freigabe | Fachbereich, Kommunikation, Datum (Pflichtfeld, sonst wird die Karte nicht gebaut) |
