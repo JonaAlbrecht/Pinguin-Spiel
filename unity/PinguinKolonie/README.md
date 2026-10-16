@@ -31,7 +31,8 @@ keine von Hand gebauten Szenen. Die Szene enthält nur ein Objekt mit `GameRoot`
 | Problem | Lösung |
 |---|---|
 | Fehler zu `com.unity.test-framework` oder `com.unity.ugui` beim Öffnen | In `Packages/manifest.json` die Version entfernen bzw. im Package Manager die angebotene Version wählen |
-| Projekt nutzt nur das neue Input System | Wird unterstützt (`ENABLE_INPUT_SYSTEM`); Paket `com.unity.inputsystem` muss installiert sein |
+| Beim ersten Öffnen fragt Unity, ob das neue Input System aktiviert werden soll | „Yes“ oder „No“ – beides läuft. Das Paket `com.unity.inputsystem` ist eingetragen, der Code unterstützt beide Wege (beide kompiliert, `tools/unity_compile_check`) |
+| Kein Ton | Knopf „Ton: an/aus“ oben rechts. Alle Geräusche werden zur Laufzeit erzeugt (`Scripts/Core/Sfx.cs`), es gibt keine Audiodateien |
 | URP statt Built-in | Läuft ebenfalls; Materialien werden aus den Standard-Materialien der Primitive abgeleitet |
 | Wärmebild im Build rosa/unsichtbar | Einmal **Pinguin-Spiel → Prototyp-Szene erstellen** ausführen – das legt `Resources/Materials/Unlit.mat` an, damit der Shader im Build ist |
 

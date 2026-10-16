@@ -69,9 +69,10 @@ namespace SFE.Game
             sign.localRotation = Quaternion.Euler(0, 200, 0);
             Prims.Make(PrimitiveType.Cylinder, sign, new Vector3(0, 0.8f, 0), new Vector3(0.12f, 0.8f, 0.12f), new Color(0.45f, 0.32f, 0.2f), "Post");
             Prims.Make(PrimitiveType.Cube, sign, new Vector3(0, 1.75f, 0), new Vector3(2.8f, 1.1f, 0.08f), new Color(0.98f, 0.96f, 0.9f), "Board");
-            var l1 = Prims.Label(sign, "Huddle-Platz", new Vector3(0, 2.0f, -0.06f), 0.05f, Palette.Text);
+            var ui = _root.Data;
+            var l1 = Prims.Label(sign, ui.Ui("signPlaza"), new Vector3(0, 2.0f, -0.06f), 0.05f, Palette.Text);
             l1.transform.localRotation = Quaternion.Euler(0, 180, 0);
-            var l2 = Prims.Label(sign, "Siemens Smart Infrastructure\nSchaltanlagen", new Vector3(0, 1.6f, -0.06f), 0.028f, new Color(0, 0.45f, 0.45f));
+            var l2 = Prims.Label(sign, ui.Ui("signBusiness"), new Vector3(0, 1.6f, -0.06f), 0.028f, new Color(0, 0.45f, 0.45f));
             l2.transform.localRotation = Quaternion.Euler(0, 180, 0);
 
             // Friedas Labor
@@ -83,7 +84,7 @@ namespace SFE.Game
             roof.transform.localRotation = Quaternion.Euler(0, 0, 4);
             Prims.Make(PrimitiveType.Cube, lab, new Vector3(-0.6f, 0.6f, 1.21f), new Vector3(0.7f, 1.2f, 0.05f), new Color(0.2f, 0.25f, 0.35f), "Door");
             Prims.Make(PrimitiveType.Cube, lab, new Vector3(0.7f, 1.1f, 1.21f), new Vector3(0.8f, 0.6f, 0.05f), new Color(0.6f, 0.9f, 1f), "Screen");
-            var labLabel = Prims.Label(lab, "Simulationslabor", new Vector3(0, 2.5f, 0.6f), 0.04f, Palette.Text);
+            var labLabel = Prims.Label(lab, ui.Ui("signLab"), new Vector3(0, 2.5f, 0.6f), 0.04f, Palette.Text);
             labLabel.transform.rotation = Quaternion.Euler(50, 0, 0);
 
             // Kalles Baustelle
@@ -106,18 +107,23 @@ namespace SFE.Game
             future.localRotation = Quaternion.Euler(0, 240, 0);
             Prims.Make(PrimitiveType.Cylinder, future, new Vector3(0, 0.7f, 0), new Vector3(0.1f, 0.7f, 0.1f), new Color(0.45f, 0.32f, 0.2f), "Post");
             Prims.Make(PrimitiveType.Cube, future, new Vector3(0, 1.5f, 0), new Vector3(2.4f, 0.8f, 0.06f), new Color(0.98f, 0.96f, 0.9f), "Board");
-            var fl = Prims.Label(future, "Zum Gleis an die Küste\n(kommt mit Release 1)", new Vector3(0, 1.5f, -0.05f), 0.026f, Palette.Text);
+            var fl = Prims.Label(future, ui.Ui("signFuture"), new Vector3(0, 1.5f, -0.05f), 0.026f, Palette.Text);
             fl.transform.localRotation = Quaternion.Euler(0, 180, 0);
 
             // Figuren
             AddNpc("grete", Prims.Look.Grete, new Vector3(-1.8f, 0, 5f), 160f);
             AddNpc("frieda", Prims.Look.Frieda, new Vector3(5.2f, 0, 0.8f), 230f);
             AddNpc("kalle", Prims.Look.Kalle, new Vector3(-5.2f, 0, -0.5f), 120f);
+            // Neu in v0.2: Theo misst nach (Lernziel 5), Klara rechnet den Nutzen vor (Lernziel 4), Flocke fragt „warum?“
+            AddNpc("theo", Prims.Look.Theo, new Vector3(8.6f, 0, 2.2f), 250f);
+            AddNpc("klara", Prims.Look.Klara, new Vector3(-3.4f, 0, -4.6f), 30f);
+            AddNpc("flocke", Prims.Look.Flocke, new Vector3(1.6f, 0, 6.4f), 190f);
             foreach (var p in new[] { new Vector3(-0.6f, 0, 4.4f), new Vector3(0.1f, 0, 3.6f), new Vector3(0.8f, 0, 4.6f) })
             {
                 var extra = Prims.Penguin(t, "Colony", Prims.Look.Plain, 1.3f);
                 extra.transform.localPosition = p;
                 extra.transform.localRotation = Quaternion.Euler(0, rnd.Next(0, 360), 0);
+                extra.AddComponent<Wanderer>().Radius = 1.1f; // klein genug, um nicht durch Grete und Flocke zu laufen
             }
 
             _pip = Prims.Penguin(t, "Pip", Prims.Look.Pip, 1.25f);
@@ -175,7 +181,7 @@ namespace SFE.Game
         private void Update()
         {
             if (!_active) return;
-            if (!_root.Hud.DialogOpen && InputHelper.PointerDown && !InputHelper.PointerOverUI &&
+            if (!_root.Hud.Blocking && InputHelper.PointerDown && !InputHelper.PointerOverUI &&
                 InputHelper.PointerOnGround(_root.Rig.Cam, out var p))
             {
                 _pendingNpc = null;
@@ -221,13 +227,17 @@ namespace SFE.Game
                     if (look.sqrMagnitude > 0.01f) npc.Go.transform.rotation = Quaternion.LookRotation(look.normalized, Vector3.up);
                     if (npc.OnInteract != null) npc.OnInteract();
                     else if (npc.IdleNode != null) StartCoroutine(_root.Hud.Say(npc.IdleNode));
-                    else _root.Hud.Toast(_root.Data.Speakers[npc.Id].Name + ": „Ich hab gerade keine Aufgabe für dich.“", 2.5f);
+                    else _root.Hud.Toast(_root.Data.Ui("hubNoTask", _root.Data.Speakers[npc.Id].Name), 2.5f);
                 }
             }
         }
 
-        /// <summary>Stellt die geplante Siedlung (beste Runde) im Kleinformat auf die Scholle (Frage C-04).</summary>
-        public void ShowSettlement(string[] rows)
+        /// <summary>
+        /// Stellt die geplante Siedlung (beste Runde) im Kleinformat auf die Scholle (Frage C-04).
+        /// Mit <paramref name="result"/> leuchten die Türen der gemütlichen Iglus, frierende sind bläulich –
+        /// die Belohnung zeigt also, wie gut die Siedlung war, nicht nur, dass es sie gibt.
+        /// </summary>
+        public void ShowSettlement(string[] rows, SettlementResult result = null, string[] finalRows = null)
         {
             if (_settlement != null) Destroy(_settlement);
             if (rows == null) return;
@@ -253,7 +263,20 @@ namespace SFE.Game
                     GameObject go = null;
                     switch (rows[y][x])
                     {
-                        case Cell.Igloo: go = Prims.Igloo(_settlement.transform, cell * 1.6f); break;
+                        case Cell.Igloo:
+                            go = Prims.Igloo(_settlement.transform, cell * 1.6f);
+                            var states = result?.IglooStates;
+                            int idx = y * w + x;
+                            // IglooStates gilt nur für Felder, die im End-Raster noch Iglu sind; geschmolzene
+                            // stehen dort als Wasser und tragen den Standardwert – sie bleiben hier normal weiß.
+                            if (states != null && finalRows != null && idx < states.Length && finalRows[y][x] == Cell.Igloo)
+                            {
+                                if (states[idx] == IglooState.Comfortable)
+                                    Prims.SetColor(go.transform.Find("Door").gameObject, Palette.LanternGlow);
+                                else if (states[idx] == IglooState.Cold)
+                                    Prims.SetColor(go.transform.Find("Dome").gameObject, new Color(0.70f, 0.86f, 1f));
+                            }
+                            break;
                         case Cell.Lantern: go = Prims.Lantern(_settlement.transform, cell * 1.6f, false); break;
                         case Cell.Wall: go = Prims.SnowWall(_settlement.transform, cell * 1.4f); break;
                     }

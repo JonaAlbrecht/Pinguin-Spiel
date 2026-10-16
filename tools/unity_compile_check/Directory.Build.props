@@ -1,0 +1,27 @@
+<Project>
+  <!-- Prueft die Spielschicht gegen die DLLs eines echten Unity-6-Editors, ohne Unity zu starten.
+       Unity selbst kompiliert mit C# 9 gegen netstandard2.1; das bilden wir hier nach.
+       UNITY_EDITOR_DATA zeigt auf ...\Editor\Data der installierten Version. -->
+  <PropertyGroup>
+    <UnityEditorData Condition="'$(UNITY_EDITOR_DATA)' != ''">$(UNITY_EDITOR_DATA)</UnityEditorData>
+    <UnityEditorData Condition="'$(UnityEditorData)' == ''">C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data</UnityEditorData>
+    <!-- uGUI und Input System sind in Unity 6 Pakete; die Vorlagen des Editors bringen sie fertig kompiliert mit. -->
+    <UnityPackageDlls>$(UnityEditorData)\Resources\PackageManager\ProjectTemplates\libcache\com.unity.template.3d-cross-platform-17.0.14\ScriptAssemblies</UnityPackageDlls>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <!-- CS0618 = veraltete API: in Unity 6 oft der Vorbote eines Laufzeitfehlers, daher sichtbar als Fehler. -->
+    <WarningsAsErrors>CS0618</WarningsAsErrors>
+    <BaseOutputPath>$(MSBuildThisFileDirectory)bin\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <ProjectRoot>$(MSBuildThisFileDirectory)..\..\</ProjectRoot>
+    <Scripts>$(ProjectRoot)unity\PinguinKolonie\Assets\_Project\Scripts\</Scripts>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="$(UnityEditorData)\Managed\UnityEngine\UnityEngine*.dll" Private="false" />
+    <Reference Include="$(UnityPackageDlls)\UnityEngine.UI.dll" Private="false" />
+  </ItemGroup>
+</Project>

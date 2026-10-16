@@ -25,6 +25,21 @@
       "id": "zwilli",
       "name": "ZWILLI",
       "color": "#1AA6C8"
+    },
+    {
+      "id": "theo",
+      "name": "Theo Thermo",
+      "color": "#C0392B"
+    },
+    {
+      "id": "klara",
+      "name": "Klara Krill",
+      "color": "#1E8449"
+    },
+    {
+      "id": "flocke",
+      "name": "Flocke",
+      "color": "#5D6D7E"
     }
   ],
   "nodes": [
@@ -113,7 +128,7 @@
         },
         {
           "speaker": "frieda",
-          "text": "Das ist ZWILLI, unser Simulationsprogramm auf dem Tablet."
+          "text": "Das ist ZWILLI, unser Simulationsprogramm. Noch flackert es ein bisschen."
         },
         {
           "speaker": "zwilli",
@@ -150,8 +165,12 @@
       "id": "kalle_after",
       "lines": [
         {
+          "speaker": "flocke",
+          "text": "Juhu, eine Pfütze! … Aber warum ist das Iglu eigentlich geschmolzen?"
+        },
+        {
           "speaker": "grete",
-          "text": "Früher hatten wir wenigstens trockene Füße."
+          "text": "Gute Frage, Flocke. Früher hatten wir wenigstens trockene Füße."
         },
         {
           "speaker": "frieda",
@@ -159,11 +178,20 @@
         },
         {
           "speaker": "pip",
-          "text": "Im Computer? Wie soll das gehen?"
+          "text": "Im Computer? Und wozu soll das gut sein?"
         },
         {
           "speaker": "frieda",
-          "text": "Das zeige ich dir in sechs kleinen Schritten."
+          "text": "Man sieht vorher, was passiert – ohne dass etwas kaputtgeht. Ich zeige es dir in sechs kleinen Schritten."
+        }
+      ]
+    },
+    {
+      "id": "notebook_first",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Neue Wörter landen in deinem Notizbuch. Du kannst es jederzeit oben rechts aufschlagen."
         }
       ]
     },
@@ -215,7 +243,7 @@
         },
         {
           "speaker": "frieda",
-          "text": "Kippt die Waage zu weit nach „warm“, tropft das Iglu. Wir suchen das Gleichgewicht."
+          "text": "Am Ende pendelt sich jedes Iglu ein: Rein und raus halten sich die Waage. Wie warm es dabei wird, hängt davon ab, wie viel fließt."
         }
       ]
     },
@@ -280,15 +308,78 @@
       "lines": [
         {
           "speaker": "frieda",
-          "text": "Siehst du? Der Computer sagt genau voraus, was bei Kalle passiert ist."
+          "text": "Siehst du? Der Computer sagt ziemlich gut voraus, was bei Kalle passiert ist."
+        },
+        {
+          "speaker": "theo",
+          "text": "Ich hab bei Kalle nachgemessen. Fast so wie gerechnet – aber nicht ganz."
         },
         {
           "speaker": "frieda",
-          "text": "Nur diesmal ohne nasse Füße."
+          "text": "Richtig, Theo. Unser Modell ist stark vereinfacht. Darum misst man im Zweifel nach."
         },
         {
           "speaker": "kalle",
           "text": "Hätte ich das mal vorher gewusst …"
+        }
+      ]
+    },
+    {
+      "id": "whatif_intro",
+      "lines": [
+        {
+          "speaker": "zwilli",
+          "text": "*bzzt* Ihr kennt mich schon. Aber wisst ihr, was ich bin? Der Zwilling eurer Siedlung – nur im Computer."
+        },
+        {
+          "speaker": "zwilli",
+          "text": "In mir könnt ihr alles ausprobieren. Hier schmilzt nichts wirklich, und keiner kriegt nasse Füße."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Dann ein Versuch: Was wäre, wenn wir in Schritt 1 den Wind fast weggelassen hätten – nur stille Luft?"
+        },
+        {
+          "speaker": "frieda",
+          "text": "Hier ist eine kleine Siedlung. ZWILLI rechnet sie zuerst fast ohne Wind."
+        }
+      ]
+    },
+    {
+      "id": "whatif_nowind",
+      "lines": [
+        {
+          "speaker": "kalle",
+          "text": "Alle gemütlich! Siehste – zwei Laternen reichen. Wird schon halten!"
+        },
+        {
+          "speaker": "frieda",
+          "text": "Moment, Kalle. Draußen weht der Wind. Rechnen wir noch einmal – diesmal mit Wind."
+        }
+      ]
+    },
+    {
+      "id": "whatif_done",
+      "lines": [
+        {
+          "speaker": "pip",
+          "text": "Oh. Mit Wind frieren alle vier."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Darum gehört der Wind ins Modell. Lässt man etwas Wichtiges weg, stimmt die Vorhersage nicht."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Die Musik im Dorf hätten wir dagegen ruhig weglassen können. Die ändert gar nichts."
+        },
+        {
+          "speaker": "flocke",
+          "text": "Und warum frieren sie mit Wind?"
+        },
+        {
+          "speaker": "frieda",
+          "text": "Der Wind trägt die Wärme weg – wie eine zweite Waagschale, die nach unten zieht."
         }
       ]
     },
@@ -304,12 +395,25 @@
           "text": "Baue eine Siedlung, in der mindestens zwölf Iglus gemütlich sind. Der Strom reicht für zehn Laternen."
         },
         {
-          "speaker": "frieda",
-          "text": "Schneewälle halten den Wind ab. Der Wind kommt von oben links."
+          "speaker": "klara",
+          "text": "Klara Krill, Kassenwartin. Jede Laterne kostet Strom – und Strom kostet Fisch. Ich schreibe mit."
         },
         {
           "speaker": "frieda",
-          "text": "Du hast drei Runden. Und keine Sorge: Im Computer schmilzt nichts wirklich."
+          "text": "Schneewälle halten den Wind ab. Der Wind kommt von oben links. Du hast drei Runden."
+        }
+      ]
+    },
+    {
+      "id": "balance_hint",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Tipp nach dem Simulieren ein Iglu an. Dann siehst du seine Waage – wie in Schritt 2."
+        },
+        {
+          "speaker": "frieda",
+          "text": "So findest du heraus, warum es friert oder schmilzt."
         }
       ]
     },
@@ -345,7 +449,20 @@
       "lines": [
         {
           "speaker": "frieda",
-          "text": "Ich zeige dir eine Siedlung, die funktioniert. Probier sie aus – und mach sie noch besser!"
+          "text": "Wenn du magst, zeige ich dir eine Siedlung, die funktioniert. Der Knopf „Beispiel-Siedlung“ lädt sie."
+        }
+      ]
+    },
+    {
+      "id": "phase5_one_star",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Ziel erreicht – zwölf Iglus sind gemütlich! Aber ein paar sind geschmolzen. Schaffst du es ohne Pfützen?"
+        },
+        {
+          "speaker": "flocke",
+          "text": "Ich hätte nichts gegen Pfützen …"
         }
       ]
     },
@@ -388,6 +505,10 @@
           "text": "Das kann ich ja jetzt sogar erklären!"
         },
         {
+          "speaker": "klara",
+          "text": "Und weißt du, was das spart? Teure Versuche am echten Schrank. Das gefällt mir."
+        },
+        {
           "speaker": "frieda",
           "text": "Dann los – die Kolonie wartet auf ihre Siedlung."
         }
@@ -411,11 +532,11 @@
       "lines": [
         {
           "speaker": "kalle",
-          "text": "Pip! Kannst du mir das mit dem Simulieren nochmal zeigen? Ganz unter uns …"
+          "text": "Pff. Nächstes Mal bau ich mit Schneewall. Und vielleicht … rechne ich vorher."
         },
         {
           "speaker": "kalle",
-          "text": "Ich glaube, „Wird schon halten“ ist nicht immer der beste Plan."
+          "text": "Aber sag's nicht weiter."
         }
       ]
     },
@@ -425,6 +546,45 @@
         {
           "speaker": "frieda",
           "text": "Möchtest du die Siedlung noch einmal planen? Vielleicht schaffst du drei Sterne."
+        }
+      ]
+    },
+    {
+      "id": "hub_theo",
+      "lines": [
+        {
+          "speaker": "theo",
+          "text": "Gerechnet ist gut, nachgemessen ist besser. Ich mache beides."
+        },
+        {
+          "speaker": "theo",
+          "text": "Wenn Messung und Rechnung fast gleich sind, weiß man: Das Modell taugt was."
+        }
+      ]
+    },
+    {
+      "id": "hub_klara",
+      "lines": [
+        {
+          "speaker": "klara",
+          "text": "Gemütlich und sparsam – das ist mein Lieblingsplan."
+        },
+        {
+          "speaker": "klara",
+          "text": "Ein Iglu, das schmilzt, kostet drei Tage Bauzeit. Im Computer kostet es: nichts."
+        }
+      ]
+    },
+    {
+      "id": "hub_flocke",
+      "lines": [
+        {
+          "speaker": "flocke",
+          "text": "Im Computer schmelzen die Iglus – und ich krieg trotzdem keine nassen Füße!"
+        },
+        {
+          "speaker": "flocke",
+          "text": "Schau mal in dein Notizbuch. Da stehen alle meine Pfützen drin."
         }
       ]
     }

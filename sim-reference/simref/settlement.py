@@ -222,3 +222,68 @@ def run(tiles: list[str], level: Level, mats: MaterialSet) -> Result:
                 stars = 3
     return Result(t, tiles, passes, original_igloos, comfortable, cold, melted_total,
                   lanterns, walls, cost, stars)
+
+
+def with_overrides(level: Level, overrides: dict | None) -> Level:
+    """Kopie des Levels mit geänderten Werten, z. B. {"wind": 2.0} für „Was wäre, wenn …“ (MG1 Schritt 4).
+
+    Schlüssel wie im Level-JSON (camelCase), damit Golden Files und Leveldaten dieselben Namen nutzen.
+    """
+    if not overrides:
+        return level
+    names = {"wind": "wind", "windDirection": "wind_direction", "maxMeltPasses": "max_melt_passes",
+             "airTemp": "air_temp", "budget": "budget"}
+    from dataclasses import replace
+    unknown = set(overrides) - set(names)
+    if unknown:
+        raise KeyError(f"Unbekannte Level-Überschreibung: {sorted(unknown)}")
+    return replace(level, **{names[k]: v for k, v in overrides.items()})
+
+
+@dataclass
+class Balance:
+    """Wärmebilanz je Zelle im gelösten Zustand – die „Waage“ eines Iglus (MG1 Schritt 5).
+
+    Im stationären Zustand gilt je Zelle:  source + from_neighbours = to_neighbours + to_air.
+    Alle Werte sind >= 0; die Richtung steckt im Namen.
+    """
+    source: np.ndarray
+    from_neighbours: np.ndarray
+    to_neighbours: np.ndarray
+    to_air: np.ndarray
+
+
+def balance(tiles: list[str], level: Level, mats: MaterialSet, t: np.ndarray) -> Balance:
+    h, w = len(tiles), len(tiles[0])
+    shield = shielded_mask(tiles, mats, level.wind_direction)
+    wind_factor = level.wind / mats.wind_reference
+    tf = np.asarray(t, dtype=float).ravel()
+    n = w * h
+    k = np.empty(n)
+    source = np.empty(n)
+    to_air = np.empty(n)
+    for y in range(h):
+        for x in range(w):
+            i = y * w + x
+            m = mats.by_symbol(tiles[y][x])
+            k[i] = m.k
+            hi = m.h * wind_factor * (mats.shield_factor if shield[y, x] else 1.0)
+            source[i] = level.lantern_heat if m.symbol == "L" else m.q
+            to_air[i] = hi * (tf[i] - level.air_temp)
+    gain = np.zeros(n)
+    loss = np.zeros(n)
+    for y in range(h):
+        for x in range(w):
+            i = y * w + x
+            for nx, ny in ((x + 1, y), (x, y + 1)):
+                if nx >= w or ny >= h:
+                    continue
+                j = ny * w + nx
+                flow = 2.0 * k[i] * k[j] / (k[i] + k[j]) * (tf[j] - tf[i])  # > 0: Wärme fließt von j nach i
+                if flow > 0:
+                    gain[i] += flow
+                    loss[j] += flow
+                else:
+                    gain[j] -= flow
+                    loss[i] -= flow
+    return Balance(source, gain, loss, to_air)

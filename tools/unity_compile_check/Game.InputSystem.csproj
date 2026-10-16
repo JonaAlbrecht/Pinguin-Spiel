@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Assembly-CSharp nur mit dem neuen Input System (Unity-6-Standard fuer neue Projekte) -->
+  <PropertyGroup>
+    <AssemblyName>Assembly-CSharp</AssemblyName>
+    <DefineConstants>UNITY_6000_0_OR_NEWER;UNITY_2021_3_OR_NEWER;ENABLE_INPUT_SYSTEM</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(Scripts)**\*.cs" Exclude="$(Scripts)Editor\**" />
+    <Compile Include="$(ProjectRoot)sim-core\com.sfe.simcore\Runtime\**\*.cs" />
+    <Reference Include="$(UnityPackageDlls)\Unity.InputSystem.dll" Private="false" />
+  </ItemGroup>
+</Project>

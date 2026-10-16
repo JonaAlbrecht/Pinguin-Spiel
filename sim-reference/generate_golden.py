@@ -12,10 +12,12 @@ from pathlib import Path
 import numpy as np
 
 from simref import huddle, settlement
+from simref.cases import MELT_TWO_PASSES, SINGLE_WALL
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "unity/PinguinKolonie/Assets/_Project/Resources/Data"
 GOLDEN = ROOT / "golden"
+LEVEL_JSON = json.loads((DATA / "Levels/MG1_Huddle_Settlement.json").read_text(encoding="utf-8"))
 
 
 def random_layout(seed: int, lanterns: int, igloos: int, walls: int) -> list[str]:
@@ -41,6 +43,18 @@ def settlement_cases(level, mats):
     for i in range(6, 14):
         g[5][i] = "W"
     yield "hint_with_walls", ["".join(r) for r in g]
+    # Ab hier Fälle aus dem Review zu PR #2: Regeln, die vorher kein Golden File traf.
+    yield "melt_two_passes", MELT_TWO_PASSES
+    yield "melt_cap_1", MELT_TWO_PASSES, {"maxMeltPasses": 1}
+    g = [list(r) for r in level.hint_tiles]
+    g[0][0] = "L"
+    g[23][23] = "L"
+    yield "over_budget", ["".join(r) for r in g]
+    for direction in settlement.WIND_DIRECTIONS:
+        yield f"wind_{direction}", SINGLE_WALL, {"windDirection": direction}
+    what_if = LEVEL_JSON["whatIf"]["noWind"]
+    yield "whatif_real", what_if["tiles"]
+    yield "whatif_no_wind", what_if["tiles"], what_if["overrides"]
 
 
 def main() -> None:
@@ -48,21 +62,32 @@ def main() -> None:
     level = settlement.load_level(DATA / "Levels/MG1_Huddle_Settlement.json")
     out = GOLDEN / "thermal"
     out.mkdir(parents=True, exist_ok=True)
-    for name, tiles in settlement_cases(level, mats):
-        t_first = settlement.solve(tiles, level, mats)
-        res = settlement.run(tiles, level, mats)
+    for name, tiles, *rest in settlement_cases(level, mats):
+        overrides = rest[0] if rest else {}
+        lv = settlement.with_overrides(level, overrides)
+        t_first = settlement.solve(tiles, lv, mats)
+        res = settlement.run(tiles, lv, mats)
+        bal = settlement.balance(res.final_tiles, lv, mats, res.temperatures)
         doc = {
             "case": name,
             "level": "MG1_Huddle_Settlement",
             "materials": "materials_settlement_v1",
+            "overrides": overrides,
             "tolerance": 1e-6,
             "tiles": tiles,
             "shielded": [[int(v) for v in row] for row in
-                         settlement.shielded_mask(tiles, mats, level.wind_direction)],
+                         settlement.shielded_mask(tiles, mats, lv.wind_direction)],
             "firstSolve": [round(float(v), 10) for v in t_first.ravel()],
             "finalSolve": [round(float(v), 10) for v in res.temperatures.ravel()],
             "finalTiles": res.final_tiles,
             "meltPasses": [len(p) for p in res.melt_passes],
+            # Waage je Zelle im Endzustand (Reihenfolge wie finalSolve)
+            "balance": {
+                "source": [round(float(v), 10) for v in bal.source],
+                "fromNeighbours": [round(float(v), 10) for v in bal.from_neighbours],
+                "toNeighbours": [round(float(v), 10) for v in bal.to_neighbours],
+                "toAir": [round(float(v), 10) for v in bal.to_air],
+            },
             "result": {
                 "igloosTotal": res.igloos_total, "comfortable": res.igloos_comfortable,
                 "cold": res.igloos_cold, "melted": res.igloos_melted,

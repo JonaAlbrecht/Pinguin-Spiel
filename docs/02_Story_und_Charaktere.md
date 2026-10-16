@@ -88,6 +88,17 @@ Freispiel: alle Minigames im Optimierungsmodus mit Bestwerten.
 - **Robo-Robben** – Transportroboter in der Fischfabrik; piepsen beleidigt, wenn sie warten müssen.
 - **Schmelzwasser-Pfütze** – nach jedem zu warmen Iglu bleibt eine Pfütze, in der ein Küken fröhlich planscht (Fehler sind lustig, nie peinlich).
 
+### Neu in v0.2 (Vorschlag, siehe specs/002)
+| Figur | Rolle fürs Lernen | Persönlichkeit | Aussehen |
+|---|---|---|---|
+| **Theo Thermo** | Lernziel 5: misst nach, was der Computer gerechnet hat – „fast so wie gerechnet, aber nicht ganz“. Ein Modell ist eine Vereinfachung; darum prüft man nach. | pedantisch, freundlich, zählt alles; „Gerechnet ist gut, nachgemessen ist besser.“ | rote Kappe, Thermometer unter dem Flügel |
+| **Klara Krill** | Lernziel 4 (Nutzen): Kassenwartin der Kolonie, vergleicht jede Runde mit der letzten und übersetzt in Kosten („Im Computer kostet es: nichts“). Spiegel für das Publikum aus Finanzen und Personal. | trocken, praktisch, liebt Listen | grüner Augenschirm, Kassenbuch |
+| **Flocke** | das Küken aus der Pfütze, jetzt mit Namen: stellt die „Warum?“-Fragen, sammelt Pfützen (Notizbuch). Fehler bleiben lustig. | freut sich über jede Pfütze | kleines, flauschig graues Küken |
+
+**ZWILLI** wird ab v0.2 sichtbar: ein türkis leuchtender Hologramm-Pinguin, der anfangs flackert und stottert und mit
+jedem Schritt stabiler wird. In Schritt 4 stellt er sich als Digitaler Zwilling vor („der Zwilling eurer Siedlung – nur im Computer“).
+**Kalle** bleibt in MG1 Rivale („vielleicht rechne ich vorher“); sein Wendepunkt bleibt für Akt 3.
+
 ---
 
 ## 4. Ton & Dialog-Richtlinien

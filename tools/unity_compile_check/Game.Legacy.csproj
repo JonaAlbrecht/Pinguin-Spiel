@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Assembly-CSharp mit dem alten Input Manager -->
+  <PropertyGroup>
+    <AssemblyName>Assembly-CSharp</AssemblyName>
+    <DefineConstants>UNITY_6000_0_OR_NEWER;UNITY_2021_3_OR_NEWER;ENABLE_LEGACY_INPUT_MANAGER</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(Scripts)**\*.cs" Exclude="$(Scripts)Editor\**" />
+    <Compile Include="$(ProjectRoot)sim-core\com.sfe.simcore\Runtime\**\*.cs" />
+  </ItemGroup>
+</Project>

@@ -93,6 +93,8 @@ namespace SFE.SimCore.Thermal
         public string[] InitialTiles;
         public string[] KalleTiles;
         public string[] HintTiles;
+        /// <summary>„Was wäre, wenn …“-Varianten aus dem Level-JSON (<c>whatIf</c>), z. B. „noWind“.</summary>
+        public Dictionary<string, SettlementWhatIf> WhatIf = new Dictionary<string, SettlementWhatIf>();
 
         public static SettlementLevel FromJson(string json)
         {
@@ -124,11 +126,54 @@ namespace SFE.SimCore.Thermal
                 InitialTiles = o.StrArray("initialTiles"),
                 KalleTiles = o.StrArray("kalleTiles"),
                 HintTiles = o.StrArray("hintTiles"),
+                WhatIf = ReadWhatIf(o),
             };
+        }
+
+        private static Dictionary<string, SettlementWhatIf> ReadWhatIf(Dictionary<string, object> o)
+        {
+            var result = new Dictionary<string, SettlementWhatIf>();
+            if (!o.Has("whatIf")) return result;
+            foreach (var kv in o.Obj("whatIf"))
+            {
+                var w = (Dictionary<string, object>)kv.Value;
+                result[kv.Key] = new SettlementWhatIf { Overrides = w.Obj("overrides"), Tiles = w.StrArray("tiles") };
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Kopie mit geänderten Werten – Schlüssel wie im Level-JSON (wie <c>with_overrides</c> in der Python-Referenz).
+        /// Unbekannte Schlüssel sind ein Fehler: Ein Tippfehler im Leveldaten-JSON soll nicht still das Original rechnen.
+        /// </summary>
+        public SettlementLevel With(Dictionary<string, object> overrides)
+        {
+            var c = (SettlementLevel)MemberwiseClone();
+            if (overrides == null) return c;
+            foreach (var kv in overrides)
+            {
+                switch (kv.Key)
+                {
+                    case "wind": c.Wind = overrides.Num("wind"); break;
+                    case "windDirection": c.WindFrom = overrides.Str("windDirection"); break;
+                    case "maxMeltPasses": c.MaxMeltPasses = overrides.Int("maxMeltPasses"); break;
+                    case "airTemp": c.AirTemp = overrides.Num("airTemp"); break;
+                    case "budget": c.Budget = overrides.Int("budget"); break;
+                    default: throw new ArgumentException($"Unbekannte Level-Überschreibung '{kv.Key}'.");
+                }
+            }
+            return c;
         }
 
         /// <summary>Wie viele Laternen das Strom-Budget erlaubt.</summary>
         public int MaxLanterns => LanternCost > 0 ? Budget / LanternCost : int.MaxValue;
+    }
+
+    /// <summary>Eine „Was wäre, wenn …“-Rechnung: dieselbe Siedlung mit einem geänderten Modell.</summary>
+    public sealed class SettlementWhatIf
+    {
+        public Dictionary<string, object> Overrides;
+        public string[] Tiles;
     }
 
     /// <summary>Das Raster der Siedlung. Zeile 0 liegt im Norden, Spalte 0 im Westen.</summary>
