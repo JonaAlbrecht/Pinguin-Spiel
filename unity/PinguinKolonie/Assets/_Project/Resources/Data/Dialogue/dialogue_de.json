@@ -1,0 +1,432 @@
+{
+  "language": "de",
+  "speakers": [
+    {
+      "id": "grete",
+      "name": "Oma Grete",
+      "color": "#8E5BA0"
+    },
+    {
+      "id": "frieda",
+      "name": "Frieda Frost",
+      "color": "#D4A017"
+    },
+    {
+      "id": "pip",
+      "name": "Pip",
+      "color": "#D0303A"
+    },
+    {
+      "id": "kalle",
+      "name": "Kalle Klotz",
+      "color": "#E08A00"
+    },
+    {
+      "id": "zwilli",
+      "name": "ZWILLI",
+      "color": "#1AA6C8"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "hub_intro",
+      "lines": [
+        {
+          "speaker": "grete",
+          "text": "Brrr! Spürst du den Wind, Pip? Ein Schneesturm kommt."
+        },
+        {
+          "speaker": "grete",
+          "text": "Komm zu mir auf den Huddle-Platz. Wir brauchen jede Flosse."
+        }
+      ]
+    },
+    {
+      "id": "prologue_intro",
+      "lines": [
+        {
+          "speaker": "grete",
+          "text": "Wenn es stürmt, rücken wir eng zusammen. Das nennen wir Huddle."
+        },
+        {
+          "speaker": "grete",
+          "text": "Jeder wärmt seinen Nachbarn – so überlebt die ganze Kolonie."
+        },
+        {
+          "speaker": "pip",
+          "text": "Und was soll ich tun?"
+        },
+        {
+          "speaker": "grete",
+          "text": "Schieb die Pinguine zusammen. Zieh sie einfach mit der Maus oder dem Finger."
+        },
+        {
+          "speaker": "grete",
+          "text": "Blau heißt: Der Pinguin friert. Orange heißt: schön warm. Halte alle warm, bis der Balken voll ist."
+        }
+      ]
+    },
+    {
+      "id": "prologue_hint_freeze",
+      "lines": [
+        {
+          "speaker": "grete",
+          "text": "Die Blauen am Rand stehen voll im Wind. Schieb sie dorthin, wo die anderen sie schützen."
+        }
+      ]
+    },
+    {
+      "id": "prologue_done",
+      "lines": [
+        {
+          "speaker": "grete",
+          "text": "Geschafft! Siehst du? Keiner hat allein gewärmt – und trotzdem ist allen warm."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Das war hoffentlich der letzte Huddle."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Ich habe ein Stromnetz gebaut – mit Laternen, die Licht und Wärme geben."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Ab jetzt bauen wir Iglus. Pip, komm zu meinem Labor. Ich brauche Hilfe!"
+        }
+      ]
+    },
+    {
+      "id": "mg1_intro",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Willkommen im Simulationslabor! Hast du schon mal etwas mit Technik gemacht?"
+        },
+        {
+          "speaker": "pip",
+          "text": "Ehrlich gesagt: noch nie."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Perfekt. Dann erklären wir es so, dass es jeder versteht."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Das ist ZWILLI, unser Simulationsprogramm auf dem Tablet."
+        },
+        {
+          "speaker": "zwilli",
+          "text": "H-h-hallo! *bzzt* Ich rechne Dinge aus, bevor man sie baut."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Unser Auftrag: eine Siedlung mit Iglus und Laternen. Gemütlich warm – aber nichts darf schmelzen."
+        }
+      ]
+    },
+    {
+      "id": "kalle_intro",
+      "lines": [
+        {
+          "speaker": "kalle",
+          "text": "Planen? Rechnen? Ach was, ich mach das einfach!"
+        },
+        {
+          "speaker": "kalle",
+          "text": "Kalt? Dann mehr Laternen! Eine pro Iglu, zwei pro Iglu – viel hilft viel!"
+        },
+        {
+          "speaker": "frieda",
+          "text": "Kalle, warte …"
+        },
+        {
+          "speaker": "kalle",
+          "text": "Wird schon halten!"
+        }
+      ]
+    },
+    {
+      "id": "kalle_after",
+      "lines": [
+        {
+          "speaker": "grete",
+          "text": "Früher hatten wir wenigstens trockene Füße."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Pip, bevor wir noch mehr Iglus versenken: Lass uns die Siedlung erst im Computer ausprobieren."
+        },
+        {
+          "speaker": "pip",
+          "text": "Im Computer? Wie soll das gehen?"
+        },
+        {
+          "speaker": "frieda",
+          "text": "Das zeige ich dir in sechs kleinen Schritten."
+        }
+      ]
+    },
+    {
+      "id": "phase1_intro",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Schritt 1: Was ist wichtig? Ein Computer kann nicht die ganze Welt nachbauen."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Wähle die Dinge aus, die bestimmen, wie warm ein Iglu wird. Dann drück auf „Fertig“."
+        }
+      ]
+    },
+    {
+      "id": "phase1_done",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Genau. Alles andere lassen wir weg. Das macht die Rechnung einfacher."
+        },
+        {
+          "speaker": "zwilli",
+          "text": "Weglassen ist auch eine Kunst! *piep*"
+        }
+      ]
+    },
+    {
+      "id": "phase2_intro",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Schritt 2: Welche Regel gilt? Stell dir ein Iglu wie eine Waage vor."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Tipp ein Kärtchen an und dann die passende Waagschale: links, was Wärme bringt – rechts, was Wärme wegnimmt."
+        }
+      ]
+    },
+    {
+      "id": "phase2_done",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Kommt mehr Wärme rein als raus, wird das Iglu wärmer."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Kippt die Waage zu weit nach „warm“, tropft das Iglu. Wir suchen das Gleichgewicht."
+        }
+      ]
+    },
+    {
+      "id": "phase3_intro",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Schritt 3: Alles hängt zusammen. Der Computer teilt die Siedlung in kleine Felder."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Jedes Feld tauscht Wärme nur mit seinen direkten Nachbarn – wie die Pinguine im Huddle."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Zieh vier Wärmefäden: Klick erst auf das Iglu in der Mitte und dann auf einen Nachbarn."
+        }
+      ]
+    },
+    {
+      "id": "phase3_computer",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Gut gemacht! Und jetzt das Ganze für die ganze Siedlung …"
+        },
+        {
+          "speaker": "zwilli",
+          "text": "Das mach ich! *surr*"
+        }
+      ]
+    },
+    {
+      "id": "phase3_done",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Über tausend Fäden in zwei Sekunden. Genau dafür braucht man Computer."
+        },
+        {
+          "speaker": "zwilli",
+          "text": "N-n-nachbarn … alle verbunden … ich zeig's dir in Farbe!"
+        }
+      ]
+    },
+    {
+      "id": "phase4_intro",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Schritt 4: Der Computer probiert's aus. Wir bauen Kalles Siedlung im Computer nach."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Drück auf „Simulieren“ und schau zu, wie sich die Wärme verteilt."
+        }
+      ]
+    },
+    {
+      "id": "phase4_done",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Siehst du? Der Computer sagt genau voraus, was bei Kalle passiert ist."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Nur diesmal ohne nasse Füße."
+        },
+        {
+          "speaker": "kalle",
+          "text": "Hätte ich das mal vorher gewusst …"
+        }
+      ]
+    },
+    {
+      "id": "phase5_intro",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Schritt 5: Besser machen. Jetzt bist du dran!"
+        },
+        {
+          "speaker": "frieda",
+          "text": "Baue eine Siedlung, in der mindestens zwölf Iglus gemütlich sind. Der Strom reicht für zehn Laternen."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Schneewälle halten den Wind ab. Der Wind kommt von oben links."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Du hast drei Runden. Und keine Sorge: Im Computer schmilzt nichts wirklich."
+        }
+      ]
+    },
+    {
+      "id": "phase5_hint_melt",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Einige Iglus stehen zu nah an den Laternen. Ein Feld Abstand wirkt Wunder."
+        }
+      ]
+    },
+    {
+      "id": "phase5_hint_cold",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Einige Iglus frieren. Tipp: Ein Iglu zwischen zwei Laternen bekommt Wärme von beiden Seiten."
+        }
+      ]
+    },
+    {
+      "id": "phase5_hint_wind",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Hinter einem Schneewall braucht man weniger Wärme. Aber Vorsicht: Dort wird es auch schneller zu warm."
+        }
+      ]
+    },
+    {
+      "id": "phase5_solution",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Ich zeige dir eine Siedlung, die funktioniert. Probier sie aus – und mach sie noch besser!"
+        }
+      ]
+    },
+    {
+      "id": "phase5_success",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Wunderbar! Gemütlich warm, und nichts ist geschmolzen."
+        },
+        {
+          "speaker": "zwilli",
+          "text": "Gleichgewicht gefunden! *ding*"
+        }
+      ]
+    },
+    {
+      "id": "phase5_three_stars",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Drei Sterne! Sparsamer geht es kaum. Du bist ein Naturtalent."
+        }
+      ]
+    },
+    {
+      "id": "phase5_done",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Komm, ich zeige dir, wo man genau das in der echten Welt braucht."
+        }
+      ]
+    },
+    {
+      "id": "transfer_after",
+      "lines": [
+        {
+          "speaker": "pip",
+          "text": "Das kann ich ja jetzt sogar erklären!"
+        },
+        {
+          "speaker": "frieda",
+          "text": "Dann los – die Kolonie wartet auf ihre Siedlung."
+        }
+      ]
+    },
+    {
+      "id": "hub_after_grete",
+      "lines": [
+        {
+          "speaker": "grete",
+          "text": "Iglus! Und alle trocken."
+        },
+        {
+          "speaker": "grete",
+          "text": "Ihr macht ja dasselbe wie wir damals beim Huddle – nur mit mehr Kabeln."
+        }
+      ]
+    },
+    {
+      "id": "hub_after_kalle",
+      "lines": [
+        {
+          "speaker": "kalle",
+          "text": "Pip! Kannst du mir das mit dem Simulieren nochmal zeigen? Ganz unter uns …"
+        },
+        {
+          "speaker": "kalle",
+          "text": "Ich glaube, „Wird schon halten“ ist nicht immer der beste Plan."
+        }
+      ]
+    },
+    {
+      "id": "hub_after_frieda",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Möchtest du die Siedlung noch einmal planen? Vielleicht schaffst du drei Sterne."
+        }
+      ]
+    }
+  ]
+}

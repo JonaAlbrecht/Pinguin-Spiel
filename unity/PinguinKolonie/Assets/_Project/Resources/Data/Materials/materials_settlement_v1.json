@@ -1,0 +1,15 @@
+{
+  "id": "materials_settlement_v1",
+  "shieldRange": 3.5,
+  "shieldCone": 0.7,
+  "shieldFactor": 0.4,
+  "windReference": 8.0,
+  "materials": [
+    { "key": "ice",     "symbol": ".", "k": 1.0, "h": 0.08, "q": 0.0 },
+    { "key": "igloo",   "symbol": "I", "k": 0.5, "h": 0.08, "q": 0.3 },
+    { "key": "lantern", "symbol": "L", "k": 1.0, "h": 0.08, "q": 0.0 },
+    { "key": "wall",    "symbol": "W", "k": 0.3, "h": 0.08, "q": 0.0 },
+    { "key": "path",    "symbol": "=", "k": 1.0, "h": 0.08, "q": 0.0 },
+    { "key": "water",   "symbol": "~", "k": 1.0, "h": 0.12, "q": 0.0 }
+  ]
+}

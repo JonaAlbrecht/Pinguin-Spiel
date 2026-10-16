@@ -14,7 +14,7 @@
 | Vorwissen Mathe | Schulmathematik, oft ungeliebt | **keine Formeln im Standard-Spiel**, nur Bilder, Waagen, Pfeile, Farben |
 | Kenntnis Siemens-Geschäft | kennt das eigene Umfeld, oft nicht „was Siemens eigentlich alles macht“ | Jedes Minigame = ein Siemens-Geschäftsfeld, sichtbar benannt |
 | Spielerfahrung | sehr unterschiedlich, viele Gelegenheitsspieler | nur Maus/Touch, keine Reaktionstests, kein Zeitdruck, kein „Game Over“ |
-| Zeit | Mittagspause, Lern-Event, Onboarding | ein Viertel ≤ 10 Min., jederzeit unterbrechbar |
+| Zeit | Mittagspause, Lern-Event, Onboarding | ein Minigame ≤ 10 Min., jederzeit unterbrechbar |
 | Motivation | Neugier, Teamevent, Lernpfad im Lernportal | Humor, schnelle Erfolgserlebnisse, sichtbarer Fortschritt |
 
 **Sekundäre Zielgruppe:** Technische Kolleg:innen, die das Spiel nutzen, um ihre Arbeit Nicht-Technikern zu erklären. Für sie gibt es einen optionalen Modus „Blick unter die Haube“ – er ist Zusatz, nie Voraussetzung.
@@ -37,9 +37,20 @@ Nicht-Ziel: selbst rechnen können oder Fachbegriffe wie „Steifigkeitsmatrix�
 
 ---
 
-## 3. Siemens-Bezug: Jedes Viertel ist ein Siemens-Geschäft
+## 3. Siemens-Bezug: Jedes Minigame ist ein Siemens-Geschäft
 
-Pingopolis ist so gebaut, dass die Stadt das Siemens-Portfolio spiegelt. Am Ende hat der Spieler eine **„Siemens-Landkarte“** im Notizbuch: Welches Viertel steht für welches Geschäft?
+Jedes Minigame steht für ein Siemens-Geschäft. Am Ende hat der Spieler eine **„Siemens-Landkarte“** im Notizbuch: Welcher Ort steht für welches Geschäft?
+
+### Kernspiel – Die Kolonie (Ideen der Kolleg:innen)
+
+| Ort / Minigame | Siemens-Geschäft | Siemens-Angebot im Transfer (Vorschlag*) | Kundennutzen in einem Satz |
+|---|---|---|---|
+| Huddle-Platz – **MG1 Huddle** (Wärme) | Smart Infrastructure (Schaltanlagen) + Digital Industries Software | SIMARIS therm, Simcenter 3D | Schaltschränke werden so geplant, dass kein Bauteil überhitzt – vorher simuliert statt nachher repariert. |
+| Gleis über das Packeis – **MG2 Polar-Express** (Strömung) | Siemens Mobility | Velaro Novo (aerodynamische Auslegung) | Züge werden im Computer windschnittig gemacht – schneller und mit weniger Energie. |
+| *Bonus:* **MG2-B Kühlluft im Schaltschrank** (Strömung) | Digital Industries Software | Simcenter Flotherm | Die Lüftung von Geräten wird geplant, bevor es heiß wird. |
+| Küste – **MG3 Fischfabrik** (Prozesse) | Digital Industries (Fabrikautomatisierung & Software) | Tecnomatix Plant Simulation | Fabriken werden erst virtuell geplant – Engpässe fallen auf, bevor die Halle steht. |
+
+### Erweiterung – Pingopolis Smart City (siehe [05_Erweiterung_Pingopolis_SmartCity.md](05_Erweiterung_Pingopolis_SmartCity.md))
 
 | Viertel / Minigame | Siemens-Geschäft | Siemens-Angebot im Transfer (Vorschlag*) | Kundennutzen in einem Satz |
 |---|---|---|---|
@@ -66,13 +77,13 @@ Siemens ist präsent, aber das Spiel ist kein Werbefilm. Fünf Berührungspunkte
 
 | # | Berührungspunkt | Wann | Form |
 |---|---|---|---|
-| 1 | **Viertel-Schild** | beim Betreten eines Viertels | Kleines Schild: „Dieses Viertel zeigt: *Siemens Smart Infrastructure*“ |
+| 1 | **Orts-Schild** | beim Betreten eines Ortes (in der Erweiterung: eines Viertels) | Kleines Schild: „Dieser Ort zeigt: *Siemens Mobility*“ |
 | 2 | **Transfer-Screen „So macht's Siemens“** | nach jedem Minigame | Split-Screen: Spieler-Ergebnis ↔ echtes Siemens-Beispiel, 3 Sätze, 1 Bild/Video |
 | 3 | **Siemens-Stimme** (optional) | im Transfer-Screen | 30–45-s-Clip einer echten Kollegin / eines echten Kollegen: „Ich mache das bei Siemens jeden Tag, und zwar so …“ |
 | 4 | **Notizbuch: Siemens-Landkarte & Glossar** | jederzeit | Sammelkarten pro Geschäftsfeld, Begriffe in Alltagssprache |
-| 5 | **„Das kannst du jetzt erzählen“** | Ende jedes Viertels | Ein Satz zum Mitnehmen, den man Kunden, Kolleg:innen oder der Familie sagen kann |
+| 5 | **„Das kannst du jetzt erzählen“** | Ende jedes Minigames | Ein Satz zum Mitnehmen, den man Kunden, Kolleg:innen oder der Familie sagen kann |
 
-Beispiel Smart Harbor:
+Beispiel Fischfabrik:
 > **Das kannst du jetzt erzählen:** „Bevor eine neue Fabrik gebaut wird, lässt Siemens sie im Computer laufen – so sieht man, wo es sich staut, und spart sich teure Umbauten.“
 
 ---
@@ -101,7 +112,7 @@ Beispiel Smart Harbor:
 
 ## 6. Abnahme-Kriterien (gelten für jedes Minigame)
 
-- [ ] Eine Person ohne technischen Hintergrund schafft das Viertel ohne Hilfe in ≤ 10 Min.
+- [ ] Eine Person ohne technischen Hintergrund schafft das Minigame ohne Hilfe in ≤ 10 Min.
 - [ ] Sie kann danach den „Das kannst du jetzt erzählen“-Satz sinngemäß wiedergeben.
 - [ ] Sie kann das zugehörige Siemens-Geschäftsfeld benennen.
 - [ ] Kein Text im Standardmodus enthält Formeln oder unerklärte Abkürzungen.

@@ -1,0 +1,80 @@
+{
+  "id": "transfer_MG1_switchgear",
+  "minigame": "MG1_Huddle",
+  "siemensBusiness": "Smart Infrastructure (Schaltanlagen) · Digital Industries Software",
+  "headline": {
+    "de": "Was du gemacht hast, machen Siemens-Ingenieur:innen für Schaltschränke"
+  },
+  "body": {
+    "de": "Im Schaltschrank eines Stromnetzes werden die Bauteile im Betrieb warm – wie deine Laternen. Wird ein Bauteil zu heiß, nimmt es Schaden – wie ein Iglu, das schmilzt. Darum rechnet man vorher im Computer aus, wie warm es überall wird, und ordnet die Bauteile so an, dass nichts überhitzt."
+  },
+  "customerBenefits": [
+    {
+      "de": "Keine Schäden durch Überhitzung"
+    },
+    {
+      "de": "Mehr Bauteile auf engem Raum"
+    },
+    {
+      "de": "Weniger teure Tests am echten Schrank"
+    }
+  ],
+  "product": "SIMARIS therm, Simcenter 3D (Vorschlag – Freigabe offen)",
+  "translation": [
+    {
+      "game": {
+        "de": "Laterne gibt Abwärme ab"
+      },
+      "real": {
+        "de": "Elektrische Bauteile werden im Betrieb warm"
+      }
+    },
+    {
+      "game": {
+        "de": "Iglu schmilzt ab 0 °C"
+      },
+      "real": {
+        "de": "Bauteile nehmen ab einer Höchsttemperatur Schaden"
+      }
+    },
+    {
+      "game": {
+        "de": "Abstand, Schneewälle, Anordnung"
+      },
+      "real": {
+        "de": "Anordnung der Bauteile, Lüftung, Abstände"
+      }
+    },
+    {
+      "game": {
+        "de": "Möglichst viele Iglus auf der Fläche"
+      },
+      "real": {
+        "de": "Möglichst viele Bauteile auf engem Raum – ohne Überhitzung"
+      }
+    }
+  ],
+  "honesty": {
+    "de": "Ehrlich vereinfacht: Im Schaltschrank zählt vor allem „nicht zu heiß“. „Gemütlich warm“ gibt es nur im Spiel."
+  },
+  "media": {
+    "image": null,
+    "video": null,
+    "source": null,
+    "placeholder": "switchgear_procedural"
+  },
+  "voiceClip": {
+    "file": null,
+    "speaker": null,
+    "approved": false
+  },
+  "takeaway": {
+    "de": "Bevor ein Schaltschrank gebaut wird, simuliert man, wie warm die Bauteile werden. So geht nichts durch Überhitzung kaputt – und man spart teure Tests."
+  },
+  "moreLink": null,
+  "approval": {
+    "department": null,
+    "communications": null,
+    "date": null
+  }
+}

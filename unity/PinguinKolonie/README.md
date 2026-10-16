@@ -1,0 +1,47 @@
+# Unity-Projekt „PinguinKolonie“ – Prototyp v0.1 (Vertical Slice)
+
+## Starten
+
+1. **Unity Hub → Add → Add project from disk** → diesen Ordner `unity/PinguinKolonie` wählen.
+   Editor: Unity 6 (6000.x LTS). Beim ersten Öffnen legt Unity `ProjectSettings/` und `Library/` an.
+2. Warten, bis der Import fertig ist. Der Simulationskern wird als lokales Paket eingebunden
+   (`Packages/manifest.json` → `com.sfe.simcore` aus `../../sim-core/com.sfe.simcore`).
+3. Menü **Pinguin-Spiel → Prototyp starten**.
+   Das legt beim ersten Mal `Assets/_Project/Scenes/Prototype.unity` an und startet den Play-Modus.
+
+Das ganze Spiel wird zur Laufzeit per Code gebaut (`Scripts/Core/GameRoot.cs`). Es gibt keine Prefabs und
+keine von Hand gebauten Szenen. Die Szene enthält nur ein Objekt mit `GameRoot`.
+
+## Bauen
+
+- Menü **File → Build Profiles** oder per Batchmode:
+  ```
+  Unity -batchmode -quit -projectPath unity/PinguinKolonie \
+        -executeMethod SFE.Game.EditorTools.PrototypeSetup.BuildWebGL
+  ```
+  (`BuildWindows` für einen Windows-Build). Ergebnis unter `Builds/`.
+
+## Tests im Editor
+
+**Window → General → Test Runner → EditMode**: Die Tests aus `sim-core/com.sfe.simcore/Tests` erscheinen dort
+(gleiche NUnit-Tests wie bei `dotnet test`).
+
+## Wenn etwas hakt
+
+| Problem | Lösung |
+|---|---|
+| Fehler zu `com.unity.test-framework` oder `com.unity.ugui` beim Öffnen | In `Packages/manifest.json` die Version entfernen bzw. im Package Manager die angebotene Version wählen |
+| Projekt nutzt nur das neue Input System | Wird unterstützt (`ENABLE_INPUT_SYSTEM`); Paket `com.unity.inputsystem` muss installiert sein |
+| URP statt Built-in | Läuft ebenfalls; Materialien werden aus den Standard-Materialien der Primitive abgeleitet |
+| Wärmebild im Build rosa/unsichtbar | Einmal **Pinguin-Spiel → Prototyp-Szene erstellen** ausführen – das legt `Resources/Materials/Unlit.mat` an, damit der Shader im Build ist |
+
+## Ordner
+
+```
+Assets/_Project/
+  Scripts/Core/        GameRoot (Ablauf), Hud (Dialoge, Hinweise, Phasenleiste), Kamera, Eingabe, Grafik-Helfer
+  Scripts/Hub/         Huddle-Platz zum Herumlaufen
+  Scripts/Minigames/   MG1 Teil A (Prolog), MG1 Teil B (Siedlung), Transfer-Screen
+  Scripts/Editor/      Szene erzeugen, Builds
+  Resources/Data/      Level, Materialien, Dialoge, Inhalte, Transfer-Karte (JSON – auch für Python und dotnet-Tests)
+```

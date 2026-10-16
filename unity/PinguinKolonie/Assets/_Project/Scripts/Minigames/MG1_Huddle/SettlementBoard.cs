@@ -1,0 +1,344 @@
+using System.Collections;
+using System.Collections.Generic;
+using SFE.SimCore.Thermal;
+using UnityEngine;
+
+namespace SFE.Game
+{
+    /// <summary>
+    /// 3D-Darstellung des Siedlungsrasters: Eisfläche mit Feldern, Bausteine, Wärmebild, Wärmefäden.
+    /// Eine Zelle = 1 Unity-Einheit (im Modell 2 m). Zeile 0 liegt im Norden (+z).
+    /// </summary>
+    public sealed class SettlementBoard : MonoBehaviour
+    {
+        private const int Px = 8; // Texturpixel pro Zelle
+
+        private SettlementLevel _level;
+        private int _w, _h;
+        private Texture2D _ground;
+        private Color[] _pixels;
+        private readonly Dictionary<int, GameObject> _objects = new Dictionary<int, GameObject>();
+        private char[] _shown;
+        private GameObject _cursor;
+        private GameObject _threadsGo;
+        private Mesh _threadsMesh;
+        private readonly List<LineRenderer> _handThreads = new List<LineRenderer>();
+        private IglooState[] _states;
+        private bool _duckPlaced;
+
+        public Vector3 Center => transform.position + new Vector3(_w / 2f, 0, _h / 2f);
+        public int Width => _w;
+        public int Height => _h;
+
+        public static SettlementBoard Create(Transform parent, Vector3 origin, SettlementLevel level)
+        {
+            var go = new GameObject("SettlementBoard");
+            go.transform.SetParent(parent, false);
+            go.transform.position = origin;
+            var b = go.AddComponent<SettlementBoard>();
+            b.Init(level);
+            return b;
+        }
+
+        private void Init(SettlementLevel level)
+        {
+            _level = level;
+            _w = level.Width;
+            _h = level.Height;
+            _shown = new char[_w * _h];
+            for (int i = 0; i < _shown.Length; i++) _shown[i] = Cell.Ice;
+
+            // Eissockel
+            Prims.Make(PrimitiveType.Cube, transform, new Vector3(_w / 2f, -0.26f, _h / 2f), new Vector3(_w + 1.2f, 0.5f, _h + 1.2f),
+                Palette.IceShadow, "Plinth");
+
+            // Bodentextur mit Feldern
+            _ground = new Texture2D(_w * Px, _h * Px, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+            _pixels = new Color[_ground.width * _ground.height];
+            var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            Destroy(quad.GetComponent<Collider>());
+            quad.name = "Ground";
+            quad.transform.SetParent(transform, false);
+            quad.transform.localPosition = new Vector3(_w / 2f, 0.002f, _h / 2f);
+            quad.transform.localRotation = Quaternion.Euler(90, 0, 0);
+            quad.transform.localScale = new Vector3(_w, _h, 1);
+            var mat = new Material(Prims.Unlit) { mainTexture = _ground, color = Color.white };
+            quad.GetComponent<Renderer>().sharedMaterial = mat;
+            SetHeat(null);
+
+            // Zeiger-Markierung
+            _cursor = Prims.Make(PrimitiveType.Cube, transform, Vector3.zero, new Vector3(1f, 0.04f, 1f), Palette.Selected, "Cursor");
+            _cursor.SetActive(false);
+
+            // Windpfeil (Nordwesten)
+            BuildWindArrow();
+        }
+
+        private void BuildWindArrow()
+        {
+            WindDirection.BlowsTowards(_level.WindFrom, out double e, out double n);
+            var dir = new Vector3((float)e, 0, (float)n).normalized;
+            var arrow = new GameObject("WindArrow").transform;
+            arrow.SetParent(transform, false);
+            arrow.localPosition = new Vector3(_w / 2f, 0.6f, _h / 2f) - dir * (_w / 2f + 2.2f);
+            arrow.localRotation = Quaternion.LookRotation(dir, Vector3.up);
+            var c = new Color(0.35f, 0.55f, 0.85f);
+            Prims.Make(PrimitiveType.Cube, arrow, new Vector3(0, 0, -0.4f), new Vector3(0.25f, 0.12f, 1.6f), c, "Shaft");
+            var head = Prims.Make(PrimitiveType.Cube, arrow, new Vector3(0, 0, 0.5f), new Vector3(0.7f, 0.12f, 0.7f), c, "Head");
+            head.transform.localRotation = Quaternion.Euler(0, 45, 0);
+            var label = Prims.Label(arrow, "Wind", new Vector3(0, 0.5f, -0.6f), 0.06f, new Color(0.2f, 0.35f, 0.6f));
+            label.transform.rotation = Quaternion.Euler(60, 0, 0);
+        }
+
+        // ---------- Koordinaten ----------
+
+        public Vector3 CellCenter(int index)
+        {
+            int x = index % _w, y = index / _w;
+            return transform.position + new Vector3(x + 0.5f, 0, _h - 1 - y + 0.5f);
+        }
+
+        public bool CellAtPointer(Camera cam, out int index)
+        {
+            index = -1;
+            if (!InputHelper.PointerOnGround(cam, out var p, transform.position.y)) return false;
+            var local = p - transform.position;
+            int x = Mathf.FloorToInt(local.x);
+            int y = _h - 1 - Mathf.FloorToInt(local.z);
+            if (x < 0 || y < 0 || x >= _w || y >= _h) return false;
+            index = y * _w + x;
+            return true;
+        }
+
+        public void ShowCursor(int index, Color color)
+        {
+            if (index < 0) { _cursor.SetActive(false); return; }
+            _cursor.SetActive(true);
+            _cursor.transform.position = CellCenter(index) + new Vector3(0, 0.01f, 0);
+            Prims.SetColor(_cursor, color);
+        }
+
+        // ---------- Bausteine ----------
+
+        public void Show(SettlementGrid grid)
+        {
+            for (int i = 0; i < grid.CellCount; i++)
+            {
+                char c = grid[i];
+                if (_shown[i] == c) continue;
+                if (_objects.TryGetValue(i, out var old)) { Destroy(old); _objects.Remove(i); }
+                _shown[i] = c;
+                GameObject go = null;
+                switch (c)
+                {
+                    case Cell.Igloo: go = Prims.Igloo(transform); break;
+                    case Cell.Lantern: go = Prims.Lantern(transform, 1f, true); break;
+                    case Cell.Wall: go = Prims.SnowWall(transform); break;
+                    case Cell.Water: go = Prims.Puddle(transform); break;
+                }
+                if (go != null)
+                {
+                    go.transform.position = CellCenter(i);
+                    _objects[i] = go;
+                }
+            }
+            _states = null;
+        }
+
+        public void Clear()
+        {
+            foreach (var go in _objects.Values) Destroy(go);
+            _objects.Clear();
+            for (int i = 0; i < _shown.Length; i++) _shown[i] = Cell.Ice;
+            _duckPlaced = false;
+            SetIglooStates(null);
+        }
+
+        /// <summary>Zustand der Iglus sichtbar machen – nicht nur über Farbe (Barrierefreiheit).</summary>
+        public void SetIglooStates(IglooState[] states)
+        {
+            _states = states;
+            foreach (var kv in _objects)
+            {
+                if (_shown[kv.Key] != Cell.Igloo) continue;
+                var dome = kv.Value.transform.Find("Dome");
+                var door = kv.Value.transform.Find("Door");
+                if (states == null)
+                {
+                    Prims.SetColor(dome.gameObject, Palette.Igloo);
+                    Prims.SetColor(door.gameObject, new Color(0.15f, 0.2f, 0.3f));
+                    continue;
+                }
+                switch (states[kv.Key])
+                {
+                    case IglooState.Cold:
+                        Prims.SetColor(dome.gameObject, new Color(0.70f, 0.86f, 1f));
+                        Prims.SetColor(door.gameObject, new Color(0.15f, 0.2f, 0.3f));
+                        break;
+                    case IglooState.Comfortable:
+                        Prims.SetColor(dome.gameObject, new Color(1f, 0.97f, 0.88f));
+                        Prims.SetColor(door.gameObject, Palette.LanternGlow);
+                        break;
+                    case IglooState.Melting:
+                        Prims.SetColor(dome.gameObject, new Color(1f, 0.85f, 0.75f));
+                        break;
+                }
+            }
+        }
+
+        private void Update()
+        {
+            if (_states == null) return;
+            // Frierende Iglus zittern leicht, gemütliche „atmen“ warm.
+            foreach (var kv in _objects)
+            {
+                if (_shown[kv.Key] != Cell.Igloo) continue;
+                var t = kv.Value.transform;
+                var basePos = CellCenter(kv.Key);
+                if (_states[kv.Key] == IglooState.Cold)
+                    t.position = basePos + new Vector3(Mathf.Sin(Time.time * 40f + kv.Key) * 0.025f, 0, 0);
+                else
+                    t.position = basePos;
+            }
+        }
+
+        /// <summary>Iglus sacken zusammen und werden zu Pfützen. In der ersten Pfütze planscht ein Küken.</summary>
+        public IEnumerator Melt(int[] cells, float seconds = 0.9f)
+        {
+            var targets = new List<Transform>();
+            foreach (int i in cells) if (_objects.TryGetValue(i, out var go)) targets.Add(go.transform);
+            for (float t = 0; t < seconds; t += Time.deltaTime)
+            {
+                float k = 1f - t / seconds;
+                foreach (var tr in targets)
+                {
+                    if (tr == null) continue;
+                    tr.localScale = new Vector3(1f + 0.25f * (1 - k), Mathf.Max(0.05f, k), 1f + 0.25f * (1 - k));
+                }
+                yield return null;
+            }
+            foreach (int i in cells)
+            {
+                if (_objects.TryGetValue(i, out var go)) Destroy(go);
+                var p = Prims.Puddle(transform);
+                p.transform.position = CellCenter(i);
+                _objects[i] = p;
+                _shown[i] = Cell.Water;
+                if (!_duckPlaced)
+                {
+                    _duckPlaced = true;
+                    var chick = Prims.Penguin(p.transform, "Kueken", Prims.Look.Plain, 0.45f);
+                    chick.transform.localPosition = new Vector3(0.1f, 0f, 0f);
+                    chick.AddComponent<Bobber>();
+                }
+            }
+        }
+
+        // ---------- Wärmebild ----------
+
+        /// <summary>Färbt die Felder nach Temperatur. <c>null</c> = normales Eis mit Feldlinien.</summary>
+        public void SetHeat(double[] temperatures)
+        {
+            int tw = _w * Px;
+            for (int y = 0; y < _h; y++)
+            {
+                for (int x = 0; x < _w; x++)
+                {
+                    int i = y * _w + x;
+                    Color c = temperatures == null
+                        ? ((x + y) % 2 == 0 ? Palette.Ice : Color.Lerp(Palette.Ice, Palette.IceShadow, 0.35f))
+                        : HeatColors.For(temperatures[i], _level.AirTemp, _level.ComfortMin, _level.Melt);
+                    Color line = temperatures == null ? Palette.GridLine : Color.Lerp(c, Color.black, 0.15f);
+                    int ty = _h - 1 - y; // Texturzeile 0 liegt unten (Süden)
+                    for (int py = 0; py < Px; py++)
+                    {
+                        for (int px = 0; px < Px; px++)
+                        {
+                            bool edge = px == 0 || py == 0;
+                            _pixels[(ty * Px + py) * tw + x * Px + px] = edge ? line : c;
+                        }
+                    }
+                }
+            }
+            _ground.SetPixels(_pixels);
+            _ground.Apply(false);
+        }
+
+        public Texture2D GroundTexture => _ground;
+
+        // ---------- Wärmefäden ----------
+
+        public void AddHandThread(int a, int b)
+        {
+            var go = new GameObject("Thread");
+            go.transform.SetParent(transform, false);
+            var lr = go.AddComponent<LineRenderer>();
+            lr.sharedMaterial = Prims.Unlit;
+            lr.startColor = lr.endColor = Palette.Thread;
+            lr.startWidth = lr.endWidth = 0.09f;
+            lr.positionCount = 12;
+            Vector3 pa = CellCenter(a) + Vector3.up * 0.15f, pb = CellCenter(b) + Vector3.up * 0.15f;
+            for (int k = 0; k < 12; k++)
+            {
+                float t = k / 11f;
+                lr.SetPosition(k, Vector3.Lerp(pa, pb, t) + Vector3.up * Mathf.Sin(t * Mathf.PI) * 0.35f);
+            }
+            _handThreads.Add(lr);
+        }
+
+        public void ClearThreads()
+        {
+            foreach (var lr in _handThreads) if (lr != null) Destroy(lr.gameObject);
+            _handThreads.Clear();
+            if (_threadsGo != null) Destroy(_threadsGo);
+            _threadsGo = null;
+        }
+
+        /// <summary>Zeichnet alle Kopplungen nacheinander ein („der Computer übernimmt“).</summary>
+        public IEnumerator DrawAllThreads(List<(int, int)> couplings, float seconds, System.Action<int> onProgress)
+        {
+            if (_threadsGo != null) Destroy(_threadsGo);
+            _threadsGo = new GameObject("AllThreads");
+            _threadsGo.transform.SetParent(transform, false);
+            _threadsMesh = new Mesh { name = "Threads" };
+            var verts = new Vector3[couplings.Count * 2];
+            var cols = new Color[verts.Length];
+            for (int k = 0; k < couplings.Count; k++)
+            {
+                verts[2 * k] = CellCenter(couplings[k].Item1) - transform.position + Vector3.up * 0.08f;
+                verts[2 * k + 1] = CellCenter(couplings[k].Item2) - transform.position + Vector3.up * 0.08f;
+                cols[2 * k] = cols[2 * k + 1] = Palette.Thread;
+            }
+            _threadsMesh.vertices = verts;
+            _threadsMesh.colors = cols;
+            _threadsMesh.bounds = new Bounds(new Vector3(_w / 2f, 0, _h / 2f), new Vector3(_w + 2, 2, _h + 2));
+            _threadsGo.AddComponent<MeshFilter>().sharedMesh = _threadsMesh;
+            _threadsGo.AddComponent<MeshRenderer>().sharedMaterial = Prims.Unlit;
+
+            int shown = 0;
+            for (float t = 0; shown < couplings.Count; t += Time.deltaTime)
+            {
+                int target = Mathf.Min(couplings.Count, Mathf.CeilToInt(couplings.Count * Mathf.Clamp01(t / seconds)));
+                if (target != shown)
+                {
+                    shown = target;
+                    var idx = new int[shown * 2];
+                    for (int k = 0; k < idx.Length; k++) idx[k] = k;
+                    _threadsMesh.SetIndices(idx, MeshTopology.Lines, 0);
+                    onProgress?.Invoke(shown);
+                }
+                yield return null;
+            }
+        }
+    }
+
+    /// <summary>Kleines Auf-und-ab (planschendes Küken, Hinweis-Marker).</summary>
+    public sealed class Bobber : MonoBehaviour
+    {
+        public float Amplitude = 0.05f;
+        public float Speed = 5f;
+        private Vector3 _base;
+        private void Start() => _base = transform.localPosition;
+        private void Update() => transform.localPosition = _base + Vector3.up * (Mathf.Sin(Time.time * Speed) * Amplitude);
+    }
+}
