@@ -1,5 +1,7 @@
 # 04 – Technische Spezifikation
 
+> **Umfang:** Das Kernspiel (Release 1) besteht aus **MG1 Huddle, MG2 Polar-Express, MG3 Fischfabrik** (siehe [03_Minigames.md](03_Minigames.md)). Module, die nur die Smart-City-Erweiterung braucht, sind unten mit *(Erweiterung)* markiert. Minigame-Kürzel mit zwei Ziffern (MG01–MG07) beziehen sich auf die Erweiterung ([05_Erweiterung_Pingopolis_SmartCity.md](05_Erweiterung_Pingopolis_SmartCity.md)).
+
 ## 1. Leitprinzipien
 
 1. **Simulation zuerst, Engine danach.** Die gesamte Simulationslogik lebt in einer reinen C#-Bibliothek **ohne** `UnityEngine`-Abhängigkeit. Sie läuft und wird getestet mit `dotnet test` – ohne Unity-Lizenz, ohne Editor, in CI und in KI-gestützter Entwicklung.
@@ -44,14 +46,14 @@ pinguin-spiel/
 │     │  ├─ SFE.SimCore.asmdef        # "noEngineReferences": true
 │     │  ├─ LinearAlgebra/            # CSR-Matrix, Builder, CG, Cholesky
 │     │  ├─ Random/                   # PCG32 (identisch in Python)
-│     │  ├─ Thermal/                  # MG00, MG01
-│     │  ├─ Flow/                     # MG02 Quadtree + Potentialströmung
-│     │  ├─ Structure/                # MG03 Fachwerk-FEM
-│     │  ├─ DiscreteEvent/            # MG04 DES-Kern + Bausteine
-│     │  ├─ Rail/                     # MG05
-│     │  ├─ Grid/                     # MG06 DC-Lastfluss
+│     │  ├─ Thermal/                  # MG1 Huddle + Siedlung (Erweiterung: MG01)
+│     │  ├─ Flow/                     # MG2 Polar-Express, MG2-B (Lattice-Boltzmann); Erweiterung: MG02 Quadtree
+│     │  ├─ DiscreteEvent/            # MG3 Fischfabrik (Erweiterung: MG04)
 │     │  ├─ Optimization/             # Hill-Climbing, GA, Pareto
-│     │  └─ Coupling/                 # MG07 Co-Simulation
+│     │  ├─ Structure/                # (Erweiterung) MG03 Fachwerk-FEM
+│     │  ├─ Rail/                     # (Erweiterung) MG05
+│     │  ├─ Grid/                     # (Erweiterung) MG06 DC-Lastfluss
+│     │  └─ Coupling/                 # (Erweiterung) MG07 Co-Simulation
 │     ├─ Tests/
 │     │  ├─ SFE.SimCore.Tests.asmdef  # Unity EditMode-Tests
 │     │  └─ *.cs                      # NUnit-Tests (auch von dotnet genutzt)
@@ -59,7 +61,7 @@ pinguin-spiel/
 │        ├─ SFE.SimCore.csproj        # netstandard2.1, kompiliert ../Runtime/**
 │        └─ SFE.SimCore.Tests.csproj  # net8.0, NUnit, kompiliert ../Tests/**
 ├─ sim-reference/                     # Python-Referenzimplementierungen
-│  ├─ simref/ (thermal.py, flow.py, truss.py, des.py, grid.py, pcg32.py …)
+│  ├─ simref/ (thermal.py, lbm.py, des.py, pcg32.py …; Erweiterung: flow.py, truss.py, grid.py)
 │  ├─ tests/
 │  └─ generate_golden.py              # schreibt ../golden/*.json
 ├─ golden/                            # Referenzergebnisse (JSON), von C#-Tests gelesen
@@ -71,14 +73,14 @@ pinguin-spiel/
 │     │  │  ├─ Core/                  # Bootstrap, Services, EventBus, Save
 │     │  │  ├─ Hub/                   # Spielerbewegung, NPC, Interaktion
 │     │  │  ├─ Minigames/Common/      # IMinigame, Phasen-State-Machine, Transfer
-│     │  │  ├─ Minigames/MG01_Heat/ … # Adapter Core ↔ Visualisierung
+│     │  │  ├─ Minigames/MG1_Huddle/ … # Adapter Core ↔ Visualisierung
 │     │  │  ├─ Visualization/         # Heatmap, Stromlinien, Matrix-View
 │     │  │  └─ Editor/                # AssetPostprocessor, SceneBuilder, Build-Skripte
 │     │  ├─ Data/Levels/*.json        # Leveldefinitionen (auch von Python lesbar)
 │     │  ├─ Data/Transfer/*.json      # Transfer-Karten
 │     │  ├─ Dialogue/*.ink
 │     │  ├─ Art/ (Models, Materials, Textures, Animations, Shaders)
-│     │  ├─ Scenes/ (Bootstrap, Hub, MG01_Heat, …)
+│     │  ├─ Scenes/ (Bootstrap, Hub, MG1_Huddle, MG2_PolarExpress, MG3_FishFactory, …)
 │     │  └─ UI/ (*.uxml, *.uss)
 │     └─ ThirdParty/
 ├─ blender/
@@ -143,21 +145,22 @@ Die Assemblierung meldet optional jeden `Add`-Aufruf über einen Callback – so
 
 | Modul | Kern-API | Größe zur Laufzeit |
 |---|---|---|
-| `Thermal` | `HeatGridModel(Level) → (CsrMatrix, b)`, `HuddleModel` (transient, implizites Euler) | 32×32 = 1024 Unbekannte |
-| `Flow` | `Quadtree.Refine(cell)`, `PotentialFlowModel.Assemble()`, `VelocityAt(x,y)`, `ErrorVs(reference)` | ≤ 2 000 Zellen |
-| `Structure` | `Truss.AddNode/AddMember`, `Assemble()`, `Solve()`, `MemberForces`, `SafetyFactors` | ≤ 200 FHG |
-| `DiscreteEvent` | `Simulator` (Ereignis-Heap), Bausteine `Source, Buffer, Station, Conveyor, Agv, Sink`, `Replications.Run(n, seed)` | ~10⁴ Ereignisse/Schicht |
-| `Rail` | `LineModel`, `BlockingMode {Fixed, Moving}`, `Step(dt)` | 6 Stationen, ≤ 12 Züge |
-| `Grid` | `DcPowerFlow(network, injections) → flows`, `DaySimulation(24)` | ≤ 100 Knoten |
+| `Thermal` | `HuddleModel` (transient, implizites Euler), `SettlementModel(Level) → (CsrMatrix, b)` inkl. `MeltCascade` (Iglu → Wasser, neu lösen, max. 5 Durchläufe) | 24×24 = 576 Unbekannte (Erweiterung MG01: 32×32) |
+| `Flow` | `LbmD2Q9(nx, ny, tau)`, `SetObstacle(mask)`, `Step(n)`, `DragForce`, `Streamlines()`; optional `ScalarField` für MG2-B (Temperatur) | 160×64 fein / 80×32 grob |
+| `DiscreteEvent` | `Simulator` (Ereignis-Heap), Bausteine `Source, ScheduledSource (Zug), Buffer, Station, Conveyor, Agv, Loss (Möwen), Sink`, `Replications.Run(n, seed)` | ~10⁴ Ereignisse/Schicht |
 | `Optimization` | `HillClimber`, `GeneticAlgorithm`, `ParetoFront` – ebenfalls steppable | — |
-| `Coupling` | `CoSimulation` mit festen Kopplungsschritten zwischen Modell-Adaptern | — |
+| *(Erweiterung)* `Flow.Quadtree` | `Quadtree.Refine(cell)`, `PotentialFlowModel.Assemble()`, `VelocityAt(x,y)`, `ErrorVs(reference)` | ≤ 2 000 Zellen |
+| *(Erweiterung)* `Structure` | `Truss.AddNode/AddMember`, `Assemble()`, `Solve()`, `MemberForces`, `SafetyFactors` | ≤ 200 FHG |
+| *(Erweiterung)* `Rail` | `LineModel`, `BlockingMode {Fixed, Moving}`, `Step(dt)` | 6 Stationen, ≤ 12 Züge |
+| *(Erweiterung)* `Grid` | `DcPowerFlow(network, injections) → flows`, `DaySimulation(24)` | ≤ 100 Knoten |
+| *(Erweiterung)* `Coupling` | `CoSimulation` mit festen Kopplungsschritten zwischen Modell-Adaptern | — |
 
-Alle Größen sind so gewählt, dass ein Solve in WebGL (single-threaded, ohne Burst) deutlich < 50 ms dauert.
+Alle Größen sind so gewählt, dass ein Solve in WebGL (single-threaded, ohne Burst) deutlich < 50 ms dauert. Ausnahme `Flow` (LBM): kein einzelner Solve, sondern viele kleine Schritte – Budget ≤ 4 ms pro Frame, ganzer Lauf als Zeitraffer ≤ 10 s.
 
 ### 4.4 Validierung
 - `sim-reference/` implementiert dieselben Modelle in numpy/scipy (z. B. `scipy.sparse.linalg.cg`, `simpy`-freie eigene DES, damit Ereignisreihenfolge identisch ist).
 - `generate_golden.py` schreibt pro Testfall `golden/<modul>/<fall>.json` (Eingabe + erwartete Ausgabe + Toleranz).
-- C#-Tests laden diese Dateien; Toleranz für deterministische Solver `1e-6` relativ, für DES exakte Gleichheit der KPIs bei gleichem Seed.
+- C#-Tests laden diese Dateien; Toleranz für deterministische Solver `1e-6` relativ (LBM: `1e-4`, wegen vieler Zeitschritte), für DES exakte Gleichheit der KPIs bei gleichem Seed.
 - Zusätzlich analytische Tests (z. B. 1D-Wärmeleitung linear, Fachwerk-Statik von Hand, M/M/1-Warteschlange gegen Formel).
 
 ---
@@ -179,7 +182,7 @@ public enum DidacticPhase { Modelling, Equation, Assembly, Solution, Optimizatio
 
 public interface IMinigame
 {
-    string Id { get; }                          // z. B. "MG01_Heat"
+    string Id { get; }                          // z. B. "MG1_Huddle"
     IReadOnlyList<DidacticPhase> Phases { get; }
     DidacticPhase FocusPhase { get; }
     void Enter(MinigameContext context);        // Leveldaten, Schwierigkeit, Flag „Blick unter die Haube“
@@ -189,27 +192,27 @@ public interface IMinigame
 }
 ```
 
-- Eine generische `MinigamePhaseController`-State-Machine führt durch die Phasen, zeigt Frieda-Dialoge (ink-Knoten `mg01_equation_intro` usw.) und blendet passende UI ein.
+- Eine generische `MinigamePhaseController`-State-Machine führt durch die Phasen, zeigt Frieda-Dialoge (ink-Knoten `mg1_equation_intro` usw.) und blendet passende UI ein.
 - Jedes Minigame besteht aus **Adapter** (ruft Core), **View** (Visualisierung) und **Input-Tools** (Pinsel, Drag-&-Drop, Regler).
 
 ### 5.3 Services
-- `GameState` (Fortschritt, ZWILLI-Fragmente, Sterne, kosmetische Items)
+- `GameState` (Fortschritt, Ausbaustufe der Siedlung, Sterne, kosmetische Items; Erweiterung: ZWILLI-Fragmente)
 - `SaveService` – JSON in `Application.persistentDataPath`; in WebGL IndexedDB-basiert, nach dem Speichern Dateisystem-Sync sicherstellen.
 - `EventBus` – entkoppelt Hub, Minigames, UI.
 - `DialogueService` – ink-Runtime, Variablen-Bridge zu `GameState`.
 - `TelemetryService` – standardmäßig **aus** (siehe Datenschutz).
 
-### 5.4 Datenformat Level (Beispiel MG01)
+### 5.4 Datenformat Level (Beispiel MG1)
 
 ```json
 {
-  "id": "MG01_Heat_Playground",
-  "grid": { "width": 32, "height": 32, "cellSize": 4.0 },
-  "climate": { "airTemp": 24.0, "solar": 800.0, "wind": 2.0 },
-  "materials": "materials_heat_v1",
+  "id": "MG1_Huddle_Settlement",
+  "grid": { "width": 24, "height": 24, "cellSize": 2.0 },
+  "climate": { "airTemp": -30.0, "wind": 8.0, "windDirection": "NW" },
+  "materials": "materials_settlement_v1",
   "initialTiles": "base64-or-rle-encoded-tilemap",
-  "targetZone": { "x": 10, "y": 12, "w": 8, "h": 6 },
-  "goals": { "meanMax": 28.0, "cellMax": 35.0 },
+  "lantern": { "heat": 1.0, "cost": 100 },
+  "goals": { "iglooComfortMin": -8.0, "iglooMelt": 0.0, "iglooTarget": 12 },
   "budget": 1000,
   "rounds": 3
 }
@@ -217,27 +220,28 @@ public interface IMinigame
 Dieselbe Datei wird von Python (`simref`) und vom C#-Core gelesen → Level lassen sich vor dem Einbau in Python durchrechnen und balancen.
 
 ### 5.5 Visualisierung
-- **Heatmap:** Datentextur (32×32, `RGBAHalf` bzw. `R8` normiert als Fallback) + Colormap-LUT im Shader, auf Bodenkacheln projiziert. Farbskalen farbfehlsichtig-tauglich (viridis/cividis), Legende immer sichtbar.
-- **Stromlinien:** GPU-freundliche Partikel (VFX Graph nicht in WebGL → CPU-Partikel/Line Renderer, ≤ 500 Partikel).
-- **Spannungen:** Stab-Mesh mit Vertex-Color + Dicke.
+- **Heatmap:** Datentextur (24×24 bzw. 32×32, `RGBAHalf` bzw. `R8` normiert als Fallback) + Colormap-LUT im Shader, auf Bodenkacheln projiziert. Farbskalen farbfehlsichtig-tauglich (viridis/cividis), Legende immer sichtbar.
+- **Stromlinien und Wirbel (MG2):** GPU-freundliche Partikel (VFX Graph nicht in WebGL → CPU-Partikel/Line Renderer, ≤ 500 Partikel), Wirbelstärke als rote Einfärbung hinter dem Zug.
+- **Fabrik (MG3):** wachsende Kistenstapel als Puffer-Anzeige, blinkende Engpass-Station.
+- *(Erweiterung)* **Spannungen:** Stab-Mesh mit Vertex-Color + Dicke.
 - **Kopplungsfäden:** Linien zwischen Kacheln/Knoten, die beim Assemblieren aufleuchten (Standardmodus statt Matrix).
 - **Ampel- und Sterne-Bewertung:** Jedes Minigame liefert KPIs aus dem Core; ein `ResultTranslator` bildet sie auf Ampel (grün/gelb/rot) und Sterne ab. Keine Rohzahlen im Standardmodus.
 - **Nur „Blick unter die Haube“:** Matrix-View (Sparsity-Pattern), Konvergenzplot, Pareto-Front, Bildfahrplan, Formeln – UI-Toolkit-Painter2D-Komponenten.
-- **Standard-Diagramme:** nur einfache Balken (z. B. „gute und schlechte Tage“ in MG04).
+- **Standard-Diagramme:** nur einfache Balken (z. B. „gute und schlechte Tage“ in MG3).
 
 ### 5.6 UX-Anforderungen für Nicht-Techniker
 - Steuerung ausschließlich Maus/Touch (Gamepad optional), keine Tastenkombinationen nötig.
 - Kein Zeitdruck, kein Game Over; Hilfe-System: nach 2 Fehlversuchen Tipp, nach 3 Lösungshilfe.
 - Texte: max. 2 Zeilen pro Sprechblase, Vorlesefunktion optional, skalierbare Schrift, WCAG-AA-Kontraste, farbfehlsichtig-taugliche Farben (Ampeln zusätzlich mit Symbol ✔ / ! / ✘).
-- Jederzeit speicher- und unterbrechbar; ein Viertel ≤ 10 Min.
+- Jederzeit speicher- und unterbrechbar; ein Minigame ≤ 10 Min.
 - Optionales Vorher-/Nachher-Quiz (5 Fragen, anonym) zur Messung der Lernziele.
 - **Text-Lint im Build:** Ein Editor-Check prüft alle Standardmodus-Texte (ink, Lokalisierung, Transfer-Karten) gegen eine Sperrliste (z. B. `Matrix, FEM, CFD, DES, CBTC, Diskretisierung, Gleichungssystem`) und Formelzeichen; Treffer brechen den Build ab.
 
 ### 5.7 Transfer-Karten „So macht's Siemens“ (Datenmodell)
 ```json
 {
-  "id": "transfer_MG04_factory",
-  "minigame": "MG04_Harbor",
+  "id": "transfer_MG3_factory",
+  "minigame": "MG3_FishFactory",
   "siemensBusiness": "Digital Industries",
   "headline": { "de": "Was du gemacht hast, macht Siemens für Fabriken weltweit", "en": "…" },
   "body": { "de": "max. 60 Wörter …", "en": "…" },
@@ -352,12 +356,12 @@ Das ist der Hebel für das Token-Budget: Der Großteil der KI-generierten Arbeit
 
 | # | Meilenstein | Ergebnis |
 |---|---|---|
-| M0 | Setup | Repo-Struktur, CI (Python + dotnet), Unity-Projekt mit lokalem `simcore`-Paket, Blender-Exportskript, Stil-Test (1 Pinguin + 1 Gebäude im Toon-Look) |
-| M1 | Sim-Core Vertical Slice | `LinearAlgebra`, `Thermal`, `DiscreteEvent`, `Random` in Python + C#, Golden-Tests grün |
-| M2 | Vertical Slice spielbar | Hub-Ausschnitt, MG01 + MG04 mit allen Phasen, 2 Transfer-Screens, Akt-1-Dialoge, WebGL-Build intern gehostet |
+| M0 | Setup | Repo-Struktur, CI (Python + dotnet), Unity-Projekt mit lokalem `simcore`-Paket, Blender-Exportskript, Stil-Test (1 Pinguin + 1 Iglu + 1 Laterne im Toon-Look) |
+| M1 | Sim-Core Vertical Slice | `LinearAlgebra`, `Thermal` (Huddle + Siedlung + Schmelz-Kaskade) in Python + C#, Golden-Tests grün |
+| M2 | Vertical Slice spielbar | Hub-Ausschnitt (Huddle-Platz), MG1 mit allen Phasen, 1 Transfer-Screen (Schaltschrank), Prolog-/Akt-1-Dialoge, WebGL-Build intern gehostet |
 | M3 | Playtest & Auswertung | Playtest mit 10–15 Kolleg:innen ohne technischen Hintergrund, Vorher-/Nachher-Quiz, Anpassungen Didaktik/UX |
-| M4 | Release 1 | + Prolog (Huddle), MG06, Speichern, Lokalisierung EN |
-| M5 | Release 2 | + MG02, MG03, MG05, Finale MG07, optional Leaderboard |
+| M4 | Release 1 – Kernspiel | + `Flow` (LBM) und `DiscreteEvent`/`Random`, MG2 Polar-Express, MG3 Fischfabrik, Epilog, Speichern, Lokalisierung EN |
+| M5 | Release 2 – Erweiterung (optional) | Smart City Pingopolis gemäß Dokument 05; optional MG2-B, Leaderboard |
 
 ---
 
@@ -368,7 +372,7 @@ Das ist der Hebel für das Token-Budget: Der Großteil der KI-generierten Arbeit
 - [ ] Abnahme-Kriterien für Nicht-Techniker aus Dokument 00, Abschnitt 6 erfüllt
 - [ ] Standardmodus ohne Formeln/Fachabkürzungen (Text-Lint grün)
 - [ ] Transfer-Karte „So macht's Siemens“ vollständig und freigegeben, inkl. Kundennutzen und „Das kannst du jetzt erzählen“
-- [ ] Viertel-Schild und Siemens-Landkarten-Eintrag vorhanden
+- [ ] Orts-Schild und Siemens-Landkarten-Eintrag vorhanden
 - [ ] Optional: „Blick unter die Haube“ zeigt Modellstruktur und Konvergenz
 - [ ] DE/EN-Texte, farbfehlsichtig-taugliche Darstellung, kein Zeitdruck-Zwang
 - [ ] Solve < 50 ms im WebGL-Build, keine GC-Spikes im Solver
