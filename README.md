@@ -24,6 +24,8 @@ Die früher ausgearbeitete Smart City **Pingopolis** ist jetzt eine optionale **
 | [docs/05_Erweiterung_Pingopolis_SmartCity.md](docs/05_Erweiterung_Pingopolis_SmartCity.md) | **Erweiterung:** Smart City Pingopolis – Konzept, Story, 8 weitere Minigames |
 | [docs/06_Open_Questions_Prototype.md](docs/06_Open_Questions_Prototype.md) | Offene Fragen für User- und Tech-Spezifikation des ersten Prototyps |
 | [specs/001-mg1-vertical-slice/spec.md](specs/001-mg1-vertical-slice/spec.md) | **Prototyp v0.1:** Anforderungen mit Prüfart, Annahmen zu den offenen Fragen, bekannte Grenzen |
+| [specs/002-v0.2-lernen-und-leben/spec.md](specs/002-v0.2-lernen-und-leben/spec.md) | **v0.2:** neue Figuren (Theo, Klara, Flocke, sichtbarer ZWILLI), Was-wäre-wenn, Iglu-Waage, Ton, Notizbuch, Prüfschritte |
+| [.agency/](.agency/README.md) | Arbeitsweise (Rollen, Definition of Done, Entscheidungen, Review von v0.1) nach dem Agency Blueprint |
 
 ## Stack (Kurzfassung)
 
@@ -38,8 +40,8 @@ Titel → Hub „Huddle-Platz“ → Prolog „Der letzte Huddle“ → MG1 „D
 | Python-Referenz (Wärmemodelle, Balancing) | `sim-reference/` | getestet (pytest) |
 | Golden Files | `golden/` | aus der Python-Referenz erzeugt |
 | C#-Simulationskern (UPM-Paket, ohne UnityEngine) | `sim-core/com.sfe.simcore/` | getestet (`dotnet test`, Abgleich mit Golden Files) |
-| Unity-Spiel (alles per Code gebaut) | `unity/PinguinKolonie/` | kompiliert gegen Unity-Referenz-Assemblies, **noch nicht im Editor gespielt** |
-| Text-Lint (Sprachregeln für Nicht-Techniker) | `tools/text_lint.py` | läuft in CI |
+| Unity-Spiel (alles per Code gebaut) | `unity/PinguinKolonie/` | kompiliert gegen Unity 6 (`tools/unity_compile_check`), **noch nicht im Editor gespielt** |
+| Text-Lint (Sprachregeln für Nicht-Techniker, auch Texte im C#-Code) | `tools/text_lint.py` | läuft in CI |
 
 Starten in Unity: [unity/PinguinKolonie/README.md](unity/PinguinKolonie/README.md).
 Tests ohne Unity:
@@ -49,6 +51,7 @@ pip install -r sim-reference/requirements.txt
 python tools/text_lint.py
 cd sim-reference && python -m pytest -q && cd ..
 dotnet test "sim-core/com.sfe.simcore/Dotnet~/Tests/SFE.SimCore.Tests.csproj"
+powershell -ExecutionPolicy Bypass -File tools/unity_compile_check/check.ps1   # nur mit installiertem Unity 6
 ```
 
 > **Hinweis Klassifizierung:** Dieses GitHub-Repository ist öffentlich, die Konzeptdokumente gelten laut docs/04 als „Restricted“ (offene Fragen 0-03 und N-01 in docs/06).

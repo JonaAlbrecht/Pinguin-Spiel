@@ -31,7 +31,7 @@
     },
     {
       "game": {
-        "de": "Iglu schmilzt ab 0 °C"
+        "de": "Iglu schmilzt, wenn es zu warm wird"
       },
       "real": {
         "de": "Bauteile nehmen ab einer Höchsttemperatur Schaden"
@@ -76,5 +76,75 @@
     "department": null,
     "communications": null,
     "date": null
-  }
+  },
+  "retrieval": [
+    {
+      "question": {
+        "de": "Was macht man, bevor ein Schaltschrank gebaut wird?"
+      },
+      "options": [
+        {
+          "text": {
+            "de": "Man baut ihn und wartet ab, ob er heiß wird."
+          },
+          "correct": false,
+          "feedback": {
+            "de": "Das wäre Kalles Plan – und teuer, wenn etwas kaputtgeht."
+          }
+        },
+        {
+          "text": {
+            "de": "Man simuliert, wie warm die Bauteile werden."
+          },
+          "correct": true,
+          "feedback": {
+            "de": "Genau! So geht nichts durch Überhitzung kaputt."
+          }
+        },
+        {
+          "text": {
+            "de": "Man stellt möglichst viele Laternen hinein."
+          },
+          "correct": false,
+          "feedback": {
+            "de": "Laternen gibt es nur bei den Pinguinen. Im Schrank werden die Bauteile selbst warm."
+          }
+        }
+      ]
+    },
+    {
+      "question": {
+        "de": "In welchem Bereich von Siemens geht es um Schaltschränke?"
+      },
+      "options": [
+        {
+          "text": {
+            "de": "Mobility – Züge und Bahnen"
+          },
+          "correct": false,
+          "feedback": {
+            "de": "Züge kommen später – beim Polar-Express. Hier geht es ums Stromnetz."
+          }
+        },
+        {
+          "text": {
+            "de": "Healthineers – Medizintechnik"
+          },
+          "correct": false,
+          "feedback": {
+            "de": "Nicht ganz. Denk an Friedas Stromnetz mit den Laternen."
+          }
+        },
+        {
+          "text": {
+            "de": "Smart Infrastructure – Strom verteilen und schützen"
+          },
+          "correct": true,
+          "feedback": {
+            "de": "Richtig! Das ist Karte 1 deiner Siemens-Landkarte."
+          }
+        }
+      ]
+    }
+  ]
 }

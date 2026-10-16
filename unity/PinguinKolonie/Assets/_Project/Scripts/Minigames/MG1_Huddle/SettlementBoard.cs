@@ -30,12 +30,15 @@ namespace SFE.Game
         public int Width => _w;
         public int Height => _h;
 
-        public static SettlementBoard Create(Transform parent, Vector3 origin, SettlementLevel level)
+        private string _windLabel;
+
+        public static SettlementBoard Create(Transform parent, Vector3 origin, SettlementLevel level, string windLabel)
         {
             var go = new GameObject("SettlementBoard");
             go.transform.SetParent(parent, false);
             go.transform.position = origin;
             var b = go.AddComponent<SettlementBoard>();
+            b._windLabel = windLabel;
             b.Init(level);
             return b;
         }
@@ -86,7 +89,7 @@ namespace SFE.Game
             Prims.Make(PrimitiveType.Cube, arrow, new Vector3(0, 0, -0.4f), new Vector3(0.25f, 0.12f, 1.6f), c, "Shaft");
             var head = Prims.Make(PrimitiveType.Cube, arrow, new Vector3(0, 0, 0.5f), new Vector3(0.7f, 0.12f, 0.7f), c, "Head");
             head.transform.localRotation = Quaternion.Euler(0, 45, 0);
-            var label = Prims.Label(arrow, "Wind", new Vector3(0, 0.5f, -0.6f), 0.06f, new Color(0.2f, 0.35f, 0.6f));
+            var label = Prims.Label(arrow, _windLabel, new Vector3(0, 0.5f, -0.6f), 0.06f, new Color(0.2f, 0.35f, 0.6f));
             label.transform.rotation = Quaternion.Euler(60, 0, 0);
         }
 
@@ -217,6 +220,7 @@ namespace SFE.Game
                 }
                 yield return null;
             }
+            if (cells.Length > 0) Sfx.Play(Sfx.Sound.Splash);
             foreach (int i in cells)
             {
                 if (_objects.TryGetValue(i, out var go)) Destroy(go);
@@ -227,7 +231,8 @@ namespace SFE.Game
                 if (!_duckPlaced)
                 {
                     _duckPlaced = true;
-                    var chick = Prims.Penguin(p.transform, "Kueken", Prims.Look.Plain, 0.45f);
+                    // Flocke (docs/02: das planschende Küken) – seit v0.2 eine eigene Figur mit Pfützen-Sammlung
+                    var chick = Prims.Penguin(p.transform, "Flocke", Prims.Look.Flocke, 0.8f);
                     chick.transform.localPosition = new Vector3(0.1f, 0f, 0f);
                     chick.AddComponent<Bobber>();
                 }

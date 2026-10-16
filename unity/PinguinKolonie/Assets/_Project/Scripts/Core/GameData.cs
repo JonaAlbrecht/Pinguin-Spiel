@@ -27,6 +27,7 @@ namespace SFE.Game
         public SettlementMaterialSet Materials;
         public HuddleLevel Huddle;
         public Dictionary<string, object> Mg1Content;
+        public Dictionary<string, object> UiText;
         public Dictionary<string, object> TransferCard;
         public readonly Dictionary<string, List<DialogueLine>> Dialogue = new Dictionary<string, List<DialogueLine>>();
         public readonly Dictionary<string, Speaker> Speakers = new Dictionary<string, Speaker>();
@@ -38,6 +39,7 @@ namespace SFE.Game
                 Settlement = SettlementLevel.FromJson(Text("Data/Levels/MG1_Huddle_Settlement")),
                 Huddle = HuddleLevel.FromJson(Text("Data/Levels/MG1A_LastHuddle")),
                 Mg1Content = MiniJson.ParseObject(Text("Data/Content/mg1_content_de")),
+                UiText = MiniJson.ParseObject(Text("Data/Content/ui_de")),
                 TransferCard = MiniJson.ParseObject(Text("Data/Transfer/transfer_MG1_switchgear")),
             };
             d.Materials = SettlementMaterialSet.FromJson(Text("Data/Materials/" + d.Settlement.MaterialsId));
@@ -65,6 +67,39 @@ namespace SFE.Game
 
         public string Content(string key) => Mg1Content.Str(key);
 
+        /// <summary>
+        /// Oberflächentext aus <c>ui_de.json</c>. Alle Spieltexte kommen von hier oder aus den Dialogen –
+        /// nie als C#-Literal, sonst prüft sie der Text-Lint nicht gegen die Sprachregeln.
+        /// </summary>
+        public string Ui(string key, params object[] args) => Format(UiText, key, args);
+
+        /// <summary>Technischer Text, nur für „Blick unter die Haube“ (vom Text-Lint ausgenommen).</summary>
+        public string Tech(string key, params object[] args) => Format(UiText.Obj("underTheHood"), key, args);
+
+        private static string Format(Dictionary<string, object> table, string key, object[] args)
+        {
+            if (!table.TryGetValue(key, out object v) || !(v is string s))
+            {
+                Debug.LogWarning("Oberflächentext fehlt: " + key);
+                return key;
+            }
+            return args == null || args.Length == 0 ? s : string.Format(German, s, args);
+        }
+
+        /// <summary>
+        /// Deutsche Zahlen (Komma, Tausenderpunkt) ohne Kulturdaten: WebGL-Builds laufen mit invarianter
+        /// Globalisierung, dort fehlt „de-DE“ – darum von Hand statt CultureInfo.GetCultureInfo.
+        /// </summary>
+        public static readonly System.IFormatProvider German = MakeGerman();
+
+        private static System.IFormatProvider MakeGerman()
+        {
+            var nfi = (System.Globalization.NumberFormatInfo)System.Globalization.CultureInfo.InvariantCulture.NumberFormat.Clone();
+            nfi.NumberDecimalSeparator = ",";
+            nfi.NumberGroupSeparator = ".";
+            return nfi;
+        }
+
         public static string Text(string resourcePath)
         {
             var asset = Resources.Load<TextAsset>(resourcePath);
@@ -85,11 +120,21 @@ namespace SFE.Game
     {
         public bool PrologueDone;
         public bool Mg1Done;
-        public int Mg1BestStars;
+        /// <summary>-1 = noch keine Runde gespielt. Gilt über „nochmal planen“ hinweg (F-02: die beste Runde zählt).</summary>
+        public int Mg1BestStars = -1;
         public string[] Mg1BestLayout;
+        /// <summary>End-Raster der besten Runde (geschmolzene Iglus als Wasser) – dazu passen die IglooStates.</summary>
+        public string[] Mg1BestFinalRows;
         public SettlementResult Mg1BestResult;
         public double[] Mg1BestTemperatures;
         public Texture2D Mg1Snapshot;
         public readonly List<string> Glossary = new List<string>();
+        /// <summary>Wie viele Iglus im ganzen Spiel zu Pfützen wurden – Flockes Sammlung im Notizbuch.</summary>
+        public int Puddles;
+        /// <summary>Freigeschaltete Karten der Siemens-Landkarte (docs/00 Abschnitt 4).</summary>
+        public int MapCards;
+        public const int MapCardsTotal = 3;
+        /// <summary>Satz zum Weitererzählen, sobald die Transfer-Karte gesehen wurde.</summary>
+        public string Takeaway;
     }
 }

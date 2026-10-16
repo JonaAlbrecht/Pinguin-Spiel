@@ -47,12 +47,25 @@ namespace SFE.Game
             }
         }
 
+        /// <summary>
+        /// Ein Material je Farbe, geteilt. Farben werden auf 1/32 gerundet: Der Prolog färbt Pinguine
+        /// stufenlos nach Temperatur, ohne Rundung entstanden so rund 100 neue Materialien pro Sekunde,
+        /// die der Cache nie freigab (Review zu PR #2). 32 Stufen je Kanal sieht man nicht als Sprung.
+        /// </summary>
         public static Material Mat(Color color)
         {
+            color = Quantize(color);
             if (Cache.TryGetValue(color, out var m) && m != null) return m;
             m = new Material(LitBase) { color = color };
             Cache[color] = m;
             return m;
+        }
+
+        private static Color Quantize(Color c)
+        {
+            const float steps = 32f;
+            return new Color(Mathf.Round(c.r * steps) / steps, Mathf.Round(c.g * steps) / steps,
+                Mathf.Round(c.b * steps) / steps, Mathf.Round(c.a * steps) / steps);
         }
 
         public static GameObject Make(PrimitiveType type, Transform parent, Vector3 localPos, Vector3 scale, Color color,
@@ -90,7 +103,7 @@ namespace SFE.Game
 
         // ---------- Figuren ----------
 
-        public enum Look { Plain, Pip, Frieda, Kalle, Grete }
+        public enum Look { Plain, Pip, Frieda, Kalle, Grete, Theo, Klara, Flocke }
 
         /// <summary>Ein Pinguin aus Primitiven, ca. 0,6 m hoch. Gibt die Wurzel zurück; „Belly“ und „Ring“ sind einfärbbar.</summary>
         public static GameObject Penguin(Transform parent, string name, Look look = Look.Plain, float size = 1f)
@@ -133,6 +146,25 @@ namespace SFE.Game
                     break;
                 case Look.Grete:
                     Make(PrimitiveType.Cube, body, new Vector3(0, 0.45f, 0.0f), new Vector3(0.40f, 0.14f, 0.36f), new Color(0.55f, 0.30f, 0.60f), "Shawl");
+                    break;
+                case Look.Theo:
+                    // Messpinguin: Thermometer-Stab unter dem Flügel, Kappe in Thermometer-Rot
+                    Make(PrimitiveType.Cylinder, body, new Vector3(0.24f, 0.38f, 0.06f), new Vector3(0.035f, 0.20f, 0.035f), Color.white, "Thermometer");
+                    Make(PrimitiveType.Sphere, body, new Vector3(0.24f, 0.17f, 0.06f), Vector3.one * 0.08f, new Color(0.85f, 0.15f, 0.15f), "Bulb");
+                    Make(PrimitiveType.Cylinder, body, new Vector3(0.24f, 0.32f, 0.075f), new Vector3(0.02f, 0.14f, 0.02f), new Color(0.85f, 0.15f, 0.15f), "Mercury");
+                    Make(PrimitiveType.Sphere, body, new Vector3(0, 0.74f, 0.0f), new Vector3(0.28f, 0.10f, 0.28f), new Color(0.75f, 0.2f, 0.2f), "Cap");
+                    break;
+                case Look.Klara:
+                    // Kassenwartin: grüner Augenschirm und Kassenbuch
+                    Make(PrimitiveType.Cube, body, new Vector3(0, 0.72f, 0.12f), new Vector3(0.30f, 0.03f, 0.16f), new Color(0.15f, 0.6f, 0.35f), "Visor");
+                    Make(PrimitiveType.Cube, body, new Vector3(-0.22f, 0.32f, 0.08f), new Vector3(0.05f, 0.20f, 0.15f), new Color(0.55f, 0.35f, 0.2f), "Ledger");
+                    break;
+                case Look.Flocke:
+                    // Küken: flauschig grau, großer Kopf
+                    root.transform.localScale = Vector3.one * size * 0.55f;
+                    SetColor(body.Find("Torso").gameObject, new Color(0.62f, 0.64f, 0.68f));
+                    SetColor(body.Find("Head").gameObject, new Color(0.62f, 0.64f, 0.68f));
+                    body.Find("Head").localScale = new Vector3(0.38f, 0.36f, 0.36f);
                     break;
             }
             return root;
@@ -198,6 +230,81 @@ namespace SFE.Game
             root.transform.localScale = Vector3.one * scale;
             Make(PrimitiveType.Cylinder, root.transform, new Vector3(0, 0.01f, 0), new Vector3(0.85f, 0.01f, 0.75f), Palette.Water, "Water");
             return root;
+        }
+    }
+
+    /// <summary>
+    /// ZWILLI als Hologramm: ein leuchtend türkiser Pinguin, der flackert und zittert. Je kleiner
+    /// <see cref="Glitch"/>, desto stabiler – ZWILLI „wächst“ mit jedem Schritt (docs/02).
+    /// Ohne Transparenz gebaut: Durchsichtige Materialien bräuchten je nach Render-Pipeline eigene Shader.
+    /// </summary>
+    public sealed class Hologram : MonoBehaviour
+    {
+        public float Glitch = 0.6f;
+        private Renderer[] _parts;
+        private Vector3 _base;
+        private float _nextFlicker;
+
+        public static GameObject Create(Transform parent, float size = 1f)
+        {
+            var root = Prims.Penguin(parent, "ZWILLI", Prims.Look.Plain, size);
+            var cyan = new Color(0.25f, 0.85f, 0.95f);
+            foreach (var r in root.GetComponentsInChildren<Renderer>())
+                r.sharedMaterial = Prims.Mat(r.name == "Belly" ? new Color(0.75f, 0.97f, 1f) : cyan);
+            Prims.Make(PrimitiveType.Cylinder, root.transform, new Vector3(0, -0.02f, 0), new Vector3(0.75f, 0.02f, 0.75f),
+                new Color(0.1f, 0.4f, 0.5f), "Projector");
+            root.AddComponent<Hologram>();
+            return root;
+        }
+
+        private void Start()
+        {
+            _parts = GetComponentsInChildren<Renderer>();
+            _base = transform.localPosition;
+        }
+
+        private void Update()
+        {
+            transform.localPosition = _base + Vector3.up * (0.12f + Mathf.Sin(Time.time * 2f) * 0.04f);
+            if (Time.time < _nextFlicker) return;
+            _nextFlicker = Time.time + Random.Range(0.05f, 0.3f);
+            bool glitchNow = Random.value < Glitch * 0.5f;
+            foreach (var r in _parts) if (r.name != "Projector") r.enabled = !glitchNow || Random.value > 0.5f;
+            transform.localPosition += glitchNow ? new Vector3(Random.Range(-0.05f, 0.05f), 0, 0) * Glitch : Vector3.zero;
+        }
+    }
+
+    /// <summary>Kolonie-Pinguine im Hub watscheln gemächlich umher und bleiben in ihrem Kreis.</summary>
+    public sealed class Wanderer : MonoBehaviour
+    {
+        public Vector3 Home;
+        public float Radius = 2.5f;
+        private Vector3 _target;
+        private float _wait;
+        private Transform _body;
+
+        private void Start()
+        {
+            Home = transform.localPosition;
+            _target = Home;
+            _body = transform.Find("Body");
+        }
+
+        private void Update()
+        {
+            if (_wait > 0) { _wait -= Time.deltaTime; if (_body != null) _body.localRotation = Quaternion.identity; return; }
+            var to = _target - transform.localPosition;
+            to.y = 0;
+            if (to.magnitude < 0.05f)
+            {
+                var r = Random.insideUnitCircle * Radius;
+                _target = Home + new Vector3(r.x, 0, r.y);
+                _wait = Random.Range(1.5f, 4f);
+                return;
+            }
+            transform.localPosition += to.normalized * Mathf.Min(0.8f * Time.deltaTime, to.magnitude);
+            transform.localRotation = Quaternion.Slerp(transform.localRotation, Quaternion.LookRotation(to.normalized, Vector3.up), 5f * Time.deltaTime);
+            if (_body != null) _body.localRotation = Quaternion.Euler(0, 0, Mathf.Sin(Time.time * 12f) * 7f);
         }
     }
 

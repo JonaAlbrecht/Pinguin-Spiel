@@ -26,7 +26,7 @@ namespace SFE.SimCore.Tests
         {
             var g = MiniJson.ParseObject(TestPaths.Read(TestPaths.Golden($"thermal/{name}.json")));
             double tol = g.Num("tolerance");
-            var level = Level;
+            var level = g.Has("overrides") ? Level.With(g.Obj("overrides")) : Level;
             var mats = Materials;
             var grid = SettlementGrid.FromRows(g.StrArray("tiles"));
 
@@ -54,6 +54,14 @@ namespace SFE.SimCore.Tests
             var passes = MiniJson.NumArray(g.Arr("meltPasses"));
             Assert.AreEqual(passes.Length, sim.MeltPasses.Count, "Anzahl Schmelz-Durchläufe");
             for (int p = 0; p < passes.Length; p++) Assert.AreEqual((int)passes[p], sim.MeltPasses[p].Length);
+
+            // Waage je Zelle im Endzustand (Iglu antippen in Schritt 5)
+            var bal = SettlementBalance.Compute(sim.Grid, level, mats, sim.Temperatures);
+            var eb = g.Obj("balance");
+            AssertClose(MiniJson.NumArray(eb.Arr("source")), bal.Source, tol, "Waage: Quelle");
+            AssertClose(MiniJson.NumArray(eb.Arr("fromNeighbours")), bal.FromNeighbours, tol, "Waage: von Nachbarn");
+            AssertClose(MiniJson.NumArray(eb.Arr("toNeighbours")), bal.ToNeighbours, tol, "Waage: an Nachbarn");
+            AssertClose(MiniJson.NumArray(eb.Arr("toAir")), bal.ToAir, tol, "Waage: an die Luft");
 
             var e = g.Obj("result");
             Assert.AreEqual(e.Int("igloosTotal"), r.IgloosTotal, "igloosTotal");
@@ -89,6 +97,45 @@ namespace SFE.SimCore.Tests
             Assert.AreEqual(1, SettlementResult.ComputeStars(r, level));
             r.Comfortable = 11;
             Assert.AreEqual(0, SettlementResult.ComputeStars(r, level));
+        }
+
+        [Test]
+        public void Balance_ClosesForEveryCell_InTheExampleSettlement()
+        {
+            var level = Level;
+            var sim = new SettlementSimulation(SettlementGrid.FromRows(level.HintTiles), level, Materials);
+            sim.RunToEnd();
+            var b = SettlementBalance.Compute(sim.Grid, level, Materials, sim.Temperatures);
+            for (int i = 0; i < sim.Grid.CellCount; i++)
+                Assert.AreEqual(b.In(i), b.Out(i), 1e-6 * System.Math.Max(1.0, b.In(i)), $"Zelle {i}: rein = raus");
+        }
+
+        [Test]
+        public void WhatIf_NoWind_PromisesCosyIgloos_ThatReallyFreeze()
+        {
+            var level = Level;
+            Assert.IsTrue(level.WhatIf.ContainsKey("noWind"), "Level ohne whatIf.noWind");
+            var w = level.WhatIf["noWind"];
+            CollectionAssert.AreNotEqual(level.HintTiles, w.Tiles, "Was-wäre-wenn darf die Lösung aus Schritt 5 nicht vorwegnehmen");
+            var real = SettlementSimulation.Run(SettlementGrid.FromRows(w.Tiles), level, Materials);
+            var noWind = SettlementSimulation.Run(SettlementGrid.FromRows(w.Tiles), level.With(w.Overrides), Materials);
+            Assert.AreEqual(real.IgloosTotal, real.Cold, "in echt frieren alle");
+            Assert.AreEqual(real.IgloosTotal, noWind.Comfortable, "ohne Wind sagt das Modell: alle gemütlich");
+            Assert.AreEqual(8.0, level.Wind, "With() darf das Original nicht verändern");
+        }
+
+        [Test]
+        public void With_RejectsUnknownKeys()
+        {
+            var bad = new Dictionary<string, object> { { "wnd", 2.0 } };
+            Assert.Throws<System.ArgumentException>(() => Level.With(bad));
+        }
+
+        [Test]
+        public void Stars_AreZero_WhenOverBudget_EvenIfEverythingIsCosy()
+        {
+            var r = new SettlementResult { Comfortable = 12, Melted = 0, Cost = 1100 };
+            Assert.AreEqual(0, SettlementResult.ComputeStars(r, Level));
         }
 
         private static void AssertClose(double[] expected, double[] actual, double relTol, string what)

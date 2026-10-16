@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Assembly-CSharp-Editor: Menue, Szene erzeugen, Builds -->
+  <PropertyGroup>
+    <AssemblyName>Assembly-CSharp-Editor</AssemblyName>
+    <DefineConstants>UNITY_EDITOR;UNITY_6000_0_OR_NEWER;UNITY_2021_3_OR_NEWER;ENABLE_LEGACY_INPUT_MANAGER</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(Scripts)Editor\**\*.cs" />
+    <ProjectReference Include="Game.Legacy.csproj" />
+    <Reference Include="$(UnityEditorData)\Managed\UnityEngine\UnityEditor*.dll" Private="false" />
+  </ItemGroup>
+</Project>

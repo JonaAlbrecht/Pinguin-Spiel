@@ -28,7 +28,7 @@ namespace SFE.Game
         private float _accumulated;
         private float _progress;
         private int _dragging = -1;
-        private float _frozenSince = -1f;
+        private float _frozenFor;
         private int _hintsGiven;
         private Image _barFill;
         private Text _barText;
@@ -55,15 +55,18 @@ namespace SFE.Game
             _running = true;
             while (_progress < _level.TargetSeconds)
             {
-                if (_root.Hud.DialogOpen) { yield return null; continue; }
+                if (_root.Hud.Blocking) { yield return null; continue; }
                 yield return null;
             }
             _running = false;
-            _root.Hud.Toast("Alle sind warm geblieben!", 3f);
+            Sfx.Wind(0.15f);
+            Sfx.Play(Sfx.Sound.Success);
+            _root.Hud.Toast(_root.Data.Ui("prologueAllWarm"), 3f);
             foreach (var p in _penguins) p.AddComponent<Bobber>().Amplitude = 0.08f;
             yield return new WaitForSeconds(1.5f);
             yield return _root.Hud.Say("prologue_done");
             yield return _root.Hud.FadeOut();
+            Sfx.Wind(0f);
             Destroy(_ui);
             Destroy(gameObject);
         }
@@ -123,12 +126,11 @@ namespace SFE.Game
             UIKit.Place(_barFill.rectTransform, 0, 0, 0, 1, 4, 4, 0, 4);
             _barText = UIKit.Label(bar.transform, "", 28, Palette.TextLight, TextAnchor.MiddleCenter, FontStyle.Bold);
             UIKit.Fill(_barText.rectTransform);
-            var legend = UIKit.Label(rt, "Blau = friert   ·   Gelb/Orange = warm   ·   Pinguine mit Maus oder Finger ziehen", 24,
-                Palette.Text, TextAnchor.MiddleCenter);
+            var legend = UIKit.Label(rt, _root.Data.Ui("prologueLegend"), 24, Palette.Text, TextAnchor.MiddleCenter);
             UIKit.PlaceFixed(legend.rectTransform, new Vector2(0.5f, 1f), new Vector2(0, -112), new Vector2(1400, 36));
             if (_root.State.PrologueDone)
             {
-                var skip = UIKit.Button(rt, "Überspringen", () => _progress = (float)_level.TargetSeconds, Palette.ButtonAlt, 24);
+                var skip = UIKit.Button(rt, _root.Data.Ui("prologueSkip"), () => _progress = (float)_level.TargetSeconds, Palette.ButtonAlt, 24);
                 UIKit.PlaceFixed((RectTransform)skip.transform, new Vector2(1f, 1f), new Vector2(-130, -60), new Vector2(220, 56));
             }
         }
@@ -151,13 +153,13 @@ namespace SFE.Game
             HandleDrag();
             Separate();
 
-            if (!_root.Hud.DialogOpen)
+            if (!_root.Hud.Blocking)
             {
                 _windTimer += Time.deltaTime;
                 if (!_warned && _windTimer > _level.WindChangeEvery - _level.WindWarning)
                 {
                     _warned = true;
-                    _root.Hud.Toast("Achtung, der Wind dreht gleich!", (float)_level.WindWarning);
+                    _root.Hud.Toast(_root.Data.Ui("prologueWindTurns"), (float)_level.WindWarning);
                 }
                 if (_windTimer >= _level.WindChangeEvery) SetWind(_windIndex + 1);
 
@@ -168,32 +170,37 @@ namespace SFE.Game
                     _accumulated -= (float)_level.SimStep;
                 }
 
-                bool anyFrozen = false;
-                for (int i = 0; i < _model.Count; i++) if (_model.Temperatures[i] < _level.FreezeBelow) anyFrozen = true;
-                if (!anyFrozen)
+                int frozen = 0;
+                for (int i = 0; i < _model.Count; i++) if (_model.Temperatures[i] < _level.FreezeBelow) frozen++;
+                // Je mehr Pinguine frieren, desto lauter pfeift der Wind – hörbar, wer ungeschützt steht.
+                Sfx.Wind(0.25f + 0.75f * frozen / (float)_model.Count);
+                if (frozen == 0)
                 {
                     _progress += Time.deltaTime;
-                    _frozenSince = -1f;
+                    _frozenFor = 0f;
                 }
                 else
                 {
-                    if (_frozenSince < 0) _frozenSince = Time.time;
-                    if (Time.time - _frozenSince > 8f && _hintsGiven < 3)
+                    // Gezählt wird nur Spielzeit: Lief die Uhr während eines Tipps weiter, kam der nächste
+                    // Tipp sofort nach dem Wegklicken (Review zu PR #2).
+                    _frozenFor += Time.deltaTime;
+                    if (_frozenFor > 8f && _hintsGiven < 3)
                     {
                         _hintsGiven++;
-                        _frozenSince = Time.time;
+                        _frozenFor = 0f;
                         _root.Hud.Run(_root.Hud.Say("prologue_hint_freeze"));
                     }
                 }
             }
             UpdateVisuals();
+            if (_root.Hud.Blocking) Sfx.Wind(0.15f); // Während Grete spricht, ruht auch der Sturm (Wind steht still)
             _barFill.rectTransform.anchorMax = new Vector2(Mathf.Clamp01(_progress / (float)_level.TargetSeconds), 1);
-            _barText.text = $"Alle warm: {Mathf.FloorToInt(_progress)} von {Mathf.RoundToInt((float)_level.TargetSeconds)} Sekunden";
+            _barText.text = _root.Data.Ui("prologueBar", Mathf.FloorToInt(_progress), Mathf.RoundToInt((float)_level.TargetSeconds));
         }
 
         private void HandleDrag()
         {
-            if (_root.Hud.DialogOpen) { _dragging = -1; return; }
+            if (_root.Hud.Blocking) { _dragging = -1; return; }
             if (!InputHelper.PointerOnGround(_root.Rig.Cam, out var p)) return;
             var local = p - transform.position;
             if (InputHelper.PointerDown && !InputHelper.PointerOverUI)

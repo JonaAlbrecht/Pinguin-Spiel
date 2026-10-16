@@ -1,0 +1,10 @@
+# Review-Anfragen an QA_ENGINEER (Peer-Review vor dem Merge, Blueprint Abschnitt 3)
+- request: "Review v0.2 Lernen und Leben"
+  branch: feature/v0.2-lernen-und-leben
+  spec: specs/002-v0.2-lernen-und-leben/spec.md
+  criteria: ["Definition of Done", "Laufzeitfehler in der Unity-Schicht", "Ehrlichkeit der Darstellung (Gesetz 7)", "Sprachregeln"]
+  status: geprüft 2026-10-16 – 1 Blocker, 7 wichtig, Nits
+  result: >
+    Blocker (Waage zeigte immer Gleichgewicht, Texte behaupteten Ungleichgewicht) und alle wichtigen Befunde behoben;
+    offen als Frage an das Team: „nochmal planen“ spielt alle Schritte 1–4 erneut; Theos Messabweichung ist erzählt,
+    nicht gerechnet; Wind-Loop vor erster Nutzereingabe im WebGL-Build testen.

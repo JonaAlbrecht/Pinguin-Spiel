@@ -113,6 +113,11 @@
       "text": "Der Computer probiert aus, was passieren wird."
     },
     {
+      "phase": "twin",
+      "term": "Digitaler Zwilling",
+      "text": "Ein Abbild im Computer, an dem man gefahrlos ausprobiert, was in echt passieren würde."
+    },
+    {
       "phase": "optimization",
       "term": "Optimieren",
       "text": "Schritt für Schritt besser machen."
@@ -138,5 +143,20 @@
     "lantern": "Laterne",
     "wall": "Schneewall",
     "erase": "Radierer"
+  },
+  "balance": {
+    "title": "Die Waage dieses Iglus",
+    "in": "Wärme kommt rein",
+    "out": "Wärme geht raus",
+    "source": "eigene Wärme",
+    "fromNeighbours": "von den Nachbarn",
+    "toNeighbours": "an die Nachbarn",
+    "toAir": "an Wind und Luft",
+    "cold": "Zu kalt: Es pendelt sich zu kalt ein. Schau, woher die Wärme kommt – fehlt eine Laterne in der Nähe? Ein Schneewall hält den Wind ab.",
+    "comfy": "Gemütlich: Es pendelt sich bei angenehmer Wärme ein.",
+    "melting": "Zu warm: Es pendelt sich so warm ein, dass es tropft. Etwas mehr Abstand zur Laterne hilft.",
+    "puddle": "Hier ist ein Iglu geschmolzen. Es war zu warm.",
+    "notIgloo": "Tipp auf ein Iglu, um seine Waage zu sehen.",
+    "explain": "Beide Seiten sind immer gleich lang: Was reinkommt, geht auch wieder raus. So pendelt sich jedes Iglu ein – nur bei verschiedener Wärme."
   }
 }
