@@ -1,0 +1,26 @@
+{
+  "id": "MG1A_LastHuddle",
+  "penguins": 12,
+  "penguinRadius": 0.32,
+  "arenaRadius": 6.0,
+  "spawnRadius": 4.5,
+  "startTemp": 25.0,
+  "freezeBelow": 18.0,
+  "simSecondsPerSecond": 4.0,
+  "simStep": 1.0,
+  "targetSeconds": 45.0,
+  "windChangeEvery": 20.0,
+  "windWarning": 5.0,
+  "windSequence": ["W", "N", "E", "NW", "S"],
+  "model": {
+    "heat": 3.0,
+    "capacity": 20.0,
+    "contact": 0.25,
+    "hExposed": 0.10,
+    "hShielded": 0.04,
+    "contactDistance": 0.85,
+    "shieldDistance": 1.0,
+    "shieldCone": 0.5,
+    "airTemp": -30.0
+  }
+}

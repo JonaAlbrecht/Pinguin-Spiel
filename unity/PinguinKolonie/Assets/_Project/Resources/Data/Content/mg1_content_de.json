@@ -1,0 +1,142 @@
+{
+  "language": "de",
+  "phases": [
+    {
+      "id": "modelling",
+      "title": "Was ist wichtig?"
+    },
+    {
+      "id": "equation",
+      "title": "Welche Regel gilt?"
+    },
+    {
+      "id": "assembly",
+      "title": "Alles hängt zusammen"
+    },
+    {
+      "id": "solution",
+      "title": "Der Computer probiert's aus"
+    },
+    {
+      "id": "optimization",
+      "title": "Besser machen"
+    },
+    {
+      "id": "transfer",
+      "title": "So macht's Siemens"
+    }
+  ],
+  "cards": [
+    {
+      "id": "lantern_heat",
+      "text": "Wärme der Laternen",
+      "correct": true,
+      "feedback": ""
+    },
+    {
+      "id": "distance",
+      "text": "Abstand zwischen Laterne und Iglu",
+      "correct": true,
+      "feedback": ""
+    },
+    {
+      "id": "wind",
+      "text": "Wind",
+      "correct": true,
+      "feedback": ""
+    },
+    {
+      "id": "wall",
+      "text": "Schneewälle",
+      "correct": true,
+      "feedback": ""
+    },
+    {
+      "id": "color",
+      "text": "Farbe der Iglus",
+      "correct": false,
+      "feedback": "Ein rosa Iglu schmilzt genauso schnell wie ein weißes. Das lassen wir weg."
+    },
+    {
+      "id": "music",
+      "text": "Musik im Dorf",
+      "correct": false,
+      "feedback": "Musik wärmt das Herz – aber leider nicht das Eis."
+    }
+  ],
+  "cardsMissing": "Da fehlt noch etwas Wichtiges. Was bestimmt noch, wie warm ein Iglu wird?",
+  "scaleTokens": [
+    {
+      "id": "lantern",
+      "text": "Wärme der Laterne",
+      "side": "in"
+    },
+    {
+      "id": "neighbor",
+      "text": "Wärme vom Nachbarfeld",
+      "side": "in"
+    },
+    {
+      "id": "wind",
+      "text": "Wind",
+      "side": "out"
+    },
+    {
+      "id": "cold",
+      "text": "Kalte Luft",
+      "side": "out"
+    }
+  ],
+  "scaleWrong": "Hm – bringt das Wärme, oder nimmt es Wärme weg?",
+  "threadsWrong": "Nur direkte Nachbarn: oben, unten, links oder rechts – wie beim Huddle.",
+  "threadsCount": "Wärmefäden: {0} von {1}",
+  "computerThreads": "Wärmefäden in der ganzen Siedlung: {0}",
+  "glossary": [
+    {
+      "phase": "modelling",
+      "term": "Modell",
+      "text": "Ein vereinfachtes Abbild der Wirklichkeit im Computer."
+    },
+    {
+      "phase": "equation",
+      "term": "Bilanz",
+      "text": "Was reinkommt, minus was rausgeht."
+    },
+    {
+      "phase": "assembly",
+      "term": "Raster",
+      "text": "Der Computer teilt eine Fläche in viele kleine Felder."
+    },
+    {
+      "phase": "solution",
+      "term": "Simulation",
+      "text": "Der Computer probiert aus, was passieren wird."
+    },
+    {
+      "phase": "optimization",
+      "term": "Optimieren",
+      "text": "Schritt für Schritt besser machen."
+    },
+    {
+      "phase": "transfer",
+      "term": "Schaltschrank",
+      "text": "Ein Schrank voller Bauteile, die Strom verteilen und schützen."
+    }
+  ],
+  "legend": {
+    "cold": "zu kalt",
+    "comfy": "gemütlich",
+    "melt": "schmilzt"
+  },
+  "lights": {
+    "comfy": "Iglus gemütlich",
+    "melt": "Nichts schmilzt",
+    "budget": "Strom gespart"
+  },
+  "tools": {
+    "igloo": "Iglu",
+    "lantern": "Laterne",
+    "wall": "Schneewall",
+    "erase": "Radierer"
+  }
+}

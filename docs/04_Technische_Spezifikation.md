@@ -58,14 +58,14 @@ pinguin-spiel/
 │     │  ├─ SFE.SimCore.Tests.asmdef  # Unity EditMode-Tests
 │     │  └─ *.cs                      # NUnit-Tests (auch von dotnet genutzt)
 │     └─ Dotnet~/                     # "~" → wird von Unity ignoriert
-│        ├─ SFE.SimCore.csproj        # netstandard2.1, kompiliert ../Runtime/**
-│        └─ SFE.SimCore.Tests.csproj  # net8.0, NUnit, kompiliert ../Tests/**
+│        ├─ SimCore/SFE.SimCore.csproj      # netstandard2.1, kompiliert ../../Runtime/**
+│        └─ Tests/SFE.SimCore.Tests.csproj  # net8.0, NUnit, kompiliert ../../Tests/**
 ├─ sim-reference/                     # Python-Referenzimplementierungen
 │  ├─ simref/ (thermal.py, lbm.py, des.py, pcg32.py …; Erweiterung: flow.py, truss.py, grid.py)
 │  ├─ tests/
 │  └─ generate_golden.py              # schreibt ../golden/*.json
 ├─ golden/                            # Referenzergebnisse (JSON), von C#-Tests gelesen
-├─ unity/PinguinCity/                 # Unity-Projekt
+├─ unity/PinguinKolonie/             # Unity-Projekt
 │  ├─ Packages/manifest.json          # "com.sfe.simcore": "file:../../../sim-core/com.sfe.simcore"
 │  └─ Assets/
 │     ├─ _Project/
@@ -76,8 +76,8 @@ pinguin-spiel/
 │     │  │  ├─ Minigames/MG1_Huddle/ … # Adapter Core ↔ Visualisierung
 │     │  │  ├─ Visualization/         # Heatmap, Stromlinien, Matrix-View
 │     │  │  └─ Editor/                # AssetPostprocessor, SceneBuilder, Build-Skripte
-│     │  ├─ Data/Levels/*.json        # Leveldefinitionen (auch von Python lesbar)
-│     │  ├─ Data/Transfer/*.json      # Transfer-Karten
+│     │  ├─ Resources/Data/Levels/*.json    # Leveldefinitionen (auch von Python lesbar)
+│     │  ├─ Resources/Data/Transfer/*.json  # Transfer-Karten
 │     │  ├─ Dialogue/*.ink
 │     │  ├─ Art/ (Models, Materials, Textures, Animations, Shaders)
 │     │  ├─ Scenes/ (Bootstrap, Hub, MG1_Huddle, MG2_PolarExpress, MG3_FishFactory, …)
@@ -287,7 +287,7 @@ Der Build schlägt fehl, wenn eine im Spiel referenzierte Karte kein vollständi
 ```bash
 blender -b blender/source/city_kit.blend \
         --python blender/scripts/export_assets.py -- \
-        --out unity/PinguinCity/Assets/_Project/Art/Models/City
+        --out unity/PinguinKolonie/Assets/_Project/Art/Models/Colony
 ```
 `export_assets.py` exportiert jede Collection mit Custom Property `export=true` als eigene FBX-Datei mit obigen Einstellungen. Damit lässt sich der Asset-Export in CI oder per Skript wiederholen.
 
@@ -307,13 +307,13 @@ Wo möglich **CC0**-Quellen (z. B. Kenney, Quaternius, Poly Haven) als Basis, im
 
 | Tätigkeit | Ohne Editor möglich? | Wie |
 |---|---|---|
-| Simulationslogik schreiben/testen | ✔ | `dotnet test sim-core/com.sfe.simcore/Dotnet~/SFE.SimCore.Tests.csproj` |
+| Simulationslogik schreiben/testen | ✔ | `dotnet test sim-core/com.sfe.simcore/Dotnet~/Tests/SFE.SimCore.Tests.csproj` |
 | Solver validieren | ✔ | `pytest sim-reference` + `python generate_golden.py` |
 | Leveldaten, Dialoge, Transfer-Karten | ✔ | JSON / ink / UXML+USS bearbeiten |
 | 3D-Assets exportieren | ✔ | Blender headless (6.3) |
 | Unity-Gameplay-Skripte (MonoBehaviours) | ✔ schreiben, Kompilierung prüfen erst in Unity | Unity Batchmode in CI |
 | Szenen/Prefabs | ⚠ | Per **SceneBuilder**-Editorskript aus Daten erzeugen, nicht YAML von Hand editieren |
-| Tests in Unity | ✔ (Batchmode) | `Unity -batchmode -projectPath unity/PinguinCity -runTests -testPlatform EditMode -testResults results.xml` |
+| Tests in Unity | ✔ (Batchmode) | `Unity -batchmode -projectPath unity/PinguinKolonie -runTests -testPlatform EditMode -testResults results.xml` |
 | WebGL-Build | ✔ (Batchmode) | `-executeMethod SFE.Build.BuildScript.BuildWebGL` |
 | Look & Feel, Animationen tunen | ✘ | im Editor (Mensch) |
 

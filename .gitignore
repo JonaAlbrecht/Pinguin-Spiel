@@ -1,0 +1,25 @@
+# Unity
+unity/*/[Ll]ibrary/
+unity/*/[Tt]emp/
+unity/*/[Oo]bj/
+unity/*/[Bb]uild/
+unity/*/[Bb]uilds/
+unity/*/[Ll]ogs/
+unity/*/[Uu]ser[Ss]ettings/
+unity/*/*.csproj
+unity/*/*.sln
+unity/*/.vs/
+unity/*/.idea/
+
+# dotnet (Kern-Tests)
+**/Dotnet~/**/bin/
+**/Dotnet~/**/obj/
+TestResults/
+
+# Python
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Blender
+*.blend1
