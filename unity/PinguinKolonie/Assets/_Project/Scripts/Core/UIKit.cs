@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -108,6 +111,58 @@ namespace SFE.Game
         }
 
         public static void SetButtonLabel(Button b, string label) => b.GetComponentInChildren<Text>().text = label;
+
+        private static readonly Dictionary<string, Texture2D> _formulas = new Dictionary<string, Texture2D>();
+
+        /// <summary>
+        /// Eine wie LaTeX gesetzte Formel (nur „Blick unter die Haube“). Quelle: <c>underTheHood.formulas</c> in ui_de.json,
+        /// gesetzt von <c>tools/render_formulas.py</c>. <paramref name="scale"/> 0,5 ≈ Schriftgröße 33; Pivot links mittig.
+        /// </summary>
+        public static RawImage Formula(Transform parent, string name, Color color, float scale = 0.5f)
+        {
+            var go = new GameObject("Formula_" + name);
+            Rect(go, parent);
+            var img = go.AddComponent<RawImage>();
+            img.texture = FormulaTexture(name);
+            img.color = color;
+            img.raycastTarget = false;
+            img.rectTransform.pivot = new Vector2(0, 0.5f);
+            img.rectTransform.sizeDelta = new Vector2(img.texture.width, img.texture.height) * scale;
+            return img;
+        }
+
+        /// <summary>Breite · Höhe (je uint32) · Deckkraft von oben nach unten, roh deflate – siehe render_formulas.py.</summary>
+        private static Texture2D FormulaTexture(string name)
+        {
+            if (_formulas.TryGetValue(name, out var cached)) return cached;
+            var asset = Resources.Load<TextAsset>("Formulas/" + name);
+            if (asset == null) throw new InvalidOperationException($"Formel '{name}' fehlt – python tools/render_formulas.py");
+            var raw = asset.bytes;
+            int w = BitConverter.ToInt32(raw, 0), h = BitConverter.ToInt32(raw, 4);
+            var alpha = new byte[w * h];
+            using (var z = new DeflateStream(new MemoryStream(raw, 8, raw.Length - 8), CompressionMode.Decompress))
+            {
+                int read = 0;
+                while (read < alpha.Length)
+                {
+                    int n = z.Read(alpha, read, alpha.Length - read);
+                    if (n == 0) throw new InvalidOperationException($"Formel '{name}' ist beschädigt");
+                    read += n;
+                }
+            }
+            var px = new Color32[w * h];
+            for (int y = 0; y < h; y++) // Unity zählt Zeilen von unten
+                for (int x = 0; x < w; x++)
+                    px[(h - 1 - y) * w + x] = new Color32(255, 255, 255, alpha[y * w + x]);
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false)
+            {
+                name = "Formula_" + name, filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp,
+            };
+            tex.SetPixels32(px);
+            tex.Apply(false, true);
+            _formulas[name] = tex;
+            return tex;
+        }
 
         public static void Fill(RectTransform rt) => Place(rt, 0, 0, 1, 1);
     }

@@ -400,6 +400,7 @@ namespace SFE.Game
             bool go = false;
             var b = UIKit.Button(layer, Data.Ui("simulate"), () => go = true, Palette.Button, 36);
             UIKit.PlaceFixed((RectTransform)b.transform, new Vector2(0.5f, 0f), new Vector2(0, 90), new Vector2(360, 100));
+            Hud.LockWhileBlocking(b);
             while (!go) yield return null;
             b.gameObject.SetActive(false);
 
@@ -525,6 +526,7 @@ namespace SFE.Game
             var layer = NewUiLayer("BuildUI");
             var bar = UIKit.Panel(layer, Palette.Panel, "Toolbar");
             UIKit.Place(bar.rectTransform, 0, 0, 1, 0, 0, 0, 0, -130);
+            Hud.LockWhileBlocking(bar); // ausgegraut, solange jemand spricht
             var tools = new[] { Tool.Igloo, Tool.Lantern, Tool.Wall, Tool.Erase };
             for (int i = 0; i < tools.Length; i++)
             {
@@ -560,11 +562,18 @@ namespace SFE.Game
                 new Color(0.25f, 0.3f, 0.4f), 22);
             // Unter Notizbuch- und Ton-Knopf; der Kasten selbst links, damit ihn das Ergebnis rechts nicht verdeckt.
             UIKit.PlaceFixed((RectTransform)techBtn.transform, new Vector2(1, 1), new Vector2(-170, -240), new Vector2(300, 56));
+            Hud.LockWhileBlocking(techBtn);
             _techPanel = UIKit.Panel(layer, new Color(0.03f, 0.05f, 0.1f, 0.9f), "Tech").gameObject;
-            UIKit.PlaceFixed((RectTransform)_techPanel.transform, new Vector2(0, 1), new Vector2(300, -540), new Vector2(560, 300));
-            _techText = UIKit.Label(_techPanel.transform, Data.Tech("techNotYet"), 22, new Color(0.7f, 0.95f, 1f), TextAnchor.UpperLeft);
-            UIKit.Place(_techText.rectTransform, 0, 0, 1, 1, 16, 12, 16, 12);
+            UIKit.PlaceFixed((RectTransform)_techPanel.transform, new Vector2(0, 1), new Vector2(300, -560), new Vector2(560, 340));
+            var techInk = new Color(0.7f, 0.95f, 1f);
+            _techText = UIKit.Label(_techPanel.transform, Data.Tech("techNotYet"), 22, techInk, TextAnchor.UpperLeft);
+            UIKit.Place(_techText.rectTransform, 0, 0, 1, 1, 16, 90, 16, 12);
+            // Die Gleichung je Feld wie LaTeX gesetzt, unter dem Text (die eingebaute Schrift kann keine Indizes)
+            var equation = UIKit.Formula(_techPanel.transform, "settlement", techInk, 0.42f).rectTransform;
+            equation.anchorMin = equation.anchorMax = new Vector2(0, 0);
+            equation.anchoredPosition = new Vector2(20, 48);
             _techPanel.SetActive(false);
+            Hud.TechOnly(techBtn.gameObject, () => { _techVisible = false; _techPanel.SetActive(false); });
 
             SelectTool(Tool.Igloo);
             UpdateToolbar();
@@ -939,10 +948,10 @@ namespace SFE.Game
                 Data.Tech("techTitle"),
                 Data.Tech("techCells", n),
                 Data.Tech("techCouplings", 2 * n - _level.Width - _level.Height),
-                Data.Tech("techEquation"),
                 Data.Tech("techSolver", sim.Iteration),
                 Data.Tech("techResidual", sim.Residual),
                 Data.Tech("techSolves", sim.SolveCount, sim.MeltPasses.Count),
+                Data.Tech("techEquation"),
             });
         }
     }

@@ -72,3 +72,19 @@ TextMesh mit fontSize 64, 96-px-Symbolbilder. Behoben per Code (`RenderQuality`,
 Gitterlinien als 3D-Streifen, Schrift in 160 gerastert, Bilder 256–288 px). Verworfen für jetzt: Umstieg auf URP
 (Bloom für Laternen, bessere Kantenglättung, Nachbearbeitung) – lohnt sich, braucht aber einen Spieltest im Editor,
 weil Materialien dabei leicht rosa werden. Vorschlag für den nächsten Schritt.
+
+**ADR-16 Formeln wie LaTeX, „Blick unter die Haube“ als eigenes Fenster.** Wunsch von Jona (17.10.): Der Knopf öffnet
+ein Pop-up (`Hud.OpenPopup`, hält das Spiel an wie das Notizbuch) statt Text auf der Rechentafel. Die eingebaute
+Schrift kann keine Brüche und Indizes, darum stehen die Formeln als LaTeX-Quelle in `ui_de.json` (`underTheHood.formulas`)
+und `tools/render_formulas.py` setzt sie mit matplotlib-Mathtext (Computer Modern) zu Deckkraft-Bildern
+(`Resources/Formulas/*.bytes`, roh deflate). Unity lädt sie als TextAsset (`UIKit.Formula`) und färbt sie ein.
+Verworfen: PNG-Import (Unity skaliert NPOT-Bilder und komprimiert sie unscharf, Importeinstellungen bräuchten
+handgeschriebene .meta), `Texture2D.LoadImage` (braucht das Paket imageconversion, Paketliste nur bei geschlossenem
+Unity ändern), TextMeshPro/eigener Formelsatz (viel Aufwand für wenig Formeln).
+
+**ADR-17 Einstellungen-Menü, Bedienung während Dialogen gesperrt.** Spieltest 17.10.: Während Grete sprach, sah
+„Nächster Zeitschritt“ klickbar aus, weiter ging es aber nur in der Sprechblase. Jetzt graut `Hud.LockWhileBlocking`
+Knöpfe und Leisten aus, solange ein Dialog oder Fenster offen ist, und „Weiter »“ ist ein farbiger Knopf.
+Der Ton-Knopf wurde zum Menü „Einstellungen“ (`Settings`): Ton, Lautstärke, Tempo im Huddle, Bildqualität
+(hoch/sparsam), Knopf „Blick unter die Haube“ an/aus, Vollbild (nicht im Editor). Nur für die Sitzung, nichts wird
+gespeichert (Titelbildschirm verspricht das). Verworfen: PlayerPrefs.
