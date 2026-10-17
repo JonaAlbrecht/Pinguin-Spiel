@@ -100,9 +100,9 @@ namespace SFE.Game
             var b = img.gameObject.AddComponent<Button>();
             b.targetGraphic = img;
             var colors = b.colors;
-            colors.highlightedColor = new Color(1f, 1f, 1f, 1f);
-            colors.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
-            colors.disabledColor = new Color(0.6f, 0.6f, 0.6f, 0.5f);
+            colors.highlightedColor = Palette.ButtonHoverTint;
+            colors.pressedColor = Palette.ButtonPressTint;
+            colors.disabledColor = Palette.ButtonDisabledTint;
             b.colors = colors;
             var t = Label(img.transform, label, fontSize, Palette.TextLight, TextAnchor.MiddleCenter, FontStyle.Bold);
             Place(t.rectTransform, 0, 0, 1, 1, 12, 6, 12, 6);
@@ -153,7 +153,7 @@ namespace SFE.Game
             var px = new Color32[w * h];
             for (int y = 0; y < h; y++) // Unity zählt Zeilen von unten
                 for (int x = 0; x < w; x++)
-                    px[(h - 1 - y) * w + x] = new Color32(255, 255, 255, alpha[y * w + x]);
+                    px[(h - 1 - y) * w + x] = new Color32(255, 255, 255, alpha[y * w + x]); // Stil-Lint: Rechnung (Deckkraftmaske, Farbe kommt von RawImage.color)
             var tex = new Texture2D(w, h, TextureFormat.RGBA32, false)
             {
                 name = "Formula_" + name, filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp,

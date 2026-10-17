@@ -35,6 +35,7 @@ git switch -c feature/<kurz-und-deutsch> origin/main                     # oder 
 Python aus der Repo-`.venv` (`.venv/Scripts/python.exe`; die System-Pythons sind auf diesem Rechner teils kaputt).
 ```bash
 .venv/Scripts/python.exe tools/text_lint.py
+.venv/Scripts/python.exe tools/style_lint.py             # Farben nur aus Palette.cs / Siemens-Farbschema (docs/07)
 .venv/Scripts/python.exe tools/render_formulas.py --check      # Formelbilder passen zur LaTeX-Quelle in ui_de.json
 (cd sim-reference && ../.venv/Scripts/python.exe -m pytest -q)
 dotnet test "sim-core/com.sfe.simcore/Dotnet~/Tests/SFE.SimCore.Tests.csproj"
@@ -49,7 +50,10 @@ powershell -ExecutionPolicy Bypass -File tools/unity_compile_check/check.ps1   #
 - Neue Assets unter `Assets/` haben ihre `.meta` (sonst würfelt jeder Rechner eine eigene GUID).
 - Unity hat beim Öffnen nichts Fremdes eingetragen (Paketliste, Dateien in `Assets/`).
 - Spieltexte nur in `Resources/Data/**.json`, Fachwörter nur unter `underTheHood` (Text-Lint prüft das).
-- Größere Entscheidung → Eintrag in `.agency/memory/decisions.md` mit verworfener Alternative (ADR-Nummer fortlaufend).
+- Größere Entscheidung → Eintrag in `.agency/memory/decisions.md` mit verworfener Alternative (ADR-Nummer fortlaufend;
+  vorher `git fetch` und die höchste Nummer auf `origin/main` nachsehen – parallele PRs vergeben sonst dieselbe).
+- Keine Farbe als `new Color(…)` außerhalb von `Palette.cs`/`ArtStyle.cs` – fehlt ein Name, ihn in `Palette.cs` aus
+  `Palette.Siemens` ableiten.
 
 ### 4. Commit
 Stil wie in der Historie (`git log`): deutsch, Betreff sagt *was* aus Spielersicht, Text sagt *warum*
@@ -81,6 +85,8 @@ Gute Handprobe:
 - Abschnitt „Auffällig, nicht Teil dieser Änderung“ für Beobachtungen nebenbei.
 
 ### 6. Push und PR
+Hat sich `origin/main` bewegt: `git merge origin/main` in den Branch (kein Rebase eines schon gepushten Branches),
+Konflikte so lösen, dass beide Seiten erhalten bleiben, danach **alle Gates erneut**.
 ```bash
 python .claude/skills/pinguin-simulation-pull-request/github.py status   # nochmal direkt vor dem Push
 git push -u origin <branch>

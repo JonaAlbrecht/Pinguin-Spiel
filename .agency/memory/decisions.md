@@ -73,7 +73,20 @@ Gitterlinien als 3D-Streifen, Schrift in 160 gerastert, Bilder 256–288 px). Ve
 (Bloom für Laternen, bessere Kantenglättung, Nachbearbeitung) – lohnt sich, braucht aber einen Spieltest im Editor,
 weil Materialien dabei leicht rosa werden. Vorschlag für den nächsten Schritt.
 
-**ADR-16 Formeln wie LaTeX, „Blick unter die Haube“ als eigenes Fenster.** Wunsch von Jona (17.10.): Der Knopf öffnet
+## 2026-10-17 – Stilregeln und neue Pinguine
+
+**ADR-16 Ein Stil aus Code statt fremder Assets.** Die Pinguine waren Kugeln und Würfel („Schneemann“). Statt freier
+Modelle (OpenGameArt CC0, Poly Pizza CC-BY, Asset Store) baut `PenguinFigure` sie aus einem Drehprofil – Entscheidung
+von Jona, damit alles aus einem Guss bleibt. Schattierung, Detailgrad und Proportionen stehen zentral in `ArtStyle.cs`
+(docs/07); alle runden Grundformen laufen über `Shapes` und werden facettiert, Materialien matt. Prüfen per
+„Stilprobe rendern“ (vier Bilder). Verworfen: fremde Modelle (Stil, Lizenz, Blender-Umweg, Einfärbung über
+„Belly“/„Ring“ hätte neu gebaut werden müssen) und weiche Rundungen (wenige Segmente wirkten dann grob statt gewollt).
+
+**ADR-17 Siemens-Farbschema als einzige Farbquelle.** Alle Farben kommen aus `Palette.Siemens` (sie-colors-overview V1.4.4, exakte Bildschirmwerte); Spielfarben sind Namen, die darauf zeigen. Wo es geht Primärfarben, sonst Sekundär-/Zusatzfarben; helle Flächen per Aufhellung mit Light Sand, Abdunkeln nur mit Deep Blue (mit Brand abzustimmen). `tools/style_lint.py` verbietet Farben außerhalb der Palette und prüft die Sprecherfarben. Dazu Farbtreue im Licht (Sonne 0,85, Umgebung ≈ 0,5 statt 1,1/0,7 – sonst überstrahlte Dark Blue zu Knallblau) und Segmentzahl der Bauten nach Größe. Verworfen: nur die Primärfarben (kein Orange für Schnäbel, kein Rot für Warnungen) und Farben frei wählen und „ähnlich“ halten (driftet, ist nicht prüfbar).
+
+## 2026-10-17 – Formeln, Einstellungen
+
+**ADR-18 Formeln wie LaTeX, „Blick unter die Haube“ als eigenes Fenster.** Wunsch von Jona (17.10.): Der Knopf öffnet
 ein Pop-up (`Hud.OpenPopup`, hält das Spiel an wie das Notizbuch) statt Text auf der Rechentafel. Die eingebaute
 Schrift kann keine Brüche und Indizes, darum stehen die Formeln als LaTeX-Quelle in `ui_de.json` (`underTheHood.formulas`)
 und `tools/render_formulas.py` setzt sie mit matplotlib-Mathtext (Computer Modern) zu Deckkraft-Bildern
@@ -82,7 +95,7 @@ Verworfen: PNG-Import (Unity skaliert NPOT-Bilder und komprimiert sie unscharf, 
 handgeschriebene .meta), `Texture2D.LoadImage` (braucht das Paket imageconversion, Paketliste nur bei geschlossenem
 Unity ändern), TextMeshPro/eigener Formelsatz (viel Aufwand für wenig Formeln).
 
-**ADR-17 Einstellungen-Menü, Bedienung während Dialogen gesperrt.** Spieltest 17.10.: Während Grete sprach, sah
+**ADR-19 Einstellungen-Menü, Bedienung während Dialogen gesperrt.** Spieltest 17.10.: Während Grete sprach, sah
 „Nächster Zeitschritt“ klickbar aus, weiter ging es aber nur in der Sprechblase. Jetzt graut `Hud.LockWhileBlocking`
 Knöpfe und Leisten aus, solange ein Dialog oder Fenster offen ist, und „Weiter »“ ist ein farbiger Knopf.
 Der Ton-Knopf wurde zum Menü „Einstellungen“ (`Settings`): Ton, Lautstärke, Tempo im Huddle, Bildqualität

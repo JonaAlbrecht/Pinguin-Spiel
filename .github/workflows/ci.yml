@@ -13,10 +13,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Python-Referenz und Text-Lint
+      - name: Python-Referenz, Text- und Stil-Lint
         run: |
           pip install -r sim-reference/requirements.txt
           python tools/text_lint.py
+          python tools/style_lint.py
           cd sim-reference && python -m pytest -q
 
       - uses: actions/setup-dotnet@v4

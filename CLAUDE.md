@@ -3,7 +3,7 @@
 Lernspiel für Siemens-Mitarbeitende **ohne technischen Hintergrund**. Leitplanke: `docs/00`. Aktuelle Arbeit: `specs/001-mg1-vertical-slice/spec.md`.
 
 ## Befehle
-- Python-Referenz + Text-Lint: `pip install -r sim-reference/requirements.txt && python tools/text_lint.py && (cd sim-reference && python -m pytest -q)`
+- Python-Referenz + Text-/Stil-Lint: `pip install -r sim-reference/requirements.txt && python tools/text_lint.py && python tools/style_lint.py && (cd sim-reference && python -m pytest -q)`
 - Golden Files neu erzeugen (nach Modell- oder Leveländerung): `cd sim-reference && python generate_golden.py`
 - C#-Kern: `dotnet test "sim-core/com.sfe.simcore/Dotnet~/Tests/SFE.SimCore.Tests.csproj"`
 - Unity: siehe `unity/PinguinKolonie/README.md`
@@ -20,5 +20,7 @@ Lernspiel für Siemens-Mitarbeitende **ohne technischen Hintergrund**. Leitplank
 - Neue Regel im Modell = neues Golden File, und eine Mutationsprobe: Regel in einer Kopie brechen, ein Test muss rot werden.
 - C#-Dateien nicht per Shell-Skript mit Backslashes ändern (die Bash-Brücke macht aus `\\n` ein `\n`) – Edit/Write nutzen und danach kompilieren.
 - Die Unity-Schicht baut alles per Code; keine Szenen- oder Prefab-YAML von Hand bearbeiten.
+- Aussehen nur über `ArtStyle.cs` (Schattierung, Detailgrad, Proportionen) und `Palette.cs` steuern, runde Formen über `Prims.Make`/`Shapes` – keine eigenen Segmentzahlen oder Glanzwerte im Code (docs/07). Nach Stiländerungen „Pinguin-Spiel → Stilprobe rendern“.
+- Farben nur aus `Palette.cs`, und die nur aus dem Siemens-Farbschema (`Palette.Siemens`, Primärfarben zuerst) – kein `new Color(…)` im übrigen Code. Prüfung: `python tools/style_lint.py`.
 - In Unity-Texten nur Zeichen verwenden, die die eingebaute Schrift hat (keine Emoji, keine Symbole wie ★ ✔ ▸).
 - Siemens-Produktnamen und -Beispiele sind Vorschläge und brauchen eine Freigabe (Feld `approval` der Transfer-Karte).

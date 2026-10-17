@@ -7,6 +7,7 @@ Eine Aufgabe ist erst fertig, wenn **alle** Punkte erfüllt sind. „Fast fertig
 | Gate | Befehl | Was es schützt |
 |---|---|---|
 | Text-Lint | `python tools/text_lint.py` | Sprachregeln für Nicht-Techniker (docs/00 Abschnitt 5) – JSON **und** Texte im C#-Code |
+| Stil-Lint | `python tools/style_lint.py` | Farben nur aus der Siemens-Palette, keine Farbe am Stil vorbei (docs/07) |
 | Python-Referenz | `cd sim-reference && python -m pytest -q` | Das Modell, gegen das alles andere geprüft wird |
 | C#-Kern | `dotnet test "sim-core/com.sfe.simcore/Dotnet~/Tests/SFE.SimCore.Tests.csproj"` | Abgleich mit den Golden Files (≤ 1e-6 relativ) |
 | Unity-6-Kompilierung | `tools/unity_compile_check/check.ps1` (nur mit installiertem Unity) | Spielschicht kompiliert gegen die echten Unity-6-DLLs, altes **und** neues Input System, ohne veraltete API |

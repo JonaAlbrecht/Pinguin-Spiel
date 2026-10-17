@@ -4,9 +4,9 @@ using UnityEngine;
 namespace SFE.Game
 {
     /// <summary>
-    /// Baut die Platzhalter-Grafik aus Unity-Primitiven. Wird später durch Blender-Assets ersetzt
-    /// (docs/04 Abschnitt 6). Materialien werden vom Standard-Material der Primitive abgeleitet,
-    /// damit der Prototyp in der Built-in-Pipeline und in URP ohne eigene Shader läuft.
+    /// Baut die Grafik aus Grundformen. Runde Formen kommen aus <see cref="Shapes"/> und folgen damit den
+    /// Stilregeln in <see cref="ArtStyle"/> (Facetten, Segmentzahl). Materialien werden vom Standard-Material der
+    /// Primitive abgeleitet, damit das Spiel in der Built-in-Pipeline und in URP ohne eigene Shader läuft.
     /// </summary>
     public static class Prims
     {
@@ -22,7 +22,7 @@ namespace SFE.Game
                 {
                     var tmp = GameObject.CreatePrimitive(PrimitiveType.Cube);
                     _lit = tmp.GetComponent<Renderer>().sharedMaterial;
-                    Object.Destroy(tmp);
+                    Kill(tmp);
                 }
                 return _lit;
             }
@@ -57,6 +57,7 @@ namespace SFE.Game
             color = Quantize(color);
             if (Cache.TryGetValue(color, out var m) && m != null) return m;
             m = new Material(LitBase) { color = color };
+            ArtStyle.Shading.ApplyTo(m);
             Cache[color] = m;
             return m;
         }
@@ -64,24 +65,43 @@ namespace SFE.Game
         private static Color Quantize(Color c)
         {
             const float steps = 32f;
-            return new Color(Mathf.Round(c.r * steps) / steps, Mathf.Round(c.g * steps) / steps,
+            return new Color(Mathf.Round(c.r * steps) / steps, Mathf.Round(c.g * steps) / steps,   // Stil-Lint: Rechnung
                 Mathf.Round(c.b * steps) / steps, Mathf.Round(c.a * steps) / steps);
         }
 
+        /// <param name="segments">Segmente rundum; 0 = nach Größe in der Welt (<see cref="ArtStyle.Detail.SegmentsFor"/>).</param>
         public static GameObject Make(PrimitiveType type, Transform parent, Vector3 localPos, Vector3 scale, Color color,
-            string name = null, bool keepCollider = false)
+            string name = null, bool keepCollider = false, int segments = 0)
         {
             var go = GameObject.CreatePrimitive(type);
             if (name != null) go.name = name;
-            if (!keepCollider) Object.Destroy(go.GetComponent<Collider>());
+            if (!keepCollider) Kill(go.GetComponent<Collider>());
             go.transform.SetParent(parent, false);
             go.transform.localPosition = localPos;
             go.transform.localScale = scale;
+            // Der Collider bleibt Unitys glatte Form; nur das Sichtbare wird facettiert. Der Umfang zählt in der Welt,
+            // damit eine Eisscholle von 20 m mehr Segmente bekommt als eine Laternenkugel.
+            if (segments <= 0)
+            {
+                var s = go.transform.lossyScale;
+                float diameter = type == PrimitiveType.Sphere ? Mathf.Max(s.x, s.y, s.z) : Mathf.Max(s.x, s.z);
+                segments = ArtStyle.Detail.SegmentsFor(diameter);
+            }
+            var mesh = Shapes.ForPrimitive(type, segments);
+            if (mesh != null) go.GetComponent<MeshFilter>().sharedMesh = mesh;
             go.GetComponent<Renderer>().sharedMaterial = Mat(color);
             return go;
         }
 
         public static void SetColor(GameObject go, Color color) => go.GetComponent<Renderer>().sharedMaterial = Mat(color);
+
+        /// <summary>Destroy im Spiel, DestroyImmediate im Editor (Stilprobe baut Figuren ohne Play-Modus).</summary>
+        public static void Kill(Object o)
+        {
+            if (o == null) return;
+            if (Application.isPlaying) Object.Destroy(o);
+            else Object.DestroyImmediate(o);
+        }
 
         public static TextMesh Label(Transform parent, string text, Vector3 localPos, float size, Color color)
         {
@@ -108,78 +128,11 @@ namespace SFE.Game
 
         public enum Look { Plain, Pip, Frieda, Kalle, Grete, Theo, Klara, Flocke }
 
-        /// <summary>Ein Pinguin aus Primitiven, ca. 0,6 m hoch. Gibt die Wurzel zurück; „Belly“ und „Ring“ sind einfärbbar.</summary>
-        public static GameObject Penguin(Transform parent, string name, Look look = Look.Plain, float size = 1f)
-        {
-            var root = new GameObject(name);
-            root.transform.SetParent(parent, false);
-            root.transform.localScale = Vector3.one * size;
-            var body = new GameObject("Body").transform;
-            body.SetParent(root.transform, false);
+        /// <summary>Ein Pinguin nach den Stilregeln, ca. 0,76 m hoch (Größe 1). Bauch und „Ring“ sind einfärbbar.</summary>
+        public static GameObject Penguin(Transform parent, string name, Look look = Look.Plain, float size = 1f) =>
+            PenguinFigure.Build(parent, name, look, size);
 
-            Color bodyColor = look == Look.Grete ? new Color(0.35f, 0.37f, 0.42f) : Palette.PenguinBlack;
-            Make(PrimitiveType.Capsule, body, new Vector3(0, 0.30f, 0), new Vector3(0.42f, 0.30f, 0.38f), bodyColor, "Torso");
-            Make(PrimitiveType.Sphere, body, new Vector3(0, 0.27f, 0.09f), new Vector3(0.32f, 0.42f, 0.24f), Palette.PenguinWhite, "Belly");
-            Make(PrimitiveType.Sphere, body, new Vector3(0, 0.62f, 0.02f), new Vector3(0.30f, 0.28f, 0.28f), bodyColor, "Head");
-            Make(PrimitiveType.Sphere, body, new Vector3(-0.06f, 0.66f, 0.13f), Vector3.one * 0.06f, Color.white, "EyeL");
-            Make(PrimitiveType.Sphere, body, new Vector3(0.06f, 0.66f, 0.13f), Vector3.one * 0.06f, Color.white, "EyeR");
-            Make(PrimitiveType.Cube, body, new Vector3(0, 0.60f, 0.17f), new Vector3(0.06f, 0.05f, 0.10f), Palette.Beak, "Beak");
-            Make(PrimitiveType.Cube, body, new Vector3(-0.08f, 0.02f, 0.06f), new Vector3(0.10f, 0.03f, 0.14f), Palette.Beak, "FootL");
-            Make(PrimitiveType.Cube, body, new Vector3(0.08f, 0.02f, 0.06f), new Vector3(0.10f, 0.03f, 0.14f), Palette.Beak, "FootR");
-            Make(PrimitiveType.Cylinder, root.transform, new Vector3(0, 0.005f, 0), new Vector3(0.62f, 0.005f, 0.62f),
-                new Color(1, 1, 1, 0.5f), "Ring");
-
-            switch (look)
-            {
-                case Look.Pip:
-                    Make(PrimitiveType.Cube, body, new Vector3(0, 0.50f, 0.02f), new Vector3(0.34f, 0.06f, 0.32f), new Color(0.85f, 0.15f, 0.20f), "Scarf");
-                    Make(PrimitiveType.Cube, body, new Vector3(0.20f, 0.30f, 0.05f), new Vector3(0.04f, 0.14f, 0.10f), new Color(0.2f, 0.8f, 0.9f), "Tablet");
-                    break;
-                case Look.Frieda:
-                    Make(PrimitiveType.Cube, body, new Vector3(-0.10f, 0.75f, 0.02f), new Vector3(0.05f, 0.10f, 0.03f), new Color(1f, 0.85f, 0.1f), "TuftL");
-                    Make(PrimitiveType.Cube, body, new Vector3(0.10f, 0.75f, 0.02f), new Vector3(0.05f, 0.10f, 0.03f), new Color(1f, 0.85f, 0.1f), "TuftR");
-                    Make(PrimitiveType.Cube, body, new Vector3(0, 0.66f, 0.15f), new Vector3(0.22f, 0.04f, 0.02f), Color.black, "Glasses");
-                    Make(PrimitiveType.Capsule, body, new Vector3(0, 0.26f, -0.03f), new Vector3(0.46f, 0.24f, 0.36f), Color.white, "Coat");
-                    break;
-                case Look.Kalle:
-                    root.transform.localScale = Vector3.one * size * 1.25f;
-                    Make(PrimitiveType.Sphere, body, new Vector3(0, 0.72f, 0.02f), new Vector3(0.34f, 0.18f, 0.34f), new Color(1f, 0.82f, 0.05f), "Helmet");
-                    Make(PrimitiveType.Cube, body, new Vector3(-0.09f, 0.32f, 0.17f), new Vector3(0.03f, 0.30f, 0.02f), new Color(0.75f, 0.2f, 0.15f), "BraceL");
-                    Make(PrimitiveType.Cube, body, new Vector3(0.09f, 0.32f, 0.17f), new Vector3(0.03f, 0.30f, 0.02f), new Color(0.75f, 0.2f, 0.15f), "BraceR");
-                    break;
-                case Look.Grete:
-                    Make(PrimitiveType.Cube, body, new Vector3(0, 0.45f, 0.0f), new Vector3(0.40f, 0.14f, 0.36f), new Color(0.55f, 0.30f, 0.60f), "Shawl");
-                    break;
-                case Look.Theo:
-                    // Messpinguin: Thermometer-Stab unter dem Flügel, Kappe in Thermometer-Rot
-                    Make(PrimitiveType.Cylinder, body, new Vector3(0.24f, 0.38f, 0.06f), new Vector3(0.035f, 0.20f, 0.035f), Color.white, "Thermometer");
-                    Make(PrimitiveType.Sphere, body, new Vector3(0.24f, 0.17f, 0.06f), Vector3.one * 0.08f, new Color(0.85f, 0.15f, 0.15f), "Bulb");
-                    Make(PrimitiveType.Cylinder, body, new Vector3(0.24f, 0.32f, 0.075f), new Vector3(0.02f, 0.14f, 0.02f), new Color(0.85f, 0.15f, 0.15f), "Mercury");
-                    Make(PrimitiveType.Sphere, body, new Vector3(0, 0.74f, 0.0f), new Vector3(0.28f, 0.10f, 0.28f), new Color(0.75f, 0.2f, 0.2f), "Cap");
-                    break;
-                case Look.Klara:
-                    // Kassenwartin: grüner Augenschirm und Kassenbuch
-                    Make(PrimitiveType.Cube, body, new Vector3(0, 0.72f, 0.12f), new Vector3(0.30f, 0.03f, 0.16f), new Color(0.15f, 0.6f, 0.35f), "Visor");
-                    Make(PrimitiveType.Cube, body, new Vector3(-0.22f, 0.32f, 0.08f), new Vector3(0.05f, 0.20f, 0.15f), new Color(0.55f, 0.35f, 0.2f), "Ledger");
-                    break;
-                case Look.Flocke:
-                    // Küken: flauschig grau, großer Kopf
-                    root.transform.localScale = Vector3.one * size * 0.55f;
-                    SetColor(body.Find("Torso").gameObject, new Color(0.62f, 0.64f, 0.68f));
-                    SetColor(body.Find("Head").gameObject, new Color(0.62f, 0.64f, 0.68f));
-                    body.Find("Head").localScale = new Vector3(0.38f, 0.36f, 0.36f);
-                    break;
-            }
-            return root;
-        }
-
-        public static void SetPenguinTint(GameObject penguin, Color belly, Color ring)
-        {
-            var b = penguin.transform.Find("Body/Belly");
-            if (b != null) SetColor(b.gameObject, belly);
-            var r = penguin.transform.Find("Ring");
-            if (r != null) SetColor(r.gameObject, ring);
-        }
+        public static void SetPenguinTint(GameObject penguin, Color belly, Color ring) => PenguinFigure.Tint(penguin, belly, ring);
 
         // ---------- Bausteine der Siedlung ----------
 
@@ -190,7 +143,7 @@ namespace SFE.Game
             root.transform.localScale = Vector3.one * scale;
             Make(PrimitiveType.Sphere, root.transform, new Vector3(0, 0f, 0), new Vector3(0.80f, 0.62f, 0.80f), Palette.Igloo, "Dome");
             Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.10f, 0.36f), new Vector3(0.24f, 0.22f, 0.16f), Palette.Igloo, "Entrance");
-            Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.09f, 0.445f), new Vector3(0.14f, 0.16f, 0.02f), new Color(0.15f, 0.2f, 0.3f), "Door");
+            Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.09f, 0.445f), new Vector3(0.14f, 0.16f, 0.02f), Palette.Door, "Door");
             return root;
         }
 
@@ -251,11 +204,15 @@ namespace SFE.Game
         public static GameObject Create(Transform parent, float size = 1f)
         {
             var root = Prims.Penguin(parent, "ZWILLI", Prims.Look.Plain, size);
-            var cyan = new Color(0.25f, 0.85f, 0.95f);
             foreach (var r in root.GetComponentsInChildren<Renderer>())
-                r.sharedMaterial = Prims.Mat(r.name == "Belly" ? new Color(0.75f, 0.97f, 1f) : cyan);
+            {
+                var mats = r.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++)
+                    mats[i] = Prims.Mat(r.name == "Torso" && i == PenguinFigure.BellySlot ? Palette.HologramBelly : Palette.Hologram);
+                r.sharedMaterials = mats;
+            }
             Prims.Make(PrimitiveType.Cylinder, root.transform, new Vector3(0, -0.02f, 0), new Vector3(0.75f, 0.02f, 0.75f),
-                new Color(0.1f, 0.4f, 0.5f), "Projector");
+                Palette.HologramProjector, "Projector");
             root.AddComponent<Hologram>();
             return root;
         }
