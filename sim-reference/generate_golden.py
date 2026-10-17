@@ -119,6 +119,26 @@ def main() -> None:
     (out / "huddle_random_7.json").write_text(json.dumps(doc, indent=1), encoding="utf-8")
     print("huddle_random_7: final", [round(v, 2) for v in history[-1]])
 
+    # Zwei-Pinguine-Beispiel vor dem Huddle: Temperaturen UND die Zerlegung jedes Schritts,
+    # denn genau diese Zahlen zeigt das Spiel in der Rechenregel.
+    pos, temps, wind, dt, steps = huddle.pair_lesson(DATA / "Levels/MG1A_LastHuddle.json")
+    rows = []
+    for _ in range(steps):
+        after = huddle.step(temps, pos, wind, hp, dt)
+        t = huddle.step_terms(temps, after, pos, wind, hp, dt)
+        rows.append({
+            "before": [round(float(v), 10) for v in temps],
+            "after": [round(float(v), 10) for v in after],
+            "own": [round(float(v), 10) for v in t.own],
+            "fromNeighbours": [round(float(v), 10) for v in t.from_neighbours],
+            "toWind": [round(float(v), 10) for v in t.to_wind],
+        })
+        temps = after
+    doc = {"case": "huddle_pair", "tolerance": 1e-6, "dt": dt, "windTo": list(wind),
+           "positions": [[float(a), float(b)] for a, b in pos], "steps": rows}
+    (out / "huddle_pair.json").write_text(json.dumps(doc, indent=1), encoding="utf-8")
+    print("huddle_pair: Ende", [round(v, 2) for v in temps])
+
 
 if __name__ == "__main__":
     main()

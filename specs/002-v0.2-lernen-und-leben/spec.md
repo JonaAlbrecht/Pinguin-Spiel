@@ -51,6 +51,15 @@ folgenreich, fragt die Abnahme-Kriterien aus docs/00 im Spiel ab und gibt dem Sp
 | UX-17 | Nach jeder Runde: Iglu antippen zeigt seine Waage (rein: eigene Wärme + Nachbarn; raus: Nachbarn + Wind/Luft) als Balken ohne Zahlen, **auf einer gemeinsamen Skala für alle Iglus der Runde**. Der Text sagt ehrlich: rein und raus sind eingeschwungen immer gleich – die Balken zeigen, woher die Wärme kommt und wohin sie geht, nicht wie warm das Iglu ist (Test `Throughput_DoesNotTellHowWarmAnIglooIs`). Pfütze → „hier ist ein Iglu geschmolzen“. Im Modus „Blick unter die Haube“ zusätzlich Zahlen. | manuell + auto (Skala, Text) |
 | UX-18 | Ab Runde 2 zeigt das Ergebnis den Vergleich zur Vorrunde in Worten plus Klaras Kommentar. | auto – `SettlementRoundsTests` (Vergleich, Kommentar) + manuell (Anzeige) |
 | UX-26 | Bei einem Stern lobt Frieda nicht „nichts geschmolzen“, sondern sagt, dass etwas geschmolzen ist (`phase5_one_star`). | manuell |
+
+### Nach dem ersten Spieltest (17.10.2026)
+| ID | Anforderung | Prüfung |
+|---|---|---|
+| UX-27 | Im Hub läuft Pip mit **W A S D / Pfeiltasten** (kamerabezogen); Klicken bleibt für Tablets. Steht Pip bei einer Figur, zeigt sie „E: ansprechen“; **E / Leertaste / Enter** sprechen an und blättern im Dialog weiter. Leertaste/Enter drücken keinen zuletzt geklickten Knopf erneut (EventSystem ohne Navigation). Pip läuft nicht durch Figuren und nicht über den Rand. | manuell |
+| UX-28 | Das Simulationslabor ist begehbar: Tür zum Platz, Arbeitstisch; drinnen blenden Dach, Südwand und Schild aus. Wände sind fest. | manuell |
+| UX-29 | **Vor dem Huddle die Rechenregel mit zwei Pinguinen:** Grete (warm, im Wind) und Pip (kalt, im Windschatten). Bild-Gleichung *Wärme vorher + selbst erzeugt + vom Nachbarn − an den Wind ergibt Wärme neu*, 5 Zeitschritte per Knopf, Zahlen aus dem Huddle-Modell. Nach Schritt 1: „Was Pip bekommt, gibt Grete ab – zusammen 0“. Formel nur unter „Blick unter die Haube“ (docs/00 Regel 2). Begriff „Zeitschritt“ im Notizbuch. | auto – Golden `huddle_pair`, `HuddlePairTests`, pytest `test_step_terms_add_up_exactly`, `test_exchange_between_penguins_conserves_heat` + manuell (Anzeige) |
+| UX-30 | **Nach dem Huddle „So macht's Siemens“ mit Batteriezellen im Akku** (Entwurf, Simcenter als Vorschlag): Huddle-Wärmebild neben Akku-Symbolbild, Übersetzungstabelle, eine Kurz-nachgedacht-Frage. Siemens-Landkarte: 4 Karten (Akku, Schaltschrank, MG2, MG3). | auto – `test_both_transfer_screens_are_reached`, `test_every_transfer_card_is_a_draft_until_approved` + manuell |
+| TXT-05 | Die Unity-Prüfung kennt auch die Paketliste: Jedes Paket in `manifest.json` muss der installierte Editor kennen (sonst bricht Unity beim Öffnen ab, wie bei `com.unity.modules.textrendering` in Unity 6.4). | auto (lokal) – `tools/unity_compile_check/check.ps1` |
 | UX-19 | Die Beispiel-Siedlung lädt nur per Knopf und nur einmal (Spec 001 UX-09 korrigiert). | manuell |
 | UX-20 | Ergebnis-Knöpfe erscheinen erst, wenn Frieda fertig gesprochen hat. | manuell |
 | UX-21 | „Siedlung nochmal planen“: Eine schlechtere Runde überschreibt die beste nicht (Hub, Endkarte). | auto – `SettlementRounds.IsBetter` + manuell |

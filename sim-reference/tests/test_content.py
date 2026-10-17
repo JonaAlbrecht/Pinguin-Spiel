@@ -48,9 +48,13 @@ def test_no_line_claims_the_computer_is_exact(dialogue):
             assert "genau voraus" not in l["text"], n["id"]
 
 
+CARDS = sorted((DATA / "Transfer").glob("*.json"))
+
+
 @pytest.fixture(scope="module")
 def recall():
-    return load("Transfer/transfer_MG1_switchgear.json")["retrieval"]
+    """Alle „Kurz nachgedacht“-Fragen aller Transfer-Karten (Schaltschrank, Akku, …)."""
+    return [q for f in CARDS for q in json.loads(f.read_text(encoding="utf-8")).get("retrieval", [])]
 
 
 def test_each_recall_question_has_exactly_one_right_answer(recall):
@@ -63,6 +67,23 @@ def test_right_answer_is_not_always_in_the_same_place(recall):
     """QA-Befund: Stand die richtige Antwort immer oben, lernte man „oben ist richtig“."""
     positions = {[o["correct"] for o in q["options"]].index(True) for q in recall}
     assert len(positions) > 1
+
+
+@pytest.mark.parametrize("card", CARDS, ids=lambda f: f.stem)
+def test_every_transfer_card_is_a_draft_until_approved(card):
+    """Siemens-Inhalte sind Vorschläge: ohne vollständige Freigabe zeigt das Spiel „ENTWURF“ (UX-11)."""
+    d = json.loads(card.read_text(encoding="utf-8"))
+    for key in ("headline", "body", "takeaway", "translation", "approval", "product", "siemensBusiness"):
+        assert key in d, key
+    assert not all(d["approval"].values()), "Freigabe eingetragen – bitte bewusst prüfen und diesen Test anpassen"
+
+
+def test_both_transfer_screens_are_reached():
+    """Nach dem Huddle der Akku, nach MG1 der Schaltschrank (Spieltest 17.10.2026: der erste fehlte)."""
+    code = (SCRIPTS / "Core/GameRoot.cs").read_text(encoding="utf-8")
+    assert "TransferScreen.PlayBattery(this)" in code
+    assert "TransferScreen.Play(this)" in code
+    assert code.index("PrologueHuddle.Create") < code.index("PlayBattery") < code.index("SettlementMinigame.Create")
 
 
 def test_level_grids_are_complete():

@@ -12,6 +12,15 @@
   "windChangeEvery": 20.0,
   "windWarning": 5.0,
   "windSequence": ["W", "N", "E", "NW", "S"],
+  "pairLesson": {
+    "note": "Zwei-Pinguine-Beispiel vor dem Huddle: Grete steht im Wind, Pip in ihrem Windschatten. Gleiches Modell wie das Huddle, nur ein laengerer Zeitschritt, damit die Zahlen gut lesbar sind.",
+    "greteStart": 30.0,
+    "pipStart": 10.0,
+    "distance": 0.7,
+    "windTo": [1.0, 0.0],
+    "dt": 5.0,
+    "steps": 5
+  },
   "model": {
     "heat": 3.0,
     "capacity": 20.0,

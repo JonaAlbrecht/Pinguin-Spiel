@@ -24,6 +24,11 @@ namespace SFE.Game
 
         private const float FloeRadius = 14f;
         private const float WalkSpeed = 4f;
+        /// <summary>Ab diesem Abstand (Meter, flach) lässt sich eine Figur mit E ansprechen.</summary>
+        private const float TalkRange = 1.8f;
+        /// <summary>So nah kommt Pip einer Figur höchstens – kein Durchlaufen.</summary>
+        private const float NpcRadius = 0.75f;
+        private TextMesh _talkPrompt;
 
         private GameRoot _root;
         private GameObject _pip;
@@ -76,16 +81,9 @@ namespace SFE.Game
             l2.transform.localRotation = Quaternion.Euler(0, 180, 0);
 
             // Friedas Labor
-            var lab = new GameObject("Lab").transform;
-            lab.SetParent(t, false);
-            lab.localPosition = new Vector3(7f, 0, -1f);
-            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0, 0.9f, 0), new Vector3(3f, 1.8f, 2.4f), new Color(0.78f, 0.84f, 0.92f), "Hut");
-            var roof = Prims.Make(PrimitiveType.Cube, lab, new Vector3(0, 2.0f, 0), new Vector3(3.3f, 0.25f, 2.7f), new Color(0.3f, 0.5f, 0.65f), "Roof");
-            roof.transform.localRotation = Quaternion.Euler(0, 0, 4);
-            Prims.Make(PrimitiveType.Cube, lab, new Vector3(-0.6f, 0.6f, 1.21f), new Vector3(0.7f, 1.2f, 0.05f), new Color(0.2f, 0.25f, 0.35f), "Door");
-            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0.7f, 1.1f, 1.21f), new Vector3(0.8f, 0.6f, 0.05f), new Color(0.6f, 0.9f, 1f), "Screen");
-            var labLabel = Prims.Label(lab, ui.Ui("signLab"), new Vector3(0, 2.5f, 0.6f), 0.04f, Palette.Text);
-            labLabel.transform.rotation = Quaternion.Euler(50, 0, 0);
+            // Begehbar: Wände mit Tür zum Platz (Westen), Dach und Südwand blenden aus, sobald Pip drin ist.
+            // v0.1 war ein geschlossener Block – Pip lief hinein und verschwand (Spieltest 17.10.2026).
+            _lab = BuildLab(t, new Vector3(7f, 0, -1f), ui.Ui("signLab"));
 
             // Kalles Baustelle
             var site = new GameObject("KalleSite").transform;
@@ -132,6 +130,96 @@ namespace SFE.Game
 
             _clickMarker = Prims.Make(PrimitiveType.Cylinder, t, Vector3.zero, new Vector3(0.5f, 0.01f, 0.5f), Palette.Selected, "ClickMarker").transform;
             _clickMarker.gameObject.SetActive(false);
+
+            _talkPrompt = Prims.Label(t, ui.Ui("hubTalkPrompt"), Vector3.zero, 0.03f, Palette.Text);
+            _talkPrompt.fontStyle = FontStyle.Bold;
+            _talkPrompt.gameObject.SetActive(false);
+        }
+
+        /// <summary>Ein begehbares Gebäude: Grundriss für Wände und Tür, dazu was beim Betreten ausgeblendet wird.</summary>
+        private sealed class Building
+        {
+            public Vector3 Center;
+            public Vector2 Half;          // halbe Außenmaße (x, z)
+            public float DoorZ, DoorHalf; // Tür in der Westwand
+            public Renderer[] HideInside; // Dach, Südwand (zur Kamera hin)
+            public bool Inside;
+        }
+
+        private const float WallThickness = 0.15f;
+        private const float PipRadius = 0.3f;
+        private Building _lab;
+
+        private Building BuildLab(Transform parent, Vector3 pos, string sign)
+        {
+            var lab = new GameObject("Lab").transform;
+            lab.SetParent(parent, false);
+            lab.localPosition = pos;
+            var wall = new Color(0.78f, 0.84f, 0.92f);
+            var b = new Building { Center = pos, Half = new Vector2(1.6f, 1.3f), DoorZ = 0f, DoorHalf = 0.55f };
+            float hx = b.Half.x, hz = b.Half.y, h = 1.8f, th = WallThickness;
+
+            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0, 0.01f, 0), new Vector3(hx * 2, 0.02f, hz * 2), new Color(0.62f, 0.68f, 0.78f), "Floor");
+            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0, h / 2, hz - th / 2), new Vector3(hx * 2, h, th), wall, "WallN");
+            Prims.Make(PrimitiveType.Cube, lab, new Vector3(hx - th / 2, h / 2, 0), new Vector3(th, h, hz * 2), wall, "WallE");
+            var south = Prims.Make(PrimitiveType.Cube, lab, new Vector3(0, h / 2, -hz + th / 2), new Vector3(hx * 2, h, th), wall, "WallS");
+            // Westwand in zwei Stücken – dazwischen die Tür zum Huddle-Platz
+            float doorLow = b.DoorZ - b.DoorHalf, doorHigh = b.DoorZ + b.DoorHalf;
+            Prims.Make(PrimitiveType.Cube, lab, new Vector3(-hx + th / 2, h / 2, (doorHigh + hz) / 2), new Vector3(th, h, hz - doorHigh), wall, "WallW1");
+            Prims.Make(PrimitiveType.Cube, lab, new Vector3(-hx + th / 2, h / 2, (doorLow - hz) / 2), new Vector3(th, h, doorLow + hz), wall, "WallW2");
+            Prims.Make(PrimitiveType.Cube, lab, new Vector3(-hx + th / 2, h - 0.15f, b.DoorZ), new Vector3(th, 0.3f, b.DoorHalf * 2), new Color(0.3f, 0.5f, 0.65f), "DoorFrame");
+            var roof = Prims.Make(PrimitiveType.Cube, lab, new Vector3(0, h + 0.12f, 0), new Vector3(hx * 2 + 0.3f, 0.25f, hz * 2 + 0.3f), new Color(0.3f, 0.5f, 0.65f), "Roof");
+
+            // Einrichtung: Arbeitstisch mit Bildschirm (Wärmebild) an der Nordwand
+            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0.3f, 0.4f, hz - 0.5f), new Vector3(1.6f, 0.08f, 0.6f), new Color(0.55f, 0.4f, 0.25f), "Desk");
+            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0.3f, 0.2f, hz - 0.5f), new Vector3(1.4f, 0.4f, 0.5f), new Color(0.45f, 0.32f, 0.2f), "DeskBase");
+            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0.3f, 0.85f, hz - th - 0.05f), new Vector3(1.0f, 0.6f, 0.04f), new Color(0.6f, 0.9f, 1f), "Screen");
+            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0.05f, 0.9f, hz - th - 0.08f), new Vector3(0.25f, 0.2f, 0.02f), HeatColors.Comfy, "HeatSpot");
+            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0.55f, 0.78f, hz - th - 0.08f), new Vector3(0.3f, 0.2f, 0.02f), HeatColors.Cold, "ColdSpot");
+
+            var label = Prims.Label(lab, sign, new Vector3(0, h + 0.7f, 0), 0.04f, Palette.Text);
+            b.HideInside = new[] { roof.GetComponent<Renderer>(), south.GetComponent<Renderer>(), label.GetComponent<Renderer>() };
+            return b;
+        }
+
+        /// <summary>
+        /// Wände sind fest, die Tür ist offen. Ein Punkt ist gesperrt, wenn er im Wandband liegt (Wanddicke plus
+        /// Pips Radius) und nicht in der Türöffnung. Achsenweise geprüft, damit Pip an Wänden entlanggleitet.
+        /// </summary>
+        private bool Blocked(Vector3 p)
+        {
+            var b = _lab;
+            if (b == null) return false;
+            float lx = p.x - b.Center.x, lz = p.z - b.Center.z;
+            float ox = b.Half.x + PipRadius, oz = b.Half.y + PipRadius;
+            float ix = b.Half.x - WallThickness - PipRadius, iz = b.Half.y - WallThickness - PipRadius;
+            bool inOuter = Mathf.Abs(lx) < ox && Mathf.Abs(lz) < oz;
+            bool inInner = Mathf.Abs(lx) < ix && Mathf.Abs(lz) < iz;
+            if (!inOuter || inInner) return false;
+            bool inDoor = lx < -ix && Mathf.Abs(lz - b.DoorZ) < b.DoorHalf - PipRadius;
+            return !inDoor;
+        }
+
+        /// <summary>Schritt von <paramref name="from"/> nach <paramref name="to"/>, an Wänden entlang statt hindurch.</summary>
+        private Vector3 MoveWithWalls(Vector3 from, Vector3 to)
+        {
+            if (!Blocked(to)) return to;
+            var xOnly = new Vector3(to.x, from.y, from.z);
+            if (!Blocked(xOnly)) return xOnly;
+            var zOnly = new Vector3(from.x, from.y, to.z);
+            if (!Blocked(zOnly)) return zOnly;
+            return from;
+        }
+
+        private void UpdateBuildings()
+        {
+            var b = _lab;
+            if (b == null) return;
+            float lx = Pip.position.x - b.Center.x, lz = Pip.position.z - b.Center.z;
+            bool inside = Mathf.Abs(lx) < b.Half.x && Mathf.Abs(lz) < b.Half.y;
+            if (inside == b.Inside) return;
+            b.Inside = inside;
+            foreach (var r in b.HideInside) r.enabled = !inside;
         }
 
         private void AddNpc(string id, Prims.Look look, Vector3 pos, float yaw)
@@ -181,7 +269,94 @@ namespace SFE.Game
         private void Update()
         {
             if (!_active) return;
-            if (!_root.Hud.Blocking && InputHelper.PointerDown && !InputHelper.PointerOverUI &&
+            bool free = !_root.Hud.Blocking;
+            var move = free ? InputHelper.MoveInput : Vector2.zero;
+            if (move.sqrMagnitude > 0.0001f) WalkByKeys(move);
+            else
+            {
+                HandleClick(free);
+                WalkToTarget();
+            }
+            UpdateTalkPrompt(free);
+            UpdateBuildings();
+        }
+
+        /// <summary>
+        /// WASD/Pfeiltasten, bezogen auf die Kamera: „W“ läuft immer bildeinwärts, egal wie die Kamera steht.
+        /// Tastatur schlägt ein angeklicktes Ziel – wer lenkt, will nicht zum alten Klickpunkt zurück.
+        /// </summary>
+        private void WalkByKeys(Vector2 move)
+        {
+            var cam = _root.Rig.Cam.transform;
+            var fwd = Vector3.ProjectOnPlane(cam.forward, Vector3.up).normalized;
+            var right = Vector3.ProjectOnPlane(cam.right, Vector3.up).normalized;
+            var dir = right * move.x + fwd * move.y;
+            var next = MoveWithWalls(Pip.position, KeepOnFloe(KeepClearOfNpcs(Pip.position + dir * (WalkSpeed * Time.deltaTime))));
+            Pip.position = next;
+            Pip.rotation = Quaternion.Slerp(Pip.rotation, Quaternion.LookRotation(dir.normalized, Vector3.up), 10f * Time.deltaTime);
+            Pip.Find("Body").localRotation = Quaternion.Euler(0, 0, Mathf.Sin(Time.time * 14f) * 8f);   // Watscheln
+            _target = next;
+            _pendingNpc = null;
+            _clickMarker.gameObject.SetActive(false);
+        }
+
+        /// <summary>Pip läuft nicht durch Figuren hindurch, sondern wird an ihrem Rand entlanggeschoben.</summary>
+        private Vector3 KeepClearOfNpcs(Vector3 p)
+        {
+            foreach (var n in _npcs.Values)
+            {
+                var c = n.Go.transform.position;
+                var d = new Vector3(p.x - c.x, 0, p.z - c.z);
+                if (d.magnitude < NpcRadius && d.sqrMagnitude > 1e-6f) p = new Vector3(c.x, p.y, c.z) + d.normalized * NpcRadius;
+            }
+            return p;
+        }
+
+        private static Vector3 KeepOnFloe(Vector3 p)
+        {
+            var flat = new Vector2(p.x, p.z);
+            if (flat.magnitude > FloeRadius - 1f) flat = flat.normalized * (FloeRadius - 1f);
+            return new Vector3(flat.x, p.y, flat.y);
+        }
+
+        /// <summary>Steht Pip nah genug bei einer Figur, zeigt sie „E: ansprechen“ – und E/Leertaste/Enter spricht sie an.</summary>
+        private void UpdateTalkPrompt(bool free)
+        {
+            Npc nearest = null;
+            float best = TalkRange;
+            if (free)
+            {
+                foreach (var n in _npcs.Values)
+                {
+                    var c = n.Go.transform.position;
+                    float d = Vector2.Distance(new Vector2(c.x, c.z), new Vector2(Pip.position.x, Pip.position.z));
+                    if (d < best) { best = d; nearest = n; }
+                }
+            }
+            _talkPrompt.gameObject.SetActive(nearest != null);
+            if (nearest == null) return;
+            _talkPrompt.transform.position = nearest.Go.transform.position + Vector3.up * 2.35f;
+            if (InputHelper.ConfirmPressed && !_root.Hud.JustClosed)
+            {
+                _pendingNpc = null;
+                _target = Pip.position;
+                Talk(nearest);
+            }
+        }
+
+        private void Talk(Npc npc)
+        {
+            var look = Pip.position - npc.Go.transform.position;
+            look.y = 0;
+            if (look.sqrMagnitude > 0.01f) npc.Go.transform.rotation = Quaternion.LookRotation(look.normalized, Vector3.up);
+            if (npc.OnInteract != null) npc.OnInteract();
+            else if (npc.IdleNode != null) StartCoroutine(_root.Hud.Say(npc.IdleNode));
+            else _root.Hud.Toast(_root.Data.Ui("hubNoTask", _root.Data.Speakers[npc.Id].Name), 2.5f);
+        }
+
+        private void HandleClick(bool free)
+        {
+            if (free && InputHelper.PointerDown && !InputHelper.PointerOverUI &&
                 InputHelper.PointerOnGround(_root.Rig.Cam, out var p))
             {
                 _pendingNpc = null;
@@ -202,14 +377,20 @@ namespace SFE.Game
                 _clickMarker.position = _target + Vector3.up * 0.01f;
                 _clickMarker.gameObject.SetActive(_pendingNpc == null);
             }
+        }
 
+        private void WalkToTarget()
+        {
             var pos = Pip.position;
             var to = _target - pos;
             to.y = 0;
             if (to.magnitude > 0.05f)
             {
                 var step = to.normalized * Mathf.Min(WalkSpeed * Time.deltaTime, to.magnitude);
-                Pip.position = pos + step;
+                var next = MoveWithWalls(pos, pos + step);
+                // Steht eine Wand im Weg, bleibt Pip dort stehen statt ewig dagegen zu laufen.
+                if ((next - pos).sqrMagnitude < 1e-8f) _target = pos;
+                Pip.position = next;
                 Pip.rotation = Quaternion.Slerp(Pip.rotation, Quaternion.LookRotation(to.normalized, Vector3.up), 10f * Time.deltaTime);
                 var body = Pip.Find("Body");
                 body.localRotation = Quaternion.Euler(0, 0, Mathf.Sin(Time.time * 14f) * 8f);   // Watscheln
@@ -222,12 +403,7 @@ namespace SFE.Game
                 {
                     var npc = _pendingNpc;
                     _pendingNpc = null;
-                    var look = Pip.position - npc.Go.transform.position;
-                    look.y = 0;
-                    if (look.sqrMagnitude > 0.01f) npc.Go.transform.rotation = Quaternion.LookRotation(look.normalized, Vector3.up);
-                    if (npc.OnInteract != null) npc.OnInteract();
-                    else if (npc.IdleNode != null) StartCoroutine(_root.Hud.Say(npc.IdleNode));
-                    else _root.Hud.Toast(_root.Data.Ui("hubNoTask", _root.Data.Speakers[npc.Id].Name), 2.5f);
+                    Talk(npc);
                 }
             }
         }

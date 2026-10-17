@@ -81,3 +81,44 @@ def step(temps: np.ndarray, pos: np.ndarray, wind_to: tuple[float, float], p: Hu
     a = sp.csr_matrix((vals, (rows, cols)), shape=(n, n))
     b = c * temps + p.heat + h * p.air_temp
     return spla.spsolve(a.tocsc(), b)
+
+
+@dataclass
+class StepTerms:
+    """Zerlegung eines Zeitschritts je Pinguin – die „Rechenregel“ im Prolog (Zwei-Pinguine-Beispiel).
+
+        neu - vorher = own + from_neighbours - to_wind
+
+    Beim impliziten Euler gelten die Teile mit den NEUEN Temperaturen; dann geht die Zerlegung exakt auf.
+    from_neighbours summiert über alle Pinguine zu null: Der Austausch erzeugt und vernichtet keine Wärme.
+    """
+    own: np.ndarray
+    from_neighbours: np.ndarray
+    to_wind: np.ndarray
+
+
+def step_terms(before: np.ndarray, after: np.ndarray, pos: np.ndarray, wind_to: tuple[float, float],
+               p: HuddleParams, dt: float) -> StepTerms:
+    n = len(after)
+    exp = exposure(pos, wind_to, p)
+    h = np.where(exp, p.h_exposed, p.h_shielded)
+    f = dt / p.capacity
+    own = np.full(n, f * p.heat)
+    to_wind = f * h * (after - p.air_temp)
+    gain = np.zeros(n)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if math.dist(pos[i], pos[j]) <= p.contact_distance:
+                flow = f * p.contact * (after[j] - after[i])
+                gain[i] += flow
+                gain[j] -= flow
+    return StepTerms(own, gain, to_wind)
+
+
+def pair_lesson(path: Path):
+    """Startwerte des Zwei-Pinguine-Beispiels aus dem Level-JSON: Positionen, Temperaturen, Wind, dt, Schritte."""
+    d = json.loads(Path(path).read_text(encoding="utf-8"))["pairLesson"]
+    half = d["distance"] / 2
+    pos = np.array([[-half, 0.0], [half, 0.0]])          # 0 = Grete (windaufwärts), 1 = Pip
+    temps = np.array([d["greteStart"], d["pipStart"]], dtype=float)
+    return pos, temps, tuple(d["windTo"]), d["dt"], d["steps"]

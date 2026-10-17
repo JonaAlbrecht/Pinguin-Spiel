@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using SFE.SimCore.Data;
 using SFE.SimCore.Thermal;
 using UnityEngine;
 using UnityEngine.UI;
@@ -48,6 +49,7 @@ namespace SFE.Game
         public IEnumerator Play()
         {
             BuildWorld();
+            yield return PairLesson();
             BuildUi();
             _root.Rig.LookAt(transform.position, 62f, _root.Rig.DistanceToFit((float)_level.ArenaRadius * 2f + 2f), 0f);
             yield return _root.Hud.FadeIn();
@@ -64,6 +66,7 @@ namespace SFE.Game
             _root.Hud.Toast(_root.Data.Ui("prologueAllWarm"), 3f);
             foreach (var p in _penguins) p.AddComponent<Bobber>().Amplitude = 0.08f;
             yield return new WaitForSeconds(1.5f);
+            _root.State.PrologueSnapshot = Snapshot();
             yield return _root.Hud.Say("prologue_done");
             yield return _root.Hud.FadeOut();
             Sfx.Wind(0f);
@@ -133,6 +136,191 @@ namespace SFE.Game
                 var skip = UIKit.Button(rt, _root.Data.Ui("prologueSkip"), () => _progress = (float)_level.TargetSeconds, Palette.ButtonAlt, 24);
                 UIKit.PlaceFixed((RectTransform)skip.transform, new Vector2(1f, 1f), new Vector2(-130, -60), new Vector2(220, 56));
             }
+        }
+
+        // ---------- Zwei Pinguine: die Rechenregel vor dem Huddle ----------
+
+        /// <summary>
+        /// Erst die Regel, dann das System: Grete (warm, im Wind) und Pip (durchgefroren, in ihrem Windschatten)
+        /// tauschen Wärme, Zeitschritt für Zeitschritt. Die Zahlen kommen aus demselben <see cref="HuddleModel"/>
+        /// wie das Huddle danach (Golden <c>huddle_pair</c>) – nur mit längerem Zeitschritt, damit sie lesbar sind.
+        /// Die Formel selbst steht nur im Modus „Blick unter die Haube“ (docs/00: keine Formeln im Standardspiel).
+        /// </summary>
+        private IEnumerator PairLesson()
+        {
+            var lesson = _level.PairLesson;
+            if (lesson == null) yield break;
+            var data = _root.Data;
+            var model = lesson.CreateModel(_level.Model);
+            foreach (var p in _penguins) p.SetActive(false);
+            foreach (var f in _flakes) f.gameObject.SetActive(false);
+
+            var pair = new[] { Prims.Penguin(transform, "Grete", Prims.Look.Grete, 1.3f), Prims.Penguin(transform, "Pip", Prims.Look.Pip, 1.3f) };
+            string[] names = { data.Speakers["grete"].Name, data.Speakers["pip"].Name };
+            var heads = new TextMesh[2];
+            var wind = new Vector3((float)lesson.WindEast, 0, (float)lesson.WindNorth).normalized;
+            for (int i = 0; i < 2; i++)
+            {
+                pair[i].transform.localPosition = new Vector3((float)model.X[i], 0, (float)model.Y[i]);
+                pair[i].transform.localRotation = Quaternion.LookRotation(wind, Vector3.up); // Rücken zum Wind
+                heads[i] = Prims.Label(pair[i].transform, "", new Vector3(0, 1.15f, 0), 0.03f, Palette.Text);
+                heads[i].fontStyle = FontStyle.Bold;
+            }
+            _windArrow.localPosition = -wind * 1.9f + Vector3.up * 0.4f;
+            _windArrow.localRotation = Quaternion.LookRotation(wind, Vector3.up);
+            _root.Rig.LookAt(transform.position + new Vector3(0, 0, 0.9f), 48f, 7f, 0f);
+
+            // Rechentafel oben: Bild-Gleichung + je eine Zeile für Grete und Pip
+            var layer = new GameObject("PairLesson");
+            var rt = UIKit.Rect(layer, _root.Hud.Root);
+            UIKit.Fill(rt);
+            rt.SetSiblingIndex(0);
+            var panel = UIKit.Panel(rt, Palette.PanelLight, "Board");
+            UIKit.PlaceFixed(panel.rectTransform, new Vector2(0.5f, 1f), new Vector2(0, -330), new Vector2(1500, 420));
+            var title = UIKit.Label(panel.transform, data.Ui("pairTitle"), 30, Palette.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
+            UIKit.PlaceFixed(title.rectTransform, new Vector2(0, 1), new Vector2(430, -35), new Vector2(800, 44));
+            var stepLabel = UIKit.Label(panel.transform, "", 24, new Color(0.35f, 0.4f, 0.5f), TextAnchor.MiddleRight);
+            UIKit.PlaceFixed(stepLabel.rectTransform, new Vector2(1, 1), new Vector2(-180, -35), new Vector2(320, 44));
+
+            // Spalten: Name | vorher | + | selbst | + | Nachbar | - | Wind | ergibt | neu
+            float[] colX = { 90, 270, 375, 480, 585, 690, 795, 900, 1010, 1130 };
+            string[] heads0 = { "", data.Ui("pairBefore"), data.Ui("pairPlus"), data.Ui("pairOwn"), data.Ui("pairPlus"), data.Ui("pairNeighbour"),
+                data.Ui("pairMinus"), data.Ui("pairWind"), data.Ui("pairResult"), data.Ui("pairAfter") };
+            Color[] tint = { Color.clear, new Color(0.85f, 0.88f, 0.94f), Color.clear, HeatColors.Comfy, Color.clear, Palette.Thread,
+                Color.clear, HeatColors.Cold, Color.clear, new Color(0.85f, 0.88f, 0.94f) };
+            for (int c = 1; c < colX.Length; c++)
+            {
+                bool op = tint[c] == Color.clear;
+                if (!op)
+                {
+                    var box = UIKit.Panel(panel.transform, tint[c], "Head");
+                    UIKit.PlaceFixed(box.rectTransform, new Vector2(0, 1), new Vector2(colX[c] + 40, -100), new Vector2(170, 56));
+                }
+                var t = UIKit.Label(panel.transform, heads0[c], op ? 30 : 21, Palette.Text, TextAnchor.MiddleCenter, op ? FontStyle.Bold : FontStyle.Normal);
+                UIKit.PlaceFixed(t.rectTransform, new Vector2(0, 1), new Vector2(colX[c] + 40, -100), new Vector2(op ? 80 : 165, 56));
+            }
+            var cells = new Text[2, 10];
+            for (int r = 0; r < 2; r++)
+            {
+                float y = -165 - r * 58;
+                var n = UIKit.Label(panel.transform, names[r], 24, Palette.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
+                UIKit.PlaceFixed(n.rectTransform, new Vector2(0, 1), new Vector2(colX[0] + 40, y), new Vector2(170, 50));
+                foreach (int c in new[] { 1, 3, 5, 7, 9 })
+                {
+                    cells[r, c] = UIKit.Label(panel.transform, data.Ui("pairUnknown"), 28, Palette.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+                    UIKit.PlaceFixed(cells[r, c].rectTransform, new Vector2(0, 1), new Vector2(colX[c] + 40, y), new Vector2(170, 50));
+                }
+            }
+            var conservation = UIKit.Label(panel.transform, "", 22, new Color(0.55f, 0.3f, 0.05f), TextAnchor.MiddleLeft, FontStyle.Italic);
+            UIKit.PlaceFixed(conservation.rectTransform, new Vector2(0.5f, 1), new Vector2(0, -280), new Vector2(1420, 44));
+
+            // Blick unter die Haube: die Formel hinter der Bild-Gleichung (optional, docs/00)
+            var p0 = _level.Model;
+            var tech = UIKit.Label(panel.transform, data.Tech("pairFormula") + "\n" + data.Tech("pairParams", lesson.Dt, p0.Capacity, p0.Heat,
+                p0.Contact, p0.HExposed, p0.HShielded, p0.AirTemp), 17, new Color(0.15f, 0.35f, 0.45f), TextAnchor.UpperLeft);
+            UIKit.PlaceFixed(tech.rectTransform, new Vector2(0.5f, 1), new Vector2(0, -330), new Vector2(1420, 56));
+            tech.gameObject.SetActive(false);
+            var techBtn = UIKit.Button(panel.transform, data.Ui("techButton"), () => tech.gameObject.SetActive(!tech.gameObject.activeSelf),
+                new Color(0.25f, 0.3f, 0.4f), 20);
+            UIKit.PlaceFixed((RectTransform)techBtn.transform, new Vector2(0, 0), new Vector2(180, 38), new Vector2(300, 52));
+
+            bool go = false;
+            var next = UIKit.Button(panel.transform, data.Ui("pairNext"), () => go = true, Palette.Button, 26);
+            UIKit.PlaceFixed((RectTransform)next.transform, new Vector2(1, 0), new Vector2(-190, 38), new Vector2(340, 60));
+
+            void ShowState(int step)
+            {
+                stepLabel.text = data.Ui("pairStep", step, lesson.Steps);
+                for (int i = 0; i < 2; i++)
+                {
+                    double temp = model.Temperatures[i];
+                    heads[i].text = data.Ui("pairHead", names[i], temp);
+                    var col = HeatColors.Penguin(temp, _level.FreezeBelow);
+                    Prims.SetPenguinTint(pair[i], Color.Lerp(Palette.PenguinWhite, col, 0.75f), col);
+                }
+            }
+
+            ShowState(0);
+            for (int i = 0; i < 2; i++) cells[i, 1].text = data.Ui("pairValue", model.Temperatures[i]);
+            yield return _root.Hud.FadeIn();
+            yield return _root.Hud.Say("pair_intro");
+
+            for (int step = 1; step <= lesson.Steps; step++)
+            {
+                go = false;
+                while (!go) yield return null;
+                Sfx.Play(Sfx.Sound.Click);
+                var before = (double[])model.Temperatures.Clone();
+                model.Step(lesson.Dt, lesson.WindEast, lesson.WindNorth);
+                var terms = model.LastStepTerms(lesson.Dt);
+                // Zeile füllt sich von links nach rechts – erst die Teile, dann das Ergebnis
+                for (int i = 0; i < 2; i++)
+                {
+                    cells[i, 1].text = data.Ui("pairValue", before[i]);
+                    cells[i, 3].text = cells[i, 5].text = cells[i, 7].text = cells[i, 9].text = data.Ui("pairUnknown");
+                }
+                foreach (int c in new[] { 3, 5, 7, 9 })
+                {
+                    yield return new WaitForSeconds(0.35f);
+                    for (int i = 0; i < 2; i++)
+                        cells[i, c].text = c == 3 ? data.Ui("pairSigned", terms.Own[i])
+                            : c == 5 ? data.Ui("pairSigned", terms.FromNeighbours[i])
+                            : c == 7 ? data.Ui("pairValue", terms.ToWind[i])
+                            : data.Ui("pairValue", model.Temperatures[i]);
+                    Sfx.Play(c == 9 ? Sfx.Sound.Ding : Sfx.Sound.Plop, 0.4f);
+                }
+                ShowState(step);
+                conservation.text = data.Ui("pairConservation", names[1], terms.FromNeighbours[1], names[0], terms.FromNeighbours[0],
+                    terms.FromNeighbours[0] + terms.FromNeighbours[1]);
+                if (step == 1) yield return _root.Hud.Say("pair_conservation");
+            }
+            next.gameObject.SetActive(false);
+            yield return _root.Hud.Say("pair_done");
+            AddGlossary("timestep");
+            yield return _root.Hud.FadeOut();
+
+            Destroy(layer);
+            foreach (var p in pair) Destroy(p);
+            foreach (var p in _penguins) p.SetActive(true);
+            foreach (var f in _flakes) f.gameObject.SetActive(true);
+            SetWind(0);
+        }
+
+        private void AddGlossary(string phase)
+        {
+            foreach (var g in _root.Data.Mg1Content.Arr("glossary"))
+            {
+                var o = (Dictionary<string, object>)g;
+                if (o.Str("phase") != phase) continue;
+                string entry = $"{o.Str("term")}: {o.Str("text")}";
+                if (_root.State.Glossary.Contains(entry)) continue;
+                _root.State.Glossary.Add(entry);
+                _root.Hud.Toast(_root.Data.Ui("glossaryNew", entry), 4f);
+                Sfx.Play(Sfx.Sound.Ding, 0.4f);
+            }
+        }
+
+        /// <summary>Wärmebild des fertigen Huddles von oben – für „So macht's Siemens“ neben dem Akku.</summary>
+        private Texture2D Snapshot()
+        {
+            const int size = 96;
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear };
+            float r = (float)_level.ArenaRadius * 0.55f; // nur die Mitte der Scholle, dort steht der Huddle
+            var air = HeatColors.Penguin(_level.Model.AirTemp, _level.FreezeBelow);
+            var px = new Color[size * size];
+            for (int k = 0; k < px.Length; k++) px[k] = Color.Lerp(air, Palette.Ice, 0.55f);
+            for (int i = 0; i < _model.Count; i++)
+            {
+                var col = HeatColors.Penguin(_model.Temperatures[i], _level.FreezeBelow);
+                float cx = ((float)_model.X[i] / r * 0.5f + 0.5f) * size, cy = ((float)_model.Y[i] / r * 0.5f + 0.5f) * size;
+                float pr = (float)_level.PenguinRadius / r * 0.5f * size;
+                for (int y = Mathf.Max(0, (int)(cy - pr)); y < Mathf.Min(size, (int)(cy + pr) + 1); y++)
+                    for (int x = Mathf.Max(0, (int)(cx - pr)); x < Mathf.Min(size, (int)(cx + pr) + 1); x++)
+                        if ((x - cx) * (x - cx) + (y - cy) * (y - cy) <= pr * pr) px[y * size + x] = col;
+            }
+            tex.SetPixels(px);
+            tex.Apply();
+            return tex;
         }
 
         private void SetWind(int index)

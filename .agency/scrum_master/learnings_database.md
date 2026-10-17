@@ -26,3 +26,14 @@ Jedes Learning: was hakte · Gegenmaßnahme für künftige Durchläufe.
 8. **Peer-Review vor dem Commit lohnt sich.** Alle Werkzeuge waren grün, trotzdem fand der QA-Durchgang einen Blocker
    und sieben wichtige Befunde (Layout-Überlappung, doppelte Vorstellung, Quiz-Reihenfolge). → *Gegenmaßnahme:*
    `agent_inbox/QA_ENGINEER.yml` ist Pflicht vor jedem Merge, auch wenn die Gates grün sind.
+
+## 2026-10-17 – erster Spieltest im Editor
+
+9. **„Kompiliert gegen die DLLs“ sagt nichts über die Paketliste.** Das Projekt öffnete nicht, weil ein Paket aus der
+   Unity-2021-Zeit in Unity 6.4 fehlte. → *Gegenmaßnahme:* `check.ps1` prüft jetzt jedes Paket gegen den Editor.
+10. **Unity verändert Dateien, während es läuft.** Eine Änderung an `manifest.json` bei offenem Editor wurde
+    überschrieben. → *Gegenmaßnahme:* Paketliste nur bei geschlossenem Unity ändern; vor dem Commit `git status` auf
+    ungewollte Ordner in `Assets/` prüfen (Pakete legen dort eigene Dateien an).
+11. **Der Spieltest fand, was kein Werkzeug findet:** ein Gebäude, in dem die Figur verschwindet; ein fehlender
+    Transfer; eine Lernlücke (Regel vor dem System). → *Gegenmaßnahme:* Nach jedem größeren Umbau einen kurzen
+    Spieltest einplanen, bevor neue Features dazukommen.

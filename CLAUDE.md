@@ -7,7 +7,8 @@ Lernspiel für Siemens-Mitarbeitende **ohne technischen Hintergrund**. Leitplank
 - Golden Files neu erzeugen (nach Modell- oder Leveländerung): `cd sim-reference && python generate_golden.py`
 - C#-Kern: `dotnet test "sim-core/com.sfe.simcore/Dotnet~/Tests/SFE.SimCore.Tests.csproj"`
 - Unity: siehe `unity/PinguinKolonie/README.md`
-- Unity-6-Kompilierung ohne Editorstart (Pflicht vor dem Push): `powershell -ExecutionPolicy Bypass -File tools/unity_compile_check/check.ps1`
+- Unity-Prüfung ohne Editorstart (Paketliste + Kompilierung, Pflicht vor dem Push): `powershell -ExecutionPolicy Bypass -File tools/unity_compile_check/check.ps1`
+- Paketliste (`Packages/manifest.json`) nur bei geschlossenem Unity ändern – ein offener Editor schreibt sie zurück
 - Arbeitsweise, Definition of Done, Entscheidungen: `.agency/` (Agency Blueprint)
 
 ## Regeln, die nicht offensichtlich sind

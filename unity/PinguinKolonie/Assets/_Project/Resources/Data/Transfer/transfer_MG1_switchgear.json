@@ -20,6 +20,12 @@
     }
   ],
   "product": "SIMARIS therm, Simcenter 3D (Vorschlag – Freigabe offen)",
+  "tableGame": {
+    "de": "In der Siedlung"
+  },
+  "tableReal": {
+    "de": "Im Schaltschrank"
+  },
   "translation": [
     {
       "game": {
@@ -141,7 +147,7 @@
           },
           "correct": true,
           "feedback": {
-            "de": "Richtig! Das ist Karte 1 deiner Siemens-Landkarte."
+            "de": "Richtig! Das kommt als neue Karte auf deine Siemens-Landkarte."
           }
         }
       ]

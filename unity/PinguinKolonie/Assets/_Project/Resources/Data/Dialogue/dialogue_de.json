@@ -57,6 +57,57 @@
       ]
     },
     {
+      "id": "pair_intro",
+      "lines": [
+        {
+          "speaker": "grete",
+          "text": "Bevor wir alle zusammenrücken, schau dir erst zwei von uns an: dich und mich."
+        },
+        {
+          "speaker": "grete",
+          "text": "Ich bin warm, du bist durchgefroren. Ich stehe im Wind, du stehst in meinem Windschatten."
+        },
+        {
+          "speaker": "pip",
+          "text": "Und wie wird mir wieder warm?"
+        },
+        {
+          "speaker": "grete",
+          "text": "Schritt für Schritt. In jedem Augenblick gilt dieselbe Regel – sie steht oben. Drück auf „Nächster Zeitschritt“."
+        }
+      ]
+    },
+    {
+      "id": "pair_conservation",
+      "lines": [
+        {
+          "speaker": "grete",
+          "text": "Siehst du? Was du von mir bekommst, fehlt mir genau. Beim Teilen geht keine Wärme verloren."
+        },
+        {
+          "speaker": "grete",
+          "text": "Verloren geht sie nur an den Wind. Darum frierst du hinter mir weniger als ich vorne."
+        }
+      ]
+    },
+    {
+      "id": "pair_done",
+      "lines": [
+        {
+          "speaker": "pip",
+          "text": "Mir wird warm – und dir wird kälter."
+        },
+        {
+          "speaker": "grete",
+          "text": "So rechnet man Wärme aus: kleine Zeitschritte, immer dieselbe Regel. Für zwei geht das im Kopf."
+        },
+        {
+          "speaker": "grete",
+          "text": "Für zwölf rechnet der Computer die Regel für dich – viele Male pro Sekunde. Du siehst es an den Farben."
+        }
+      ]
+    },
+    {
       "id": "prologue_intro",
       "lines": [
         {
@@ -108,6 +159,19 @@
         {
           "speaker": "frieda",
           "text": "Ab jetzt bauen wir Iglus. Pip, komm zu meinem Labor. Ich brauche Hilfe!"
+        }
+      ]
+    },
+    {
+      "id": "transfer_battery_after",
+      "lines": [
+        {
+          "speaker": "pip",
+          "text": "Pinguine und Batterien – wer hätte das gedacht?"
+        },
+        {
+          "speaker": "grete",
+          "text": "Wärme ist Wärme. Ob im Federkleid oder im Auto."
         }
       ]
     },

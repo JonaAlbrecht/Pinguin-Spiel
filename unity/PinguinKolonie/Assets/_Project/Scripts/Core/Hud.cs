@@ -134,12 +134,25 @@ namespace SFE.Game
                 if (line.Speaker == "zwilli") Sfx.Speak(ZwilliGlitch);
                 else Sfx.Play(Sfx.Sound.Click, 0.4f);
                 _advance = false;
-                yield return null;
-                while (!_advance) yield return null;
+                yield return null; // die Taste, die den Dialog gestartet hat, blättert nicht gleich weiter
+                while (!_advance)
+                {
+                    if (InputHelper.ConfirmPressed) _advance = true;
+                    yield return null;
+                }
             }
             _dialogBox.gameObject.SetActive(false);
             _fade.transform.SetAsLastSibling();
+            _closedFrame = Time.frameCount;
         }
+
+        private int _closedFrame = -10;
+
+        /// <summary>
+        /// Gerade eben (diesen oder letzten Frame) ging ein Dialog zu. Dann startet E/Leertaste kein neues Gespräch –
+        /// sonst öffnete der Tastendruck, der die letzte Zeile wegklickt, sofort das nächste.
+        /// </summary>
+        public bool JustClosed => Time.frameCount - _closedFrame <= 1;
 
         /// <summary>Ab jetzt ist das Notizbuch oben rechts erreichbar.</summary>
         public void EnableNotebook(GameState state)

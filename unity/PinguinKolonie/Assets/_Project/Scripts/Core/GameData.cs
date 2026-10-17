@@ -29,6 +29,8 @@ namespace SFE.Game
         public Dictionary<string, object> Mg1Content;
         public Dictionary<string, object> UiText;
         public Dictionary<string, object> TransferCard;
+        /// <summary>Transfer nach dem Huddle (Prolog): Batteriezellen im Akku.</summary>
+        public Dictionary<string, object> BatteryCard;
         public readonly Dictionary<string, List<DialogueLine>> Dialogue = new Dictionary<string, List<DialogueLine>>();
         public readonly Dictionary<string, Speaker> Speakers = new Dictionary<string, Speaker>();
 
@@ -41,6 +43,7 @@ namespace SFE.Game
                 Mg1Content = MiniJson.ParseObject(Text("Data/Content/mg1_content_de")),
                 UiText = MiniJson.ParseObject(Text("Data/Content/ui_de")),
                 TransferCard = MiniJson.ParseObject(Text("Data/Transfer/transfer_MG1_switchgear")),
+                BatteryCard = MiniJson.ParseObject(Text("Data/Transfer/transfer_PRO_battery")),
             };
             d.Materials = SettlementMaterialSet.FromJson(Text("Data/Materials/" + d.Settlement.MaterialsId));
 
@@ -128,12 +131,15 @@ namespace SFE.Game
         public SettlementResult Mg1BestResult;
         public double[] Mg1BestTemperatures;
         public Texture2D Mg1Snapshot;
+        /// <summary>Wärmebild des fertigen Huddles (Prolog) für den Batterie-Transfer.</summary>
+        public Texture2D PrologueSnapshot;
         public readonly List<string> Glossary = new List<string>();
         /// <summary>Wie viele Iglus im ganzen Spiel zu Pfützen wurden – Flockes Sammlung im Notizbuch.</summary>
         public int Puddles;
         /// <summary>Freigeschaltete Karten der Siemens-Landkarte (docs/00 Abschnitt 4).</summary>
         public int MapCards;
-        public const int MapCardsTotal = 3;
+        /// <summary>Akku (Prolog), Schaltschrank (MG1), MG2, MG3 – docs/00 nannte drei, der Prolog-Transfer kam am 17.10.2026 dazu.</summary>
+        public const int MapCardsTotal = 4;
         /// <summary>Satz zum Weitererzählen, sobald die Transfer-Karte gesehen wurde.</summary>
         public string Takeaway;
     }

@@ -1,0 +1,122 @@
+{
+  "id": "transfer_PRO_battery",
+  "minigame": "MG1A_LastHuddle",
+  "siemensBusiness": "Digital Industries Software (Simcenter) – Vorschlag",
+  "headline": {
+    "de": "Was die Pinguine im Huddle machen, machen die Zellen im Akku eines E-Autos auch"
+  },
+  "body": {
+    "de": "Ein Akku besteht aus vielen Zellen, dicht an dicht. Beim Fahren wird jede Zelle warm und wärmt ihre Nachbarn – wie die Pinguine im Huddle. Innen wird es am wärmsten, am Rand kühlt die Luft. Wird eine Zelle zu heiß, altert sie schnell. Darum rechnet man vorher aus, wie warm jede Zelle wird."
+  },
+  "customerBenefits": [
+    {
+      "de": "Akkus halten länger"
+    },
+    {
+      "de": "Kühlung genau dort, wo sie gebraucht wird"
+    },
+    {
+      "de": "Weniger teure Versuche mit echten Akkus"
+    }
+  ],
+  "product": "Simcenter (Vorschlag – Freigabe offen)",
+  "tableGame": {
+    "de": "Im Huddle"
+  },
+  "tableReal": {
+    "de": "Im Akku"
+  },
+  "translation": [
+    {
+      "game": {
+        "de": "Ein Pinguin"
+      },
+      "real": {
+        "de": "Eine Batteriezelle"
+      }
+    },
+    {
+      "game": {
+        "de": "Jeder wärmt seinen Nachbarn"
+      },
+      "real": {
+        "de": "Zellen wärmen sich gegenseitig"
+      }
+    },
+    {
+      "game": {
+        "de": "Am Rand nimmt der Wind die Wärme"
+      },
+      "real": {
+        "de": "Am Rand kühlt Luft oder Kühlwasser"
+      }
+    },
+    {
+      "game": {
+        "de": "Pinguine in der Mitte sind am wärmsten"
+      },
+      "real": {
+        "de": "Zellen in der Mitte werden am heißesten"
+      }
+    }
+  ],
+  "honesty": {
+    "de": "Ehrlich vereinfacht: Die Pinguine wollen warm werden, die Zellen sollen kühl bleiben. Die Rechenregel ist dieselbe – nur das Ziel ist umgekehrt."
+  },
+  "media": {
+    "image": null,
+    "video": null,
+    "source": null,
+    "placeholder": "battery_procedural"
+  },
+  "voiceClip": {
+    "file": null,
+    "speaker": null,
+    "approved": false
+  },
+  "takeaway": {
+    "de": "Wie warm jede Zelle in einem Akku wird, rechnet man vorher im Computer aus – Schritt für Schritt, wie die Wärme im Huddle. So halten Akkus länger."
+  },
+  "retrieval": [
+    {
+      "question": {
+        "de": "Was haben die Zellen im Akku und die Pinguine im Huddle gemeinsam?"
+      },
+      "options": [
+        {
+          "text": {
+            "de": "Sie mögen es kalt."
+          },
+          "correct": false,
+          "feedback": {
+            "de": "Im Gegenteil: Die Pinguine wollen es warm – und die Zellen dürfen nicht zu heiß werden."
+          }
+        },
+        {
+          "text": {
+            "de": "Jede wärmt ihre Nachbarn."
+          },
+          "correct": true,
+          "feedback": {
+            "de": "Genau! Darum rechnet man bei beiden mit derselben Regel."
+          }
+        },
+        {
+          "text": {
+            "de": "Sie bewegen sich ständig."
+          },
+          "correct": false,
+          "feedback": {
+            "de": "Die Zellen stehen still. Was zählt, ist, wer neben wem steht."
+          }
+        }
+      ]
+    }
+  ],
+  "moreLink": null,
+  "approval": {
+    "department": null,
+    "communications": null,
+    "date": null
+  }
+}
