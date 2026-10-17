@@ -303,16 +303,25 @@ namespace SFE.Game
         /// <summary>Wärmebild des fertigen Huddles von oben – für „So macht's Siemens“ neben dem Akku.</summary>
         private Texture2D Snapshot()
         {
-            const int size = 96;
+            const int size = 256; // v0.1: 96 – im Rahmen sichtbar verwaschen
             var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear };
-            float r = (float)_level.ArenaRadius * 0.55f; // nur die Mitte der Scholle, dort steht der Huddle
+            // Ausschnitt um den Huddle, wo immer der Spieler ihn hingeschoben hat – mittig und mit Rand.
+            // (Vorher ein fester Ausschnitt der Scholle: Ein Huddle am Rand klebte in der Bildecke, Spieltest 17.10.2026.)
+            double minX = double.MaxValue, maxX = double.MinValue, minY = double.MaxValue, maxY = double.MinValue;
+            for (int i = 0; i < _model.Count; i++)
+            {
+                minX = System.Math.Min(minX, _model.X[i]); maxX = System.Math.Max(maxX, _model.X[i]);
+                minY = System.Math.Min(minY, _model.Y[i]); maxY = System.Math.Max(maxY, _model.Y[i]);
+            }
+            float midX = (float)(minX + maxX) / 2, midY = (float)(minY + maxY) / 2;
+            float r = (float)System.Math.Max(maxX - minX, maxY - minY) / 2 + 3f * (float)_level.PenguinRadius; // halbe Bildbreite in Metern
             var air = HeatColors.Penguin(_level.Model.AirTemp, _level.FreezeBelow);
             var px = new Color[size * size];
             for (int k = 0; k < px.Length; k++) px[k] = Color.Lerp(air, Palette.Ice, 0.55f);
             for (int i = 0; i < _model.Count; i++)
             {
                 var col = HeatColors.Penguin(_model.Temperatures[i], _level.FreezeBelow);
-                float cx = ((float)_model.X[i] / r * 0.5f + 0.5f) * size, cy = ((float)_model.Y[i] / r * 0.5f + 0.5f) * size;
+                float cx = (((float)_model.X[i] - midX) / r * 0.5f + 0.5f) * size, cy = (((float)_model.Y[i] - midY) / r * 0.5f + 0.5f) * size;
                 float pr = (float)_level.PenguinRadius / r * 0.5f * size;
                 for (int y = Mathf.Max(0, (int)(cy - pr)); y < Mathf.Min(size, (int)(cy + pr) + 1); y++)
                     for (int x = Mathf.Max(0, (int)(cx - pr)); x < Mathf.Min(size, (int)(cx + pr) + 1); x++)

@@ -24,7 +24,7 @@ namespace SFE.Game
             Application.targetFrameRate = 60;
             Data = GameData.Load();
             Rig = CameraRig.Create();
-            CreateLight();
+            RenderQuality.Apply(Rig.Cam, CreateLight());
             Sfx.Init(Rig.gameObject);
             if (UnityEngine.EventSystems.EventSystem.current == null) InputHelper.CreateEventSystem();
             Hud = new Hud(Data, this);
@@ -35,7 +35,7 @@ namespace SFE.Game
 
         private void Update() => Hud.Tick();
 
-        private static void CreateLight()
+        private static Light CreateLight()
         {
             var sun = new GameObject("Sun").AddComponent<Light>();
             sun.type = LightType.Directional;
@@ -46,6 +46,7 @@ namespace SFE.Game
             // Ohne Flat wirkt ambientLight nicht: Eine leere Szene steht auf Skybox-Umgebungslicht (Review zu PR #2).
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
             RenderSettings.ambientLight = new Color(0.62f, 0.70f, 0.82f);
+            return sun;
         }
 
         private IEnumerator Flow()
