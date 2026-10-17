@@ -37,29 +37,30 @@ namespace SFE.Game
 
             var ui = root.Data;
             var head = UIKit.Label(rt, ui.Ui("transferHead"), 30, new Color(0, 0.5f, 0.5f), TextAnchor.UpperLeft, FontStyle.Bold);
-            UIKit.Place(head.rectTransform, 0, 1, 1, 1, 80, -175, 80, 95);
-            var headline = UIKit.Label(rt, GameData.Loc(card["headline"]), 44, Palette.Text, TextAnchor.UpperLeft, FontStyle.Bold);
-            UIKit.Place(headline.rectTransform, 0, 1, 1, 1, 80, -240, 80, 135);
+            UIKit.Place(head.rectTransform, 0, 1, 1, 1, 80, -130, 80, 88);
+            var headline = UIKit.Label(rt, GameData.Loc(card["headline"]), 40, Palette.Text, TextAnchor.UpperLeft, FontStyle.Bold);
+            UIKit.Place(headline.rectTransform, 0, 1, 1, 1, 80, -235, 520, 130);
             var business = UIKit.Label(rt, card.Str("siemensBusiness"), 24, new Color(0.35f, 0.4f, 0.5f), TextAnchor.UpperLeft);
-            UIKit.Place(business.rectTransform, 0, 1, 1, 1, 80, -280, 80, 245);
+            UIKit.Place(business.rectTransform, 0, 1, 1, 1, 80, -280, 520, 242);
 
             if (!IsApproved(card))
             {
                 var draft = UIKit.Panel(rt, Palette.Draft, "Draft");
-                UIKit.PlaceFixed(draft.rectTransform, new Vector2(1, 1), new Vector2(-230, -140), new Vector2(380, 70));
+                UIKit.PlaceFixed(draft.rectTransform, new Vector2(1, 1), new Vector2(-230, -245), new Vector2(380, 70));
                 draft.rectTransform.localRotation = Quaternion.Euler(0, 0, 6);
                 var dt = UIKit.Label(draft.transform, ui.Ui("transferDraft"), 24, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
                 UIKit.Fill(dt.rectTransform);
             }
 
-            // Bilder nebeneinander
+            // Bänder von oben (Referenz 1920 × 1080): Titel bis ~280 · Bilder und Tabelle 300–700 · Text 720–880 ·
+            // „Ehrlich vereinfacht“ 882–945 · Erzählsatz ab 955. Vorher ragten die Bildrahmen in den Text (Spieltest 17.10.2026).
             ImageBox(rt, new Vector2(0.27f, 0.5f), leftImage, ui.Ui(leftCaption));
             ImageBox(rt, new Vector2(0.73f, 0.5f), placeholder, ui.Ui(rightCaption));
 
             // Übersetzungstabelle zwischen den Bildern
             var table = card.Arr("translation");
             var tablePanel = UIKit.Panel(rt, Color.white, "Translation");
-            UIKit.PlaceFixed(tablePanel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, 0), new Vector2(560, 420));
+            UIKit.PlaceFixed(tablePanel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, 40), new Vector2(560, 400));
             var th1 = UIKit.Label(tablePanel.transform, TableHead(card, "tableGame", ui.Ui("transferTableGame")), 24, Palette.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
             UIKit.PlaceFixed(th1.rectTransform, new Vector2(0, 1), new Vector2(145, -30), new Vector2(260, 40));
             var th2 = UIKit.Label(tablePanel.transform, TableHead(card, "tableReal", ui.Ui("transferTableReal")), 24, Palette.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
@@ -75,14 +76,14 @@ namespace SFE.Game
 
             // Text, Nutzen, Ehrlichkeit, Satz zum Mitnehmen
             var body = UIKit.Label(rt, GameData.Loc(card["body"]), 26, Palette.Text, TextAnchor.UpperLeft);
-            UIKit.Place(body.rectTransform, 0, 0, 0.5f, 0, 80, 150, 20, -330);
+            UIKit.Place(body.rectTransform, 0, 0, 0.5f, 0, 80, 200, 20, -360);
             var benefits = new System.Text.StringBuilder(ui.Ui("transferBenefits")).Append('\n');
             foreach (var bn in card.Arr("customerBenefits")) benefits.Append("–  ").Append(GameData.Loc(bn)).Append('\n');
             var ben = UIKit.Label(rt, benefits.ToString(), 26, Palette.Text, TextAnchor.UpperLeft);
-            UIKit.Place(ben.rectTransform, 0.5f, 0, 1, 0, 20, 150, 80, -330);
-            var honesty = UIKit.Label(rt, GameData.Loc(card["honesty"]) + "   " + ui.Ui("transferSoftware", card.Str("product")), 20,
+            UIKit.Place(ben.rectTransform, 0.5f, 0, 1, 0, 20, 200, 80, -360);
+            var honesty = UIKit.Label(rt, GameData.Loc(card["honesty"]) + "   " + ui.Ui("transferSoftware", card.Str("product")), 18,
                 new Color(0.4f, 0.45f, 0.55f), TextAnchor.UpperLeft, FontStyle.Italic);
-            UIKit.Place(honesty.rectTransform, 0.5f, 0, 1, 0, 20, 140, 80, -190);
+            UIKit.Place(honesty.rectTransform, 0.5f, 0, 1, 0, 20, 135, 80, -198);
 
             var take = UIKit.Panel(rt, new Color(0f, 0.6f, 0.6f, 0.12f), "Takeaway");
             UIKit.Place(take.rectTransform, 0, 0, 1, 0, 60, 30, 420, -125);
@@ -169,7 +170,7 @@ namespace SFE.Game
         private static void ImageBox(RectTransform parent, Vector2 anchor, Texture tex, string caption)
         {
             var frame = UIKit.Panel(parent, Color.white, "Frame");
-            UIKit.PlaceFixed(frame.rectTransform, anchor, new Vector2(anchor.x < 0.5f ? -60 : 60, 0), new Vector2(430, 470));
+            UIKit.PlaceFixed(frame.rectTransform, anchor, new Vector2(anchor.x < 0.5f ? -60 : 60, 40), new Vector2(400, 400));
             var img = new GameObject("Image").AddComponent<RawImage>();
             UIKit.Rect(img.gameObject, frame.transform);
             UIKit.Place(img.rectTransform, 0, 0, 1, 1, 15, 55, 15, 15);
