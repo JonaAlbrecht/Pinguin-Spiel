@@ -4,42 +4,42 @@
     {
       "id": "grete",
       "name": "Oma Grete",
-      "color": "#8E5BA0"
+      "color": "#553BA3"
     },
     {
       "id": "frieda",
       "name": "Frieda Frost",
-      "color": "#D4A017"
+      "color": "#0087BE"
     },
     {
       "id": "pip",
       "name": "Pip",
-      "color": "#D0303A"
+      "color": "#EF0137"
     },
     {
       "id": "kalle",
       "name": "Kalle Klotz",
-      "color": "#E08A00"
+      "color": "#EC6602"
     },
     {
       "id": "zwilli",
       "name": "ZWILLI",
-      "color": "#1AA6C8"
+      "color": "#009999"
     },
     {
       "id": "theo",
       "name": "Theo Thermo",
-      "color": "#C0392B"
+      "color": "#00557C"
     },
     {
       "id": "klara",
       "name": "Klara Krill",
-      "color": "#1E8449"
+      "color": "#00646E"
     },
     {
       "id": "flocke",
       "name": "Flocke",
-      "color": "#5D6D7E"
+      "color": "#66667E"
     }
   ],
   "nodes": [

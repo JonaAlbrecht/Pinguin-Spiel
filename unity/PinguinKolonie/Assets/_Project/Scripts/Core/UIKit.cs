@@ -97,9 +97,9 @@ namespace SFE.Game
             var b = img.gameObject.AddComponent<Button>();
             b.targetGraphic = img;
             var colors = b.colors;
-            colors.highlightedColor = new Color(1f, 1f, 1f, 1f);
-            colors.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
-            colors.disabledColor = new Color(0.6f, 0.6f, 0.6f, 0.5f);
+            colors.highlightedColor = Palette.ButtonHoverTint;
+            colors.pressedColor = Palette.ButtonPressTint;
+            colors.disabledColor = Palette.ButtonDisabledTint;
             b.colors = colors;
             var t = Label(img.transform, label, fontSize, Palette.TextLight, TextAnchor.MiddleCenter, FontStyle.Bold);
             Place(t.rectTransform, 0, 0, 1, 1, 12, 6, 12, 6);

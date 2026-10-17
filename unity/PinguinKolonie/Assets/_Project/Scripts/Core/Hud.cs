@@ -49,13 +49,13 @@ namespace SFE.Game
             Root = (RectTransform)Canvas.transform;
 
             // Phasenleiste oben
-            _phaseBar = UIKit.Panel(Root, new Color(0.08f, 0.12f, 0.2f, 0.85f), "PhaseBar");
+            _phaseBar = UIKit.Panel(Root, Palette.PanelSoft, "PhaseBar");
             UIKit.Place(_phaseBar.rectTransform, 0.05f, 1, 0.95f, 1, 0, -70, 0, 10);
             var phases = data.Mg1Content.Arr("phases");
             for (int i = 0; i < phases.Count; i++)
             {
                 var p = (Dictionary<string, object>)phases[i];
-                var t = UIKit.Label(_phaseBar.transform, (i + 1) + "  " + p.Str("title"), 24, new Color(1, 1, 1, 0.45f));
+                var t = UIKit.Label(_phaseBar.transform, (i + 1) + "  " + p.Str("title"), 24, Palette.PhaseTodo);
                 UIKit.Place(t.rectTransform, i / (float)phases.Count, 0, (i + 1) / (float)phases.Count, 1, 6, 0, 6, 0);
                 _phaseLabels.Add(t);
             }
@@ -70,12 +70,12 @@ namespace SFE.Game
             UIKit.Place(_speaker.rectTransform, 0, 0, 1, 1, 32, 0, 32, 18);
             _line = UIKit.Label(_dialogBox.transform, "", 34, Palette.Text, TextAnchor.UpperLeft);
             UIKit.Place(_line.rectTransform, 0, 0, 1, 1, 32, 40, 32, 64);
-            _continueHint = UIKit.Label(_dialogBox.transform, data.Ui("continueHint"), 24, new Color(0.3f, 0.35f, 0.45f), TextAnchor.LowerRight);
+            _continueHint = UIKit.Label(_dialogBox.transform, data.Ui("continueHint"), 24, Palette.TextMuted, TextAnchor.LowerRight);
             UIKit.Place(_continueHint.rectTransform, 0, 0, 1, 1, 32, 14, 32, 0);
             _dialogBox.gameObject.SetActive(false);
 
             // Hinweis-Leiste
-            _toastBox = UIKit.Panel(Root, new Color(0.1f, 0.14f, 0.22f, 0.9f), "Toast");
+            _toastBox = UIKit.Panel(Root, Palette.Panel, "Toast");
             UIKit.PlaceFixed(_toastBox.rectTransform, new Vector2(0.5f, 1f), new Vector2(0, -140), new Vector2(1100, 70));
             _toastText = UIKit.Label(_toastBox.transform, "", 28, Palette.TextLight);
             UIKit.Fill(_toastText.rectTransform);
@@ -83,7 +83,7 @@ namespace SFE.Game
             _toastBox.gameObject.SetActive(false);
 
             // Notizbuch und Ton oben rechts (docs/00 Berührungspunkt 4: Notizbuch jederzeit erreichbar)
-            _notebookButton = UIKit.Button(Root, data.Ui("notebookButton"), ToggleNotebook, new Color(0.45f, 0.32f, 0.2f), 24);
+            _notebookButton = UIKit.Button(Root, data.Ui("notebookButton"), ToggleNotebook, Palette.ButtonSide, 24);
             // Unter der Phasenleiste (y −10…−70), sonst verdeckt der Knopf „6 So macht's Siemens“.
             UIKit.PlaceFixed((RectTransform)_notebookButton.transform, new Vector2(1, 1), new Vector2(-110, -108), new Vector2(190, 52));
             _notebookButton.gameObject.SetActive(false);
@@ -92,11 +92,11 @@ namespace SFE.Game
             {
                 Sfx.SetMuted(!Sfx.Muted);
                 UIKit.SetButtonLabel(sound, _data.Ui(Sfx.Muted ? "soundOff" : "soundOn"));
-            }, new Color(0.25f, 0.3f, 0.4f), 22);
+            }, Palette.ButtonQuiet, 22);
             UIKit.PlaceFixed((RectTransform)sound.transform, new Vector2(1, 1), new Vector2(-110, -166), new Vector2(190, 44));
 
             // Blende
-            _fade = UIKit.Panel(Root, new Color(0.05f, 0.08f, 0.14f, 0f), "Fade");
+            _fade = UIKit.Panel(Root, Palette.Fade, "Fade");
             UIKit.Fill(_fade.rectTransform);
             _fade.raycastTarget = false;
         }
@@ -105,7 +105,7 @@ namespace SFE.Game
         {
             Sfx.Tick();
             if (_toastBox.gameObject.activeSelf && Time.time > _toastUntil) _toastBox.gameObject.SetActive(false);
-            if (DialogOpen) _continueHint.color = new Color(0.3f, 0.35f, 0.45f, 0.5f + 0.5f * Mathf.Sin(Time.time * 4f));
+            if (DialogOpen) _continueHint.color = Palette.Alpha(Palette.TextMuted, 0.5f + 0.5f * Mathf.Sin(Time.time * 4f));
         }
 
         /// <summary>Spielt einen Dialogknoten aus dialogue_de.json ab; jede Zeile wartet auf Klick.</summary>
@@ -169,9 +169,9 @@ namespace SFE.Game
             _notebook = new GameObject("Notebook");
             var rt = UIKit.Rect(_notebook, Root);
             UIKit.Fill(rt);
-            var shade = UIKit.Panel(rt, new Color(0, 0, 0, 0.45f), "Shade");
+            var shade = UIKit.Panel(rt, Palette.Dim, "Shade");
             UIKit.Fill(shade.rectTransform);
-            var page = UIKit.Panel(rt, new Color(0.99f, 0.97f, 0.9f), "Page");
+            var page = UIKit.Panel(rt, Palette.PanelLight, "Page");
             UIKit.PlaceFixed(page.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, 0), new Vector2(1100, 800));
             var title = UIKit.Label(page.transform, _data.Ui("notebookTitle"), 40, Palette.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             UIKit.Place(title.rectTransform, 0, 1, 1, 1, 20, -80, 20, 15);
@@ -206,7 +206,7 @@ namespace SFE.Game
             for (int i = 0; i < _phaseLabels.Count; i++)
             {
                 _phaseLabels[i].color = i == activeIndex ? Palette.Selected
-                    : i < activeIndex ? new Color(0.6f, 0.9f, 0.7f, 0.9f) : new Color(1, 1, 1, 0.45f);
+                    : i < activeIndex ? Palette.PhaseDone : Palette.PhaseTodo;
                 _phaseLabels[i].fontStyle = i == activeIndex ? FontStyle.Bold : FontStyle.Normal;
             }
         }

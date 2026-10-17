@@ -22,11 +22,14 @@ namespace SFE.Game
             /// <summary>0 = stumpf wie Schnee, 1 = Spiegel. Unity setzt 0,5 – das glänzte wie Plastik.</summary>
             public static readonly float Smoothness = 0.12f;
 
+            // Farbtreue: Sonne und Himmelslicht zusammen ergeben auf Flächen von oben etwa 1,2 – die Palettenfarbe
+            // erscheint fast so, wie sie im Siemens-Schema steht. Vorher (1,1 + 0,7) überstrahlte alles: Dark Blue
+            // wurde Knallblau, Eis und Iglu verschwammen zu reinem Weiß.
             public static readonly Color SunColor = new Color(1f, 0.97f, 0.92f);
-            public static readonly float SunIntensity = 1.1f;
+            public static readonly float SunIntensity = 0.85f;
             public static readonly Vector3 SunAngles = new Vector3(55f, -35f, 0f);
             /// <summary>Kühles Himmelslicht von überall: hebt die Schattenseite an, damit Schwarz nicht absäuft.</summary>
-            public static readonly Color Ambient = new Color(0.62f, 0.70f, 0.82f);
+            public static readonly Color Ambient = new Color(0.46f, 0.50f, 0.57f);
             /// <summary>Weichere, freundlichere Schatten; 1 wäre tiefschwarz.</summary>
             public static readonly float ShadowStrength = 0.65f;
 
@@ -51,8 +54,10 @@ namespace SFE.Game
 
         /// <summary>
         /// Wie fein Rundungen aufgelöst werden. Regel: Die Facetten sollen auf dem Bildschirm ungefähr gleich groß
-        /// wirken. Darum haben große Figurenkörper mehr Segmente, Kleinteile (Augen, Schnabel, Zehen) weniger.
-        /// 0 bei <see cref="Segments"/> schaltet zurück auf Unitys runde Standardformen.
+        /// wirken. Bauten und Gegenstände bekommen ihre Segmentzahl darum aus ihrer Größe (<see cref="SegmentsFor"/>):
+        /// Eine Eisscholle von 20 m wird kein sichtbares Zwölfeck, eine Laternenkugel kein Kristall.
+        /// Figuren haben feste Stufen, weil ihre Teile zueinander passen müssen.
+        /// 0 bei <see cref="FacetLength"/> schaltet Bauten zurück auf Unitys runde Standardformen.
         /// </summary>
         public static class Detail
         {
@@ -60,10 +65,23 @@ namespace SFE.Game
             public static readonly int FigureSegments = 16;
             /// <summary>Ringe von den Füßen bis zum Scheitel einer Figur.</summary>
             public static readonly int FigureRings = 14;
-            /// <summary>Segmente rundum für Bauten und Gegenstände (Iglu, Laterne, Pfütze, Ring).</summary>
+            /// <summary>Segmente rundum für mittlere Teile der Figuren (Flossen, Brillenfassung).</summary>
             public static readonly int Segments = 12;
             /// <summary>Segmente rundum für Kleinteile kleiner als etwa eine Handbreit.</summary>
             public static readonly int SmallSegments = 8;
+
+            /// <summary>Angestrebte Kantenlänge einer Facette am Umfang von Bauten, in Metern.</summary>
+            public static readonly float FacetLength = 0.3f;
+            /// <summary>Grenzen für Bauten: unter 8 wird rund eckig, über 48 sieht man keinen Unterschied mehr.</summary>
+            public static readonly int MinSegments = 8, MaxSegments = 48;
+
+            /// <summary>Segmente rundum für eine runde Form mit diesem Durchmesser (Vielfaches von 4, damit sie symmetrisch bleibt).</summary>
+            public static int SegmentsFor(float diameter)
+            {
+                if (FacetLength <= 0f) return 0;
+                int n = Mathf.RoundToInt(Mathf.PI * diameter / FacetLength / 4f) * 4;
+                return Mathf.Clamp(n, MinSegments, MaxSegments);
+            }
         }
 
         /// <summary>

@@ -6,15 +6,16 @@ namespace SFE.Game
     /// Farbskala des Wärmebilds (Entscheidung zu Frage P-05): drei Bereiche mit deutlich unterschiedlicher
     /// Helligkeit – dunkel-/hellblau = zu kalt, hellgelb bis gold = gemütlich, orange bis dunkelrot = schmilzt.
     /// Rot/Grün wird bewusst vermieden; der Zustand der Iglus ist zusätzlich an Form/Animation erkennbar.
+    /// Alle Stufen aus dem Siemens-Farbschema; das tiefe Rot ist Siemens-Rot, mit Deep Blue abgedunkelt.
     /// </summary>
     public static class HeatColors
     {
-        private static readonly Color ColdDeep = new Color(0.10f, 0.18f, 0.45f);
-        private static readonly Color ColdLight = new Color(0.55f, 0.80f, 0.98f);
-        private static readonly Color ComfyLow = new Color(1.00f, 0.96f, 0.62f);
-        private static readonly Color ComfyHigh = new Color(1.00f, 0.80f, 0.20f);
-        private static readonly Color MeltLow = new Color(0.98f, 0.50f, 0.12f);
-        private static readonly Color MeltHigh = new Color(0.62f, 0.05f, 0.08f);
+        private static readonly Color ColdDeep = Palette.Siemens.DarkBlue;
+        private static readonly Color ColdLight = Palette.Siemens.SoftBlue;
+        private static readonly Color ComfyLow = Palette.Siemens.SoftYellow;
+        private static readonly Color ComfyHigh = Palette.Siemens.DarkYellow;
+        private static readonly Color MeltLow = Palette.Siemens.DarkOrange;
+        private static readonly Color MeltHigh = Palette.Shade(Palette.Siemens.Red, 0.35f);
 
         public static Color For(double t, double air, double comfortMin, double melt)
         {

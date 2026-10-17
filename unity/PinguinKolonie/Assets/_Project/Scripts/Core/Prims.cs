@@ -65,23 +65,30 @@ namespace SFE.Game
         private static Color Quantize(Color c)
         {
             const float steps = 32f;
-            return new Color(Mathf.Round(c.r * steps) / steps, Mathf.Round(c.g * steps) / steps,
+            return new Color(Mathf.Round(c.r * steps) / steps, Mathf.Round(c.g * steps) / steps,   // Stil-Lint: Rechnung
                 Mathf.Round(c.b * steps) / steps, Mathf.Round(c.a * steps) / steps);
         }
 
-        /// <param name="segments">Segmente rundum; 0 = <see cref="ArtStyle.Detail.Segments"/> (Bauten und Gegenstände).</param>
+        /// <param name="segments">Segmente rundum; 0 = nach Größe in der Welt (<see cref="ArtStyle.Detail.SegmentsFor"/>).</param>
         public static GameObject Make(PrimitiveType type, Transform parent, Vector3 localPos, Vector3 scale, Color color,
             string name = null, bool keepCollider = false, int segments = 0)
         {
             var go = GameObject.CreatePrimitive(type);
             if (name != null) go.name = name;
             if (!keepCollider) Kill(go.GetComponent<Collider>());
-            // Der Collider bleibt Unitys glatte Form; nur das Sichtbare wird facettiert.
-            var mesh = Shapes.ForPrimitive(type, segments > 0 ? segments : ArtStyle.Detail.Segments);
-            if (mesh != null) go.GetComponent<MeshFilter>().sharedMesh = mesh;
             go.transform.SetParent(parent, false);
             go.transform.localPosition = localPos;
             go.transform.localScale = scale;
+            // Der Collider bleibt Unitys glatte Form; nur das Sichtbare wird facettiert. Der Umfang zählt in der Welt,
+            // damit eine Eisscholle von 20 m mehr Segmente bekommt als eine Laternenkugel.
+            if (segments <= 0)
+            {
+                var s = go.transform.lossyScale;
+                float diameter = type == PrimitiveType.Sphere ? Mathf.Max(s.x, s.y, s.z) : Mathf.Max(s.x, s.z);
+                segments = ArtStyle.Detail.SegmentsFor(diameter);
+            }
+            var mesh = Shapes.ForPrimitive(type, segments);
+            if (mesh != null) go.GetComponent<MeshFilter>().sharedMesh = mesh;
             go.GetComponent<Renderer>().sharedMaterial = Mat(color);
             return go;
         }
@@ -136,7 +143,7 @@ namespace SFE.Game
             root.transform.localScale = Vector3.one * scale;
             Make(PrimitiveType.Sphere, root.transform, new Vector3(0, 0f, 0), new Vector3(0.80f, 0.62f, 0.80f), Palette.Igloo, "Dome");
             Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.10f, 0.36f), new Vector3(0.24f, 0.22f, 0.16f), Palette.Igloo, "Entrance");
-            Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.09f, 0.445f), new Vector3(0.14f, 0.16f, 0.02f), new Color(0.15f, 0.2f, 0.3f), "Door");
+            Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.09f, 0.445f), new Vector3(0.14f, 0.16f, 0.02f), Palette.Door, "Door");
             return root;
         }
 
@@ -197,16 +204,15 @@ namespace SFE.Game
         public static GameObject Create(Transform parent, float size = 1f)
         {
             var root = Prims.Penguin(parent, "ZWILLI", Prims.Look.Plain, size);
-            var cyan = new Color(0.25f, 0.85f, 0.95f);
             foreach (var r in root.GetComponentsInChildren<Renderer>())
             {
                 var mats = r.sharedMaterials;
                 for (int i = 0; i < mats.Length; i++)
-                    mats[i] = Prims.Mat(r.name == "Torso" && i == PenguinFigure.BellySlot ? new Color(0.75f, 0.97f, 1f) : cyan);
+                    mats[i] = Prims.Mat(r.name == "Torso" && i == PenguinFigure.BellySlot ? Palette.HologramBelly : Palette.Hologram);
                 r.sharedMaterials = mats;
             }
             Prims.Make(PrimitiveType.Cylinder, root.transform, new Vector3(0, -0.02f, 0), new Vector3(0.75f, 0.02f, 0.75f),
-                new Color(0.1f, 0.4f, 0.5f), "Projector");
+                Palette.HologramProjector, "Projector");
             root.AddComponent<Hologram>();
             return root;
         }
