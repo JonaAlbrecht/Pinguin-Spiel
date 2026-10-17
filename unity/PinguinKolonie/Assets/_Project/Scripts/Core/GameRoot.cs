@@ -39,13 +39,8 @@ namespace SFE.Game
         {
             var sun = new GameObject("Sun").AddComponent<Light>();
             sun.type = LightType.Directional;
-            sun.color = new Color(1f, 0.97f, 0.92f);
-            sun.intensity = 1.1f;
             sun.shadows = LightShadows.Soft;
-            sun.transform.rotation = Quaternion.Euler(55f, -35f, 0f);
-            // Ohne Flat wirkt ambientLight nicht: Eine leere Szene steht auf Skybox-Umgebungslicht (Review zu PR #2).
-            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.62f, 0.70f, 0.82f);
+            ArtStyle.Shading.ApplyTo(sun);
             return sun;
         }
 

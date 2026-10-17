@@ -19,5 +19,6 @@ Lernspiel für Siemens-Mitarbeitende **ohne technischen Hintergrund**. Leitplank
 - Neue Regel im Modell = neues Golden File, und eine Mutationsprobe: Regel in einer Kopie brechen, ein Test muss rot werden.
 - C#-Dateien nicht per Shell-Skript mit Backslashes ändern (die Bash-Brücke macht aus `\\n` ein `\n`) – Edit/Write nutzen und danach kompilieren.
 - Die Unity-Schicht baut alles per Code; keine Szenen- oder Prefab-YAML von Hand bearbeiten.
+- Aussehen nur über `ArtStyle.cs` (Schattierung, Detailgrad, Proportionen) und `Palette.cs` steuern, runde Formen über `Prims.Make`/`Shapes` – keine eigenen Segmentzahlen oder Glanzwerte im Code (docs/07). Nach Stiländerungen „Pinguin-Spiel → Stilprobe rendern“.
 - In Unity-Texten nur Zeichen verwenden, die die eingebaute Schrift hat (keine Emoji, keine Symbole wie ★ ✔ ▸).
 - Siemens-Produktnamen und -Beispiele sind Vorschläge und brauchen eine Freigabe (Feld `approval` der Transfer-Karte).

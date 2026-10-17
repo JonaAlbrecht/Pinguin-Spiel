@@ -13,6 +13,12 @@ namespace SFE.Game
         public static readonly Color GridLine = new Color(0.70f, 0.80f, 0.92f);
         public static readonly Color PenguinBlack = new Color(0.13f, 0.15f, 0.20f);
         public static readonly Color PenguinWhite = new Color(0.97f, 0.97f, 0.95f);
+        /// <summary>Ergrautes Gefieder der Ältesten (Oma Grete).</summary>
+        public static readonly Color PenguinElder = new Color(0.35f, 0.37f, 0.42f);
+        /// <summary>Gelb-orange Flecken hinter den Augen wie beim Kaiserpinguin.</summary>
+        public static readonly Color PenguinAccent = new Color(1.00f, 0.72f, 0.22f);
+        public static readonly Color ChickDown = new Color(0.62f, 0.64f, 0.68f);
+        public static readonly Color ChickBelly = new Color(0.80f, 0.82f, 0.85f);
         public static readonly Color Beak = new Color(1.00f, 0.60f, 0.15f);
         public static readonly Color LanternGlow = new Color(1.00f, 0.86f, 0.45f);
         public static readonly Color LanternPole = new Color(0.30f, 0.32f, 0.38f);

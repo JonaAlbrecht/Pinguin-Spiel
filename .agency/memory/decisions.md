@@ -72,3 +72,12 @@ TextMesh mit fontSize 64, 96-px-Symbolbilder. Behoben per Code (`RenderQuality`,
 Gitterlinien als 3D-Streifen, Schrift in 160 gerastert, Bilder 256–288 px). Verworfen für jetzt: Umstieg auf URP
 (Bloom für Laternen, bessere Kantenglättung, Nachbearbeitung) – lohnt sich, braucht aber einen Spieltest im Editor,
 weil Materialien dabei leicht rosa werden. Vorschlag für den nächsten Schritt.
+
+## 2026-10-17 – Stilregeln und neue Pinguine
+
+**ADR-16 Ein Stil aus Code statt fremder Assets.** Die Pinguine waren Kugeln und Würfel („Schneemann“). Statt freier
+Modelle (OpenGameArt CC0, Poly Pizza CC-BY, Asset Store) baut `PenguinFigure` sie aus einem Drehprofil – Entscheidung
+von Jona, damit alles aus einem Guss bleibt. Schattierung, Detailgrad und Proportionen stehen zentral in `ArtStyle.cs`
+(docs/07); alle runden Grundformen laufen über `Shapes` und werden facettiert, Materialien matt. Prüfen per
+„Stilprobe rendern“ (vier Bilder). Verworfen: fremde Modelle (Stil, Lizenz, Blender-Umweg, Einfärbung über
+„Belly“/„Ring“ hätte neu gebaut werden müssen) und weiche Rundungen (wenige Segmente wirkten dann grob statt gewollt).
