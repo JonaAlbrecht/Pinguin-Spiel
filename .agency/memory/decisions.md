@@ -72,3 +72,14 @@ TextMesh mit fontSize 64, 96-px-Symbolbilder. Behoben per Code (`RenderQuality`,
 Gitterlinien als 3D-Streifen, Schrift in 160 gerastert, Bilder 256–288 px). Verworfen für jetzt: Umstieg auf URP
 (Bloom für Laternen, bessere Kantenglättung, Nachbearbeitung) – lohnt sich, braucht aber einen Spieltest im Editor,
 weil Materialien dabei leicht rosa werden. Vorschlag für den nächsten Schritt.
+
+## 2026-10-17 – Stilregeln und neue Pinguine
+
+**ADR-16 Ein Stil aus Code statt fremder Assets.** Die Pinguine waren Kugeln und Würfel („Schneemann“). Statt freier
+Modelle (OpenGameArt CC0, Poly Pizza CC-BY, Asset Store) baut `PenguinFigure` sie aus einem Drehprofil – Entscheidung
+von Jona, damit alles aus einem Guss bleibt. Schattierung, Detailgrad und Proportionen stehen zentral in `ArtStyle.cs`
+(docs/07); alle runden Grundformen laufen über `Shapes` und werden facettiert, Materialien matt. Prüfen per
+„Stilprobe rendern“ (vier Bilder). Verworfen: fremde Modelle (Stil, Lizenz, Blender-Umweg, Einfärbung über
+„Belly“/„Ring“ hätte neu gebaut werden müssen) und weiche Rundungen (wenige Segmente wirkten dann grob statt gewollt).
+
+**ADR-17 Siemens-Farbschema als einzige Farbquelle.** Alle Farben kommen aus `Palette.Siemens` (sie-colors-overview V1.4.4, exakte Bildschirmwerte); Spielfarben sind Namen, die darauf zeigen. Wo es geht Primärfarben, sonst Sekundär-/Zusatzfarben; helle Flächen per Aufhellung mit Light Sand, Abdunkeln nur mit Deep Blue (mit Brand abzustimmen). `tools/style_lint.py` verbietet Farben außerhalb der Palette und prüft die Sprecherfarben. Dazu Farbtreue im Licht (Sonne 0,85, Umgebung ≈ 0,5 statt 1,1/0,7 – sonst überstrahlte Dark Blue zu Knallblau) und Segmentzahl der Bauten nach Größe. Verworfen: nur die Primärfarben (kein Orange für Schnäbel, kein Rot für Warnungen) und Farben frei wählen und „ähnlich“ halten (driftet, ist nicht prüfbar).

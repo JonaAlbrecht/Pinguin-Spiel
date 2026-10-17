@@ -32,15 +32,15 @@ namespace SFE.Game
             var rt = UIKit.Rect(layer, root.Hud.Root);
             UIKit.Fill(rt);
             rt.SetSiblingIndex(0);
-            var bg = UIKit.Panel(rt, new Color(0.93f, 0.95f, 0.98f), "Background");
+            var bg = UIKit.Panel(rt, Palette.Page, "Background");
             UIKit.Fill(bg.rectTransform);
 
             var ui = root.Data;
-            var head = UIKit.Label(rt, ui.Ui("transferHead"), 30, new Color(0, 0.5f, 0.5f), TextAnchor.UpperLeft, FontStyle.Bold);
+            var head = UIKit.Label(rt, ui.Ui("transferHead"), 30, Palette.TextAccent, TextAnchor.UpperLeft, FontStyle.Bold);
             UIKit.Place(head.rectTransform, 0, 1, 1, 1, 80, -130, 80, 88);
             var headline = UIKit.Label(rt, GameData.Loc(card["headline"]), 40, Palette.Text, TextAnchor.UpperLeft, FontStyle.Bold);
             UIKit.Place(headline.rectTransform, 0, 1, 1, 1, 80, -235, 520, 130);
-            var business = UIKit.Label(rt, card.Str("siemensBusiness"), 24, new Color(0.35f, 0.4f, 0.5f), TextAnchor.UpperLeft);
+            var business = UIKit.Label(rt, card.Str("siemensBusiness"), 24, Palette.TextMuted, TextAnchor.UpperLeft);
             UIKit.Place(business.rectTransform, 0, 1, 1, 1, 80, -280, 520, 242);
 
             if (!IsApproved(card))
@@ -48,7 +48,7 @@ namespace SFE.Game
                 var draft = UIKit.Panel(rt, Palette.Draft, "Draft");
                 UIKit.PlaceFixed(draft.rectTransform, new Vector2(1, 1), new Vector2(-230, -245), new Vector2(380, 70));
                 draft.rectTransform.localRotation = Quaternion.Euler(0, 0, 6);
-                var dt = UIKit.Label(draft.transform, ui.Ui("transferDraft"), 24, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
+                var dt = UIKit.Label(draft.transform, ui.Ui("transferDraft"), 24, Palette.TextLight, TextAnchor.MiddleCenter, FontStyle.Bold);
                 UIKit.Fill(dt.rectTransform);
             }
 
@@ -59,7 +59,7 @@ namespace SFE.Game
 
             // Übersetzungstabelle zwischen den Bildern
             var table = card.Arr("translation");
-            var tablePanel = UIKit.Panel(rt, Color.white, "Translation");
+            var tablePanel = UIKit.Panel(rt, Palette.PanelLight, "Translation");
             UIKit.PlaceFixed(tablePanel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, 40), new Vector2(560, 400));
             var th1 = UIKit.Label(tablePanel.transform, TableHead(card, "tableGame", ui.Ui("transferTableGame")), 24, Palette.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
             UIKit.PlaceFixed(th1.rectTransform, new Vector2(0, 1), new Vector2(145, -30), new Vector2(260, 40));
@@ -82,13 +82,13 @@ namespace SFE.Game
             var ben = UIKit.Label(rt, benefits.ToString(), 26, Palette.Text, TextAnchor.UpperLeft);
             UIKit.Place(ben.rectTransform, 0.5f, 0, 1, 0, 20, 200, 80, -360);
             var honesty = UIKit.Label(rt, GameData.Loc(card["honesty"]) + "   " + ui.Ui("transferSoftware", card.Str("product")), 18,
-                new Color(0.4f, 0.45f, 0.55f), TextAnchor.UpperLeft, FontStyle.Italic);
+                Palette.TextMuted, TextAnchor.UpperLeft, FontStyle.Italic);
             UIKit.Place(honesty.rectTransform, 0.5f, 0, 1, 0, 20, 135, 80, -198);
 
-            var take = UIKit.Panel(rt, new Color(0f, 0.6f, 0.6f, 0.12f), "Takeaway");
+            var take = UIKit.Panel(rt, Palette.Card, "Takeaway");
             UIKit.Place(take.rectTransform, 0, 0, 1, 0, 60, 30, 420, -125);
             var takeText = UIKit.Label(take.transform, ui.Ui("transferTakeaway", GameData.Loc(card["takeaway"])), 26,
-                new Color(0, 0.35f, 0.38f), TextAnchor.MiddleLeft, FontStyle.Bold);
+                Palette.TextAccentDark, TextAnchor.MiddleLeft, FontStyle.Bold);
             UIKit.Place(takeText.rectTransform, 0, 0, 1, 1, 20, 6, 20, 6);
 
             bool done = false;
@@ -115,15 +115,15 @@ namespace SFE.Game
             foreach (var q in questions)
             {
                 var question = (Dictionary<string, object>)q;
-                var layer = UIKit.Panel(parent, new Color(0, 0, 0, 0.5f), "Recall");
+                var layer = UIKit.Panel(parent, Palette.Dim, "Recall");
                 UIKit.Fill(layer.rectTransform);
                 var page = UIKit.Panel(layer.transform, Palette.PanelLight, "Page");
                 UIKit.PlaceFixed(page.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1100, 700));
-                var title = UIKit.Label(page.transform, ui.Ui("recallTitle"), 30, new Color(0, 0.5f, 0.5f), TextAnchor.MiddleCenter, FontStyle.Bold);
+                var title = UIKit.Label(page.transform, ui.Ui("recallTitle"), 30, Palette.TextAccent, TextAnchor.MiddleCenter, FontStyle.Bold);
                 UIKit.Place(title.rectTransform, 0, 1, 1, 1, 20, -70, 20, 15);
                 var qText = UIKit.Label(page.transform, GameData.Loc(question["question"]), 36, Palette.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
                 UIKit.Place(qText.rectTransform, 0, 1, 1, 1, 40, -170, 40, 80);
-                var feedback = UIKit.Label(page.transform, ui.Ui("recallHint"), 24, new Color(0.35f, 0.4f, 0.5f), TextAnchor.MiddleCenter, FontStyle.Italic);
+                var feedback = UIKit.Label(page.transform, ui.Ui("recallHint"), 24, Palette.TextMuted, TextAnchor.MiddleCenter, FontStyle.Italic);
                 UIKit.Place(feedback.rectTransform, 0, 0, 1, 0, 40, 30, 40, -110);
 
                 bool right = false;
@@ -146,7 +146,7 @@ namespace SFE.Game
                         }
                         else
                         {
-                            b.GetComponent<Image>().color = new Color(0.6f, 0.62f, 0.68f);
+                            b.GetComponent<Image>().color = Palette.ButtonOff;
                             b.interactable = false;
                             Sfx.Play(Sfx.Sound.Wrong, 0.5f);
                         }
@@ -169,13 +169,13 @@ namespace SFE.Game
 
         private static void ImageBox(RectTransform parent, Vector2 anchor, Texture tex, string caption)
         {
-            var frame = UIKit.Panel(parent, Color.white, "Frame");
+            var frame = UIKit.Panel(parent, Palette.PanelLight, "Frame");
             UIKit.PlaceFixed(frame.rectTransform, anchor, new Vector2(anchor.x < 0.5f ? -60 : 60, 40), new Vector2(400, 400));
             var img = new GameObject("Image").AddComponent<RawImage>();
             UIKit.Rect(img.gameObject, frame.transform);
             UIKit.Place(img.rectTransform, 0, 0, 1, 1, 15, 55, 15, 15);
             img.texture = tex;
-            img.color = tex != null ? Color.white : new Color(0.85f, 0.88f, 0.93f);
+            img.color = tex != null ? Color.white : Palette.Placeholder;
             var cap = UIKit.Label(frame.transform, caption, 22, Palette.Text, TextAnchor.MiddleCenter);
             UIKit.Place(cap.rectTransform, 0, 0, 1, 0, 10, 8, 10, -48);
         }
@@ -194,7 +194,7 @@ namespace SFE.Game
             // Gezeichnet in einem 96er-Raster, abgetastet mit Res Pixeln – scharf auf großen Bildschirmen.
             const int w = 96, h = 96, cols = 8, rows = 5;
             var tex = new Texture2D(Res, Res, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear };
-            var frame = new Color(0.3f, 0.33f, 0.4f);
+            var frame = Palette.PixelFrame;
             float cellW = (w - 8) / (float)cols, cellH = (h - 30) / (float)rows;
             for (int py = 0; py < Res; py++)
             {
@@ -244,8 +244,8 @@ namespace SFE.Game
                     bool shelf = y % 32f < 2f;
                     bool component = false;
                     foreach (var s in hot) if (Mathf.Abs(x - s.x) < s.z * 0.6f && Mathf.Abs(y - s.y) < s.z * 0.9f) component = true;
-                    if (frameEdge || shelf) c = new Color(0.3f, 0.33f, 0.4f);
-                    else if (component) c = Color.Lerp(c, new Color(0.2f, 0.22f, 0.28f), 0.45f);
+                    if (frameEdge || shelf) c = Palette.PixelFrame;
+                    else if (component) c = Color.Lerp(c, Palette.PixelComponent, 0.45f);
                     tex.SetPixel(px, py, c);
                 }
             }

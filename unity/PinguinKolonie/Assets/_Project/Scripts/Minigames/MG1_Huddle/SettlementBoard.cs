@@ -86,11 +86,11 @@ namespace SFE.Game
             arrow.SetParent(transform, false);
             arrow.localPosition = new Vector3(_w / 2f, 0.6f, _h / 2f) - dir * (_w / 2f + 2.2f);
             arrow.localRotation = Quaternion.LookRotation(dir, Vector3.up);
-            var c = new Color(0.35f, 0.55f, 0.85f);
+            var c = Palette.Wind;
             Prims.Make(PrimitiveType.Cube, arrow, new Vector3(0, 0, -0.4f), new Vector3(0.25f, 0.12f, 1.6f), c, "Shaft");
             var head = Prims.Make(PrimitiveType.Cube, arrow, new Vector3(0, 0, 0.5f), new Vector3(0.7f, 0.12f, 0.7f), c, "Head");
             head.transform.localRotation = Quaternion.Euler(0, 45, 0);
-            var label = Prims.Label(arrow, _windLabel, new Vector3(0, 0.5f, -0.6f), 0.06f, new Color(0.2f, 0.35f, 0.6f));
+            var label = Prims.Label(arrow, _windLabel, new Vector3(0, 0.5f, -0.6f), 0.06f, Palette.WindLabel);
             label.transform.rotation = Quaternion.Euler(60, 0, 0);
         }
 
@@ -170,21 +170,21 @@ namespace SFE.Game
                 if (states == null)
                 {
                     Prims.SetColor(dome.gameObject, Palette.Igloo);
-                    Prims.SetColor(door.gameObject, new Color(0.15f, 0.2f, 0.3f));
+                    Prims.SetColor(door.gameObject, Palette.Door);
                     continue;
                 }
                 switch (states[kv.Key])
                 {
                     case IglooState.Cold:
-                        Prims.SetColor(dome.gameObject, new Color(0.70f, 0.86f, 1f));
-                        Prims.SetColor(door.gameObject, new Color(0.15f, 0.2f, 0.3f));
+                        Prims.SetColor(dome.gameObject, Palette.IglooCold);
+                        Prims.SetColor(door.gameObject, Palette.Door);
                         break;
                     case IglooState.Comfortable:
-                        Prims.SetColor(dome.gameObject, new Color(1f, 0.97f, 0.88f));
+                        Prims.SetColor(dome.gameObject, Palette.IglooCozy);
                         Prims.SetColor(door.gameObject, Palette.LanternGlow);
                         break;
                     case IglooState.Melting:
-                        Prims.SetColor(dome.gameObject, new Color(1f, 0.85f, 0.75f));
+                        Prims.SetColor(dome.gameObject, Palette.IglooMelting);
                         break;
                 }
             }
@@ -261,7 +261,7 @@ namespace SFE.Game
             }
             _ground.SetPixels(_pixels);
             _ground.Apply(false);
-            if (_gridLines != null) Prims.SetColor(_gridLines, temperatures == null ? Palette.GridLine : new Color(0.35f, 0.38f, 0.48f));
+            if (_gridLines != null) Prims.SetColor(_gridLines, temperatures == null ? Palette.GridLine : Palette.GridLineOnHeat);
         }
 
         public Texture2D GroundTexture => _ground;
@@ -281,7 +281,7 @@ namespace SFE.Game
                 {
                     var c = _pixels[(ty / pxPerCell) * _w + tx / pxPerCell];
                     bool edge = tx % pxPerCell == 0 || ty % pxPerCell == 0;
-                    px[ty * tw + tx] = edge ? Color.Lerp(c, Color.black, 0.18f) : c;
+                    px[ty * tw + tx] = edge ? Palette.Shade(c, 0.18f) : c;
                 }
             }
             tex.SetPixels(px);
