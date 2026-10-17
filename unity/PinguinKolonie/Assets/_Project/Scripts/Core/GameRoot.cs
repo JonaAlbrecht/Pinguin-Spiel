@@ -56,12 +56,16 @@ namespace SFE.Game
             _hub.Enter();
             yield return Hud.FadeIn();
             yield return Hud.Say("hub_intro");
+            Hud.Toast(Data.Ui("hubControls"), 7f);
             yield return _hub.WaitForTalk("grete");
 
             // Prolog
             yield return Hud.FadeOut();
             _hub.Exit();
             yield return PrologueHuddle.Create(this, MinigameOrigin).Play();
+            // „So macht's Siemens“ auch nach dem Huddle: dieselbe Rechenregel steckt im Akku eines E-Autos.
+            yield return TransferScreen.PlayBattery(this);
+            State.MapCards = Mathf.Max(State.MapCards, 1);
             State.PrologueDone = true;
             Hud.EnableNotebook(State);
             _hub.SetIdleNode("theo", "hub_theo");
@@ -84,7 +88,7 @@ namespace SFE.Game
                 Hud.ShowPhases(5);
                 yield return TransferScreen.Play(this);
                 Hud.ShowPhases(-1);
-                State.MapCards = Mathf.Max(State.MapCards, 1);
+                State.MapCards = Mathf.Max(State.MapCards, 2);
                 State.Takeaway = GameData.Loc(Data.TransferCard["takeaway"]);
 
                 _hub.Enter();

@@ -45,6 +45,7 @@ Jedes Minigame steht für ein Siemens-Geschäft. Am Ende hat der Spieler eine **
 
 | Ort / Minigame | Siemens-Geschäft | Siemens-Angebot im Transfer (Vorschlag*) | Kundennutzen in einem Satz |
 |---|---|---|---|
+| Huddle-Platz – **Prolog „Der letzte Huddle“** (Wärme, Rechenregel) – *neu seit v0.2* | Digital Industries Software | Simcenter (Batterie-Thermik) | Wie warm jede Zelle im Akku wird, steht vorher fest – Akkus halten länger. |
 | Huddle-Platz – **MG1 Huddle** (Wärme) | Smart Infrastructure (Schaltanlagen) + Digital Industries Software | SIMARIS therm, Simcenter 3D | Schaltschränke werden so geplant, dass kein Bauteil überhitzt – vorher simuliert statt nachher repariert. |
 | Gleis über das Packeis – **MG2 Polar-Express** (Strömung) | Siemens Mobility | Velaro Novo (aerodynamische Auslegung) | Züge werden im Computer windschnittig gemacht – schneller und mit weniger Energie. |
 | *Bonus:* **MG2-B Kühlluft im Schaltschrank** (Strömung) | Digital Industries Software | Simcenter Flotherm | Die Lüftung von Geräten wird geplant, bevor es heiß wird. |

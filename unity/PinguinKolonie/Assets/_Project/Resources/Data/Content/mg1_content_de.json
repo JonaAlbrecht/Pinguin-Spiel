@@ -93,6 +93,11 @@
   "computerThreads": "Wärmefäden in der ganzen Siedlung: {0}",
   "glossary": [
     {
+      "phase": "timestep",
+      "term": "Zeitschritt",
+      "text": "Der Computer rechnet nicht alles auf einmal, sondern in vielen kleinen Schritten nacheinander – immer mit derselben Regel."
+    },
+    {
       "phase": "modelling",
       "term": "Modell",
       "text": "Ein vereinfachtes Abbild der Wirklichkeit im Computer."

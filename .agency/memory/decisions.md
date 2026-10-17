@@ -43,3 +43,25 @@ Rechenregeln des Modells).
 Durchfluss sagt nicht, wie warm ein Iglu ist (kalte Iglus zwischen Laternen leiten mehr weiter). Die Waage zeigt darum
 Herkunft und Verbleib der Wärme auf einer gemeinsamen Skala; der Zustand kommt aus der Temperatur.
 Verworfen: volle Breite je Iglu (alle Waagen sahen gleich aus) und „lange Balken = warm“ (falsch, Test belegt).
+
+## 2026-10-17 – nach dem ersten Spieltest
+
+**ADR-11 Tastatur zusätzlich zum Klicken.** WASD/Pfeiltasten im Hub, kamerabezogen; Klicken bleibt (Tablets, C-01).
+E/Leertaste/Enter sprechen an und blättern im Dialog. Das EventSystem sendet keine Navigation mehr – sonst drückte
+Leertaste/Enter den zuletzt geklickten Knopf erneut. Verworfen: Achse „Horizontal/Vertical“ des Input Managers
+(geglättet, Pip rutscht nach; im neuen Input System nicht vorhanden).
+
+**ADR-12 Rechenregel als Bild-Gleichung, Formel unter der Haube.** Entscheidung von Jona: docs/00 („keine Formeln im
+Standard-Spiel“) bleibt. Die Zahlen kommen aus `HuddleModel.LastStepTerms` – implizites Euler, die Teile mit den neuen
+Werten, darum geht die Zerlegung exakt auf und der Austausch summiert exakt zu null. Längerer Zeitschritt (5 statt 1),
+damit die Zahlen lesbar sind. Verworfen: eigene, explizite Lehr-Rechnung (zweite Wahrheit neben dem Huddle-Modell).
+Ebenfalls Jonas Wahl: nur der Zwei-Pinguine-Schritt vor dem Huddle, nicht der ganze Prolog nach fünf Phasen.
+
+**ADR-13 Batterie-Transfer nach dem Prolog, Landkarte mit 4 Karten.** Dieselbe Regel wie im Huddle steckt in der
+Batterie-Thermik (Simcenter, Vorschlag). docs/00 hatte drei Karten (je Minigame); der Prolog bekommt eine eigene.
+Verworfen: Schaltschrank zweimal zeigen (Wiederholung).
+
+**ADR-14 Schlanke Paketliste, Prüfung gegen den Editor.** Unity schrieb beim ersten Öffnen rund 20 Standardpakete
+(Werbung, In-App-Käufe, Xbox-GDK, Analytics …) in die Liste und legte deren Dateien in `Assets/` an. Das Spiel braucht
+keines davon; sie sind wieder entfernt. `com.unity.modules.textrendering` gibt es in Unity 6.4 nicht mehr als Paket –
+die Prüfung in `check.ps1` hätte das vor dem Öffnen gemeldet.

@@ -12,6 +12,14 @@
 Das ganze Spiel wird zur Laufzeit per Code gebaut (`Scripts/Core/GameRoot.cs`). Es gibt keine Prefabs und
 keine von Hand gebauten Szenen. Die Szene enthält nur ein Objekt mit `GameRoot`.
 
+## Steuerung
+
+| Wo | Eingabe |
+|---|---|
+| Hub (Huddle-Platz) | **W A S D / Pfeiltasten** laufen, **E / Leertaste / Enter** Figur ansprechen – oder hinklicken/-tippen |
+| Dialoge | Klick auf die Sprechblase oder **E / Leertaste / Enter** |
+| Prolog, Schritt 5 | Maus oder Finger: Pinguine ziehen, Bausteine setzen |
+
 ## Bauen
 
 - Menü **File → Build Profiles** oder per Batchmode:

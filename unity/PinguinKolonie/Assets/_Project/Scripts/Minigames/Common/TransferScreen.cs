@@ -14,9 +14,20 @@ namespace SFE.Game
     /// </summary>
     public static class TransferScreen
     {
-        public static IEnumerator Play(GameRoot root)
+        /// <summary>„So macht's Siemens“ nach MG1: Siedlung neben Schaltschrank.</summary>
+        public static IEnumerator Play(GameRoot root) =>
+            Play(root, root.Data.TransferCard, root.State.Mg1Snapshot, "transferImageSettlement",
+                SwitchgearPlaceholder(), "transferImageSwitchgear", "transfer_after");
+
+        /// <summary>„So macht's Siemens“ nach dem Huddle (Prolog): Huddle neben Batteriezellen im Akku.</summary>
+        public static IEnumerator PlayBattery(GameRoot root) =>
+            Play(root, root.Data.BatteryCard, root.State.PrologueSnapshot, "transferImageHuddle",
+                BatteryPlaceholder(), "transferImageBattery", "transfer_battery_after");
+
+        /// <param name="placeholder">Erzeugtes Symbolbild rechts; wird am Ende freigegeben.</param>
+        private static IEnumerator Play(GameRoot root, Dictionary<string, object> card, Texture leftImage, string leftCaption,
+            Texture2D placeholder, string rightCaption, string afterNode)
         {
-            var card = root.Data.TransferCard;
             var layer = new GameObject("Transfer");
             var rt = UIKit.Rect(layer, root.Hud.Root);
             UIKit.Fill(rt);
@@ -42,17 +53,16 @@ namespace SFE.Game
             }
 
             // Bilder nebeneinander
-            var switchgear = SwitchgearPlaceholder();
-            ImageBox(rt, new Vector2(0.27f, 0.5f), root.State.Mg1Snapshot, ui.Ui("transferImageSettlement"));
-            ImageBox(rt, new Vector2(0.73f, 0.5f), switchgear, ui.Ui("transferImageSwitchgear"));
+            ImageBox(rt, new Vector2(0.27f, 0.5f), leftImage, ui.Ui(leftCaption));
+            ImageBox(rt, new Vector2(0.73f, 0.5f), placeholder, ui.Ui(rightCaption));
 
             // Übersetzungstabelle zwischen den Bildern
             var table = card.Arr("translation");
             var tablePanel = UIKit.Panel(rt, Color.white, "Translation");
             UIKit.PlaceFixed(tablePanel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, 0), new Vector2(560, 420));
-            var th1 = UIKit.Label(tablePanel.transform, ui.Ui("transferTableGame"), 24, Palette.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var th1 = UIKit.Label(tablePanel.transform, TableHead(card, "tableGame", ui.Ui("transferTableGame")), 24, Palette.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
             UIKit.PlaceFixed(th1.rectTransform, new Vector2(0, 1), new Vector2(145, -30), new Vector2(260, 40));
-            var th2 = UIKit.Label(tablePanel.transform, ui.Ui("transferTableReal"), 24, Palette.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var th2 = UIKit.Label(tablePanel.transform, TableHead(card, "tableReal", ui.Ui("transferTableReal")), 24, Palette.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
             UIKit.PlaceFixed(th2.rectTransform, new Vector2(0, 1), new Vector2(425, -30), new Vector2(260, 40));
             for (int i = 0; i < table.Count; i++)
             {
@@ -88,10 +98,10 @@ namespace SFE.Game
             while (!done) yield return null;
             Sfx.Play(Sfx.Sound.Click);
             if (card.Has("retrieval")) yield return Recall(root, rt, card.Arr("retrieval"));
-            yield return root.Hud.Say("transfer_after");
+            yield return root.Hud.Say(afterNode);
             yield return root.Hud.FadeOut();
             Object.Destroy(layer);
-            Object.Destroy(switchgear);
+            Object.Destroy(placeholder);
         }
 
         /// <summary>
@@ -170,6 +180,43 @@ namespace SFE.Game
         }
 
         /// <summary>Platzhalter: Schaltschrank mit warmen Bauteilen in der Farbskala des Spiels.</summary>
+        /// <summary>Spaltenkopf der Übersetzungstabelle aus der Karte („Im Akku“), sonst der allgemeine Text.</summary>
+        private static string TableHead(Dictionary<string, object> card, string key, string fallback) =>
+            card.Has(key) ? GameData.Loc(card[key]) : fallback;
+
+        /// <summary>
+        /// Platzhalter: Akku von oben, 8 × 5 Zellen. Innen warm, am Rand kühler – dieselbe Farbskala wie die Pinguine.
+        /// Symbolbild, keine Rechnung; das sagt auch die Bildunterschrift.
+        /// </summary>
+        private static Texture2D BatteryPlaceholder()
+        {
+            const int w = 96, h = 96, cols = 8, rows = 5;
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear };
+            var frame = new Color(0.3f, 0.33f, 0.4f);
+            float cellW = (w - 8) / (float)cols, cellH = (h - 30) / (float)rows;
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    var c = frame;
+                    int cx = (int)((x - 4) / cellW), cy = (int)((y - 15) / cellH);
+                    bool inside = x >= 4 && x < w - 4 && y >= 15 && y < h - 15;
+                    float lx = (x - 4) - cx * cellW, ly = (y - 15) - cy * cellH;
+                    bool gap = lx < 1.5f || ly < 1.5f;
+                    if (inside && !gap && cx < cols && cy < rows)
+                    {
+                        // Abstand zur Mitte des Akkus: innen wärmer
+                        float dx = (cx + 0.5f) / cols - 0.5f, dy = (cy + 0.5f) / rows - 0.5f;
+                        float t = 40f - 55f * Mathf.Sqrt(dx * dx + dy * dy) * 1.6f;
+                        c = HeatColors.Penguin(t, 18);
+                    }
+                    tex.SetPixel(x, y, c);
+                }
+            }
+            tex.Apply();
+            return tex;
+        }
+
         private static Texture2D SwitchgearPlaceholder()
         {
             const int w = 96, h = 96;

@@ -23,3 +23,5 @@ __pycache__/
 
 # Blender
 *.blend1
+unity/*/*.slnx
+unity/*/.vscode/

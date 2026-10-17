@@ -18,9 +18,45 @@ namespace SFE.SimCore.Thermal
         public double AirTemp;
     }
 
+    /// <summary>Startwerte des Zwei-Pinguine-Beispiels vor dem Huddle (Grete im Wind, Pip in ihrem Windschatten).</summary>
+    public sealed class HuddlePairLesson
+    {
+        public double GreteStart;
+        public double PipStart;
+        public double Distance;
+        public double WindEast;
+        public double WindNorth;
+        public double Dt;
+        public int Steps;
+
+        /// <summary>Ein Modell mit zwei Pinguinen: 0 = Grete (windaufwärts, Westen), 1 = Pip (Osten).</summary>
+        public HuddleModel CreateModel(HuddleParams p)
+        {
+            var m = new HuddleModel(p, 2, 0);
+            m.X[0] = -Distance / 2;
+            m.X[1] = Distance / 2;
+            m.Temperatures[0] = GreteStart;
+            m.Temperatures[1] = PipStart;
+            return m;
+        }
+    }
+
+    /// <summary>
+    /// Zerlegung eines Zeitschritts je Pinguin: <c>neu − vorher = Own + FromNeighbours − ToWind</c>.
+    /// Die Teile gelten mit den neuen Temperaturen (implizites Euler), dann geht die Rechnung exakt auf.
+    /// FromNeighbours summiert zu null – der Austausch erzeugt und vernichtet keine Wärme.
+    /// </summary>
+    public sealed class HuddleStepTerms
+    {
+        public double[] Own;
+        public double[] FromNeighbours;
+        public double[] ToWind;
+    }
+
     /// <summary>Leveldaten des Prologs „Der letzte Huddle“ (MG1 Teil A).</summary>
     public sealed class HuddleLevel
     {
+        public HuddlePairLesson PairLesson;
         public string Id;
         public int Penguins;
         public double PenguinRadius;
@@ -55,6 +91,7 @@ namespace SFE.SimCore.Thermal
                 WindChangeEvery = o.Num("windChangeEvery"),
                 WindWarning = o.Num("windWarning"),
                 WindSequence = o.StrArray("windSequence"),
+                PairLesson = ReadPair(o),
                 Model = new HuddleParams
                 {
                     Heat = m.Num("heat"),
@@ -67,6 +104,23 @@ namespace SFE.SimCore.Thermal
                     ShieldCone = m.Num("shieldCone"),
                     AirTemp = m.Num("airTemp"),
                 },
+            };
+        }
+
+        private static HuddlePairLesson ReadPair(Dictionary<string, object> o)
+        {
+            if (!o.Has("pairLesson")) return null;
+            var p = o.Obj("pairLesson");
+            var wind = MiniJson.NumArray(p.Arr("windTo"));
+            return new HuddlePairLesson
+            {
+                GreteStart = p.Num("greteStart"),
+                PipStart = p.Num("pipStart"),
+                Distance = p.Num("distance"),
+                WindEast = wind[0],
+                WindNorth = wind[1],
+                Dt = p.Num("dt"),
+                Steps = p.Int("steps"),
             };
         }
     }
@@ -152,6 +206,30 @@ namespace SFE.SimCore.Thermal
             var solver = new ConjugateGradientSolver(builder.Build(), b, Temperatures, 1e-12);
             var t = solver.SolveToEnd();
             Array.Copy(t, Temperatures, n);
+        }
+
+        /// <summary>
+        /// Zerlegt den letzten Schritt (nach <see cref="Step"/> aufrufen): Positionen, Wind und die neuen Temperaturen
+        /// sind die, mit denen gerechnet wurde. Identisch zu <c>step_terms</c> in <c>simref/huddle.py</c>.
+        /// </summary>
+        public HuddleStepTerms LastStepTerms(double dt)
+        {
+            int n = Count;
+            double f = dt / _p.Capacity;
+            var t = new HuddleStepTerms { Own = new double[n], FromNeighbours = new double[n], ToWind = new double[n] };
+            for (int i = 0; i < n; i++)
+            {
+                double h = Exposed[i] ? _p.HExposed : _p.HShielded;
+                t.Own[i] = f * _p.Heat;
+                t.ToWind[i] = f * h * (Temperatures[i] - _p.AirTemp);
+            }
+            foreach (var (i, j) in Contacts())
+            {
+                double flow = f * _p.Contact * (Temperatures[j] - Temperatures[i]);
+                t.FromNeighbours[i] += flow;
+                t.FromNeighbours[j] -= flow;
+            }
+            return t;
         }
 
         public double Distance(int i, int j)
