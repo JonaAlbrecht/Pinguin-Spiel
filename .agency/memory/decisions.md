@@ -65,3 +65,10 @@ Verworfen: Schaltschrank zweimal zeigen (Wiederholung).
 (Werbung, In-App-Käufe, Xbox-GDK, Analytics …) in die Liste und legte deren Dateien in `Assets/` an. Das Spiel braucht
 keines davon; sie sind wieder entfernt. `com.unity.modules.textrendering` gibt es in Unity 6.4 nicht mehr als Paket –
 die Prüfung in `check.ps1` hätte das vor dem Öffnen gemeldet.
+
+**ADR-15 Bildqualität in der eingebauten Pipeline, URP später.** Ursachen der Pixeligkeit (Spieltest 17.10.): MSAA nur 2×
+(WebGL 0×), 8-Texel-Felder mit 1-Texel-Gitterlinien stark vergrößert, nur 2–4 Pixel-Lichter bei bis zu 13 Laternen,
+TextMesh mit fontSize 64, 96-px-Symbolbilder. Behoben per Code (`RenderQuality`, Felder als 1 Texel ohne Glättung +
+Gitterlinien als 3D-Streifen, Schrift in 160 gerastert, Bilder 256–288 px). Verworfen für jetzt: Umstieg auf URP
+(Bloom für Laternen, bessere Kantenglättung, Nachbearbeitung) – lohnt sich, braucht aber einen Spieltest im Editor,
+weil Materialien dabei leicht rosa werden. Vorschlag für den nächsten Schritt.

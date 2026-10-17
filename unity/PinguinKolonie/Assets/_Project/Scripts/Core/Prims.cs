@@ -91,8 +91,11 @@ namespace SFE.Game
             var tm = go.AddComponent<TextMesh>();
             tm.font = UIKit.Font;
             tm.text = text;
-            tm.fontSize = 64;
-            tm.characterSize = size;
+            // Die Schrift wird in fontSize gerastert und mit characterSize skaliert. 64 wirkte vergrößert unscharf;
+            // 160 bei entsprechend kleinerem characterSize ergibt dieselbe Größe auf dem Bildschirm, aber scharf.
+            const int raster = 160;
+            tm.fontSize = raster;
+            tm.characterSize = size * 64f / raster;
             tm.anchor = TextAnchor.MiddleCenter;
             tm.alignment = TextAlignment.Center;
             tm.color = color;

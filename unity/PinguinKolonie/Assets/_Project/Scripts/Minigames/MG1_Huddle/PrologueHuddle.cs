@@ -303,7 +303,7 @@ namespace SFE.Game
         /// <summary>Wärmebild des fertigen Huddles von oben – für „So macht's Siemens“ neben dem Akku.</summary>
         private Texture2D Snapshot()
         {
-            const int size = 96;
+            const int size = 256; // v0.1: 96 – im Rahmen sichtbar verwaschen
             var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear };
             // Ausschnitt um den Huddle, wo immer der Spieler ihn hingeschoben hat – mittig und mit Rand.
             // (Vorher ein fester Ausschnitt der Scholle: Ein Huddle am Rand klebte in der Bildecke, Spieltest 17.10.2026.)

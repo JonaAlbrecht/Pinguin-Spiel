@@ -191,14 +191,16 @@ namespace SFE.Game
         /// </summary>
         private static Texture2D BatteryPlaceholder()
         {
+            // Gezeichnet in einem 96er-Raster, abgetastet mit Res Pixeln – scharf auf großen Bildschirmen.
             const int w = 96, h = 96, cols = 8, rows = 5;
-            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear };
+            var tex = new Texture2D(Res, Res, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear };
             var frame = new Color(0.3f, 0.33f, 0.4f);
             float cellW = (w - 8) / (float)cols, cellH = (h - 30) / (float)rows;
-            for (int y = 0; y < h; y++)
+            for (int py = 0; py < Res; py++)
             {
-                for (int x = 0; x < w; x++)
+                for (int px = 0; px < Res; px++)
                 {
+                    float x = px * (float)w / Res, y = py * (float)h / Res;
                     var c = frame;
                     int cx = (int)((x - 4) / cellW), cy = (int)((y - 15) / cellH);
                     bool inside = x >= 4 && x < w - 4 && y >= 15 && y < h - 15;
@@ -211,22 +213,26 @@ namespace SFE.Game
                         float t = 40f - 55f * Mathf.Sqrt(dx * dx + dy * dy) * 1.6f;
                         c = HeatColors.Penguin(t, 18);
                     }
-                    tex.SetPixel(x, y, c);
+                    tex.SetPixel(px, py, c);
                 }
             }
             tex.Apply();
             return tex;
         }
 
+        /// <summary>Kantenlänge der erzeugten Symbolbilder (v0.1: 96 – auf dem Bildschirm sichtbar verwaschen).</summary>
+        private const int Res = 288;
+
         private static Texture2D SwitchgearPlaceholder()
         {
             const int w = 96, h = 96;
-            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear };
+            var tex = new Texture2D(Res, Res, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear };
             var hot = new[] { new Vector3(30, 70, 9), new Vector3(66, 72, 7), new Vector3(48, 44, 11), new Vector3(28, 20, 6), new Vector3(70, 22, 8) };
-            for (int y = 0; y < h; y++)
+            for (int py = 0; py < Res; py++)
             {
-                for (int x = 0; x < w; x++)
+                for (int px = 0; px < Res; px++)
                 {
+                    float x = px * (float)w / Res, y = py * (float)h / Res;
                     double t = -30;
                     foreach (var s in hot)
                     {
@@ -235,12 +241,12 @@ namespace SFE.Game
                     }
                     var c = HeatColors.For(t, -30, -8, 0);
                     bool frameEdge = x < 4 || y < 4 || x >= w - 4 || y >= h - 4;
-                    bool shelf = y % 32 < 2;
+                    bool shelf = y % 32f < 2f;
                     bool component = false;
                     foreach (var s in hot) if (Mathf.Abs(x - s.x) < s.z * 0.6f && Mathf.Abs(y - s.y) < s.z * 0.9f) component = true;
                     if (frameEdge || shelf) c = new Color(0.3f, 0.33f, 0.4f);
                     else if (component) c = Color.Lerp(c, new Color(0.2f, 0.22f, 0.28f), 0.45f);
-                    tex.SetPixel(x, y, c);
+                    tex.SetPixel(px, py, c);
                 }
             }
             tex.Apply();

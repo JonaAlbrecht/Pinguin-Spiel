@@ -761,12 +761,8 @@ namespace SFE.Game
             st.Mg1BestFinalRows = finished.Grid.ToRows();
             st.Mg1BestResult = r;
             st.Mg1BestTemperatures = (double[])finished.Temperatures.Clone();
-            var tex = _board.GroundTexture;
-            var copy = new Texture2D(tex.width, tex.height, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point };
-            copy.SetPixels(tex.GetPixels());
-            copy.Apply();
             if (st.Mg1Snapshot != null) Destroy(st.Mg1Snapshot);
-            st.Mg1Snapshot = copy;
+            st.Mg1Snapshot = _board.RenderSnapshot(); // hochaufgelöst mit Gitterlinien statt Kopie der 24×24-Bodentextur
         }
 
         private RectTransform ShowResult(SettlementResult r)

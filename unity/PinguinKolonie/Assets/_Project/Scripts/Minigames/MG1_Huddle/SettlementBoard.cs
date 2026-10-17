@@ -11,7 +11,7 @@ namespace SFE.Game
     /// </summary>
     public sealed class SettlementBoard : MonoBehaviour
     {
-        private const int Px = 8; // Texturpixel pro Zelle
+        private GameObject _gridLines;
 
         private SettlementLevel _level;
         private int _w, _h;
@@ -56,8 +56,9 @@ namespace SFE.Game
                 Palette.IceShadow, "Plinth");
 
             // Bodentextur mit Feldern
-            _ground = new Texture2D(_w * Px, _h * Px, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+            _ground = new Texture2D(_w, _h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
             _pixels = new Color[_ground.width * _ground.height];
+            BuildGridLines();
             var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
             Destroy(quad.GetComponent<Collider>());
             quad.name = "Ground";
@@ -241,35 +242,81 @@ namespace SFE.Game
 
         // ---------- Wärmebild ----------
 
-        /// <summary>Färbt die Felder nach Temperatur. <c>null</c> = normales Eis mit Feldlinien.</summary>
+        /// <summary>
+        /// Färbt die Felder nach Temperatur. <c>null</c> = normales Eis. Ein Texel je Feld, ohne Glättung: Die Felder
+        /// bleiben bei jeder Vergrößerung scharfe Quadrate. Die Gitterlinien sind eigene 3D-Streifen (<see cref="BuildGridLines"/>),
+        /// die die Kantenglättung sauber zeichnet – in v0.1 waren sie 1 Texel einer 8-Pixel-Zelle und wirkten pixelig.
+        /// </summary>
         public void SetHeat(double[] temperatures)
         {
-            int tw = _w * Px;
             for (int y = 0; y < _h; y++)
             {
                 for (int x = 0; x < _w; x++)
                 {
                     int i = y * _w + x;
-                    Color c = temperatures == null
+                    _pixels[(_h - 1 - y) * _w + x] = temperatures == null // Texturzeile 0 liegt unten (Süden)
                         ? ((x + y) % 2 == 0 ? Palette.Ice : Color.Lerp(Palette.Ice, Palette.IceShadow, 0.35f))
                         : HeatColors.For(temperatures[i], _level.AirTemp, _level.ComfortMin, _level.Melt);
-                    Color line = temperatures == null ? Palette.GridLine : Color.Lerp(c, Color.black, 0.15f);
-                    int ty = _h - 1 - y; // Texturzeile 0 liegt unten (Süden)
-                    for (int py = 0; py < Px; py++)
-                    {
-                        for (int px = 0; px < Px; px++)
-                        {
-                            bool edge = px == 0 || py == 0;
-                            _pixels[(ty * Px + py) * tw + x * Px + px] = edge ? line : c;
-                        }
-                    }
                 }
             }
             _ground.SetPixels(_pixels);
             _ground.Apply(false);
+            if (_gridLines != null) Prims.SetColor(_gridLines, temperatures == null ? Palette.GridLine : new Color(0.35f, 0.38f, 0.48f));
         }
 
         public Texture2D GroundTexture => _ground;
+
+        /// <summary>
+        /// Wärmebild für „So macht's Siemens“: hochaufgelöst, mit Gitterlinien, aus dem aktuellen Feldbild gerechnet.
+        /// Einmal je Runde – darum darf es groß sein, anders als die Bodentextur, die sich in jedem Bild ändert.
+        /// </summary>
+        public Texture2D RenderSnapshot(int pxPerCell = 16)
+        {
+            int tw = _w * pxPerCell, th = _h * pxPerCell;
+            var tex = new Texture2D(tw, th, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+            var px = new Color[tw * th];
+            for (int ty = 0; ty < th; ty++)
+            {
+                for (int tx = 0; tx < tw; tx++)
+                {
+                    var c = _pixels[(ty / pxPerCell) * _w + tx / pxPerCell];
+                    bool edge = tx % pxPerCell == 0 || ty % pxPerCell == 0;
+                    px[ty * tw + tx] = edge ? Color.Lerp(c, Color.black, 0.18f) : c;
+                }
+            }
+            tex.SetPixels(px);
+            tex.Apply();
+            return tex;
+        }
+
+        /// <summary>Gitterlinien als dünne Streifen knapp über dem Boden – ein Netz, ein Material.</summary>
+        private void BuildGridLines()
+        {
+            const float half = 0.025f, lift = 0.004f;
+            var verts = new System.Collections.Generic.List<Vector3>();
+            var tris = new System.Collections.Generic.List<int>();
+            void Strip(Vector3 a, Vector3 b, Vector3 side)
+            {
+                int k = verts.Count;
+                verts.Add(a - side); verts.Add(a + side); verts.Add(b + side); verts.Add(b - side);
+                // Unity zeichnet nur die Vorderseite (Normale = Kreuzprodukt der Kanten). Senkrechte und waagerechte
+                // Streifen haben entgegengesetzte Wickelrichtung – darum je Streifen so drehen, dass er nach oben zeigt.
+                bool up = Vector3.Cross(verts[k + 1] - verts[k], verts[k + 2] - verts[k]).y > 0;
+                if (up) { tris.Add(k); tris.Add(k + 1); tris.Add(k + 2); tris.Add(k); tris.Add(k + 2); tris.Add(k + 3); }
+                else { tris.Add(k); tris.Add(k + 2); tris.Add(k + 1); tris.Add(k); tris.Add(k + 3); tris.Add(k + 2); }
+            }
+            for (int x = 0; x <= _w; x++) Strip(new Vector3(x, lift, 0), new Vector3(x, lift, _h), new Vector3(half, 0, 0));
+            for (int z = 0; z <= _h; z++) Strip(new Vector3(0, lift, z), new Vector3(_w, lift, z), new Vector3(0, 0, half));
+            var mesh = new Mesh { name = "GridLines" };
+            mesh.SetVertices(verts);
+            mesh.SetTriangles(tris, 0);
+            mesh.RecalculateNormals();
+            _gridLines = new GameObject("GridLines");
+            _gridLines.transform.SetParent(transform, false);
+            _gridLines.AddComponent<MeshFilter>().sharedMesh = mesh;
+            _gridLines.AddComponent<MeshRenderer>().sharedMaterial = Prims.Mat(Palette.GridLine);
+            _gridLines.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
 
         // ---------- Wärmefäden ----------
 
