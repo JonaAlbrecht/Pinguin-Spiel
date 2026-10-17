@@ -83,3 +83,21 @@ von Jona, damit alles aus einem Guss bleibt. Schattierung, Detailgrad und Propor
 „Belly“/„Ring“ hätte neu gebaut werden müssen) und weiche Rundungen (wenige Segmente wirkten dann grob statt gewollt).
 
 **ADR-17 Siemens-Farbschema als einzige Farbquelle.** Alle Farben kommen aus `Palette.Siemens` (sie-colors-overview V1.4.4, exakte Bildschirmwerte); Spielfarben sind Namen, die darauf zeigen. Wo es geht Primärfarben, sonst Sekundär-/Zusatzfarben; helle Flächen per Aufhellung mit Light Sand, Abdunkeln nur mit Deep Blue (mit Brand abzustimmen). `tools/style_lint.py` verbietet Farben außerhalb der Palette und prüft die Sprecherfarben. Dazu Farbtreue im Licht (Sonne 0,85, Umgebung ≈ 0,5 statt 1,1/0,7 – sonst überstrahlte Dark Blue zu Knallblau) und Segmentzahl der Bauten nach Größe. Verworfen: nur die Primärfarben (kein Orange für Schnäbel, kein Rot für Warnungen) und Farben frei wählen und „ähnlich“ halten (driftet, ist nicht prüfbar).
+
+## 2026-10-17 – Formeln, Einstellungen
+
+**ADR-18 Formeln wie LaTeX, „Blick unter die Haube“ als eigenes Fenster.** Wunsch von Jona (17.10.): Der Knopf öffnet
+ein Pop-up (`Hud.OpenPopup`, hält das Spiel an wie das Notizbuch) statt Text auf der Rechentafel. Die eingebaute
+Schrift kann keine Brüche und Indizes, darum stehen die Formeln als LaTeX-Quelle in `ui_de.json` (`underTheHood.formulas`)
+und `tools/render_formulas.py` setzt sie mit matplotlib-Mathtext (Computer Modern) zu Deckkraft-Bildern
+(`Resources/Formulas/*.bytes`, roh deflate). Unity lädt sie als TextAsset (`UIKit.Formula`) und färbt sie ein.
+Verworfen: PNG-Import (Unity skaliert NPOT-Bilder und komprimiert sie unscharf, Importeinstellungen bräuchten
+handgeschriebene .meta), `Texture2D.LoadImage` (braucht das Paket imageconversion, Paketliste nur bei geschlossenem
+Unity ändern), TextMeshPro/eigener Formelsatz (viel Aufwand für wenig Formeln).
+
+**ADR-19 Einstellungen-Menü, Bedienung während Dialogen gesperrt.** Spieltest 17.10.: Während Grete sprach, sah
+„Nächster Zeitschritt“ klickbar aus, weiter ging es aber nur in der Sprechblase. Jetzt graut `Hud.LockWhileBlocking`
+Knöpfe und Leisten aus, solange ein Dialog oder Fenster offen ist, und „Weiter »“ ist ein farbiger Knopf.
+Der Ton-Knopf wurde zum Menü „Einstellungen“ (`Settings`): Ton, Lautstärke, Tempo im Huddle, Bildqualität
+(hoch/sparsam), Knopf „Blick unter die Haube“ an/aus, Vollbild (nicht im Editor). Nur für die Sitzung, nichts wird
+gespeichert (Titelbildschirm verspricht das). Verworfen: PlayerPrefs.
