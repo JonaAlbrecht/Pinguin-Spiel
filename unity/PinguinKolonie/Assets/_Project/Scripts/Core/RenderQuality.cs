@@ -32,7 +32,6 @@ namespace SFE.Game
             if (sun != null)
             {
                 sun.shadowResolution = UnityEngine.Rendering.LightShadowResolution.VeryHigh;
-                sun.shadowStrength = 0.65f;      // weichere, freundlichere Schatten im Diorama-Look
                 sun.shadowBias = 0.03f;
                 sun.shadowNormalBias = 0.3f;     // keine Streifen („Shadow Acne“) auf den runden Formen
             }

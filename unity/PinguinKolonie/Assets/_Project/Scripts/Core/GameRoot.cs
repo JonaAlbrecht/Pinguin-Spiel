@@ -39,13 +39,8 @@ namespace SFE.Game
         {
             var sun = new GameObject("Sun").AddComponent<Light>();
             sun.type = LightType.Directional;
-            sun.color = new Color(1f, 0.97f, 0.92f);
-            sun.intensity = 1.1f;
             sun.shadows = LightShadows.Soft;
-            sun.transform.rotation = Quaternion.Euler(55f, -35f, 0f);
-            // Ohne Flat wirkt ambientLight nicht: Eine leere Szene steht auf Skybox-Umgebungslicht (Review zu PR #2).
-            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.62f, 0.70f, 0.82f);
+            ArtStyle.Shading.ApplyTo(sun);
             return sun;
         }
 
@@ -113,13 +108,13 @@ namespace SFE.Game
             var layer = new GameObject("Title");
             var rt = UIKit.Rect(layer, Hud.Root);
             UIKit.Fill(rt);
-            var bg = UIKit.Panel(rt, new Color(0.08f, 0.14f, 0.26f), "Background");
+            var bg = UIKit.Panel(rt, Palette.TitleBackground, "Background");
             UIKit.Fill(bg.rectTransform);
             var title = UIKit.Label(rt, Data.Ui("titleMain"), 84, Palette.TextLight, TextAnchor.MiddleCenter, FontStyle.Bold);
             UIKit.PlaceFixed(title.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, 230), new Vector2(1600, 120));
-            var sub = UIKit.Label(rt, Data.Ui("titleSub"), 34, new Color(0.7f, 0.85f, 1f), TextAnchor.MiddleCenter);
+            var sub = UIKit.Label(rt, Data.Ui("titleSub"), 34, Palette.TitleSub, TextAnchor.MiddleCenter);
             UIKit.PlaceFixed(sub.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, 140), new Vector2(1600, 60));
-            var note = UIKit.Label(rt, Data.Ui("titleNote"), 26, new Color(0.8f, 0.85f, 0.9f), TextAnchor.MiddleCenter);
+            var note = UIKit.Label(rt, Data.Ui("titleNote"), 26, Palette.TitleNote, TextAnchor.MiddleCenter);
             UIKit.PlaceFixed(note.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, -170), new Vector2(1500, 100));
             bool go = false;
             var start = UIKit.Button(rt, Data.Ui("startGame"), () => go = true, Palette.Button, 40);
@@ -142,7 +137,7 @@ namespace SFE.Game
                 TextAnchor.MiddleCenter, FontStyle.Bold);
             UIKit.Place(title.rectTransform, 0, 1, 1, 1, 20, -90, 20, 20);
 
-            var card = UIKit.Panel(panel.transform, new Color(0f, 0.6f, 0.6f, 0.12f), "Card");
+            var card = UIKit.Panel(panel.transform, Palette.Card, "Card");
             UIKit.Place(card.rectTransform, 0, 1, 1, 1, 40, -330, 40, 110);
             var c = Data.TransferCard;
             var cardText = UIKit.Label(card.transform,

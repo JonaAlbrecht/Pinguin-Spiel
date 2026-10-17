@@ -235,8 +235,8 @@ namespace SFE.Game
             var pivot = new GameObject("Beam");
             var beamRt = UIKit.Rect(pivot, panel.transform);
             UIKit.PlaceFixed(beamRt, new Vector2(0.5f, 0.5f), new Vector2(0, -40), new Vector2(900, 16));
-            pivot.AddComponent<Image>().color = new Color(0.8f, 0.85f, 0.95f);
-            var post = UIKit.Panel(panel.transform, new Color(0.8f, 0.85f, 0.95f), "Post");
+            pivot.AddComponent<Image>().color = Palette.ScaleBeam;
+            var post = UIKit.Panel(panel.transform, Palette.ScaleBeam, "Post");
             UIKit.PlaceFixed(post.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, -150), new Vector2(24, 220));
 
             var pans = new Button[2];
@@ -244,7 +244,7 @@ namespace SFE.Game
             string[] panTitles = { Data.Ui("scaleIn"), Data.Ui("scaleOut") };
             for (int s = 0; s < 2; s++)
             {
-                var pan = UIKit.Button(beamRt, panTitles[s], null, new Color(0.25f, 0.32f, 0.45f), 28);
+                var pan = UIKit.Button(beamRt, panTitles[s], null, Palette.ButtonQuiet, 28);
                 var prt = (RectTransform)pan.transform;
                 prt.anchorMin = prt.anchorMax = new Vector2(s == 0 ? 0.15f : 0.85f, 0.5f);
                 prt.pivot = new Vector2(0.5f, 1f);
@@ -534,7 +534,7 @@ namespace SFE.Game
                 _toolButtons[tool] = b;
             }
             UIKit.SetButtonLabel(_toolButtons[Tool.Erase], Data.Ui("toolErase"));
-            var undo = UIKit.Button(bar.transform, Data.Ui("undo"), Undo, new Color(0.4f, 0.4f, 0.5f), 24);
+            var undo = UIKit.Button(bar.transform, Data.Ui("undo"), Undo, Palette.ButtonQuiet, 24);
             UIKit.PlaceFixed((RectTransform)undo.transform, new Vector2(0, 0.5f), new Vector2(1150, 0), new Vector2(200, 80));
             _simulateButton = UIKit.Button(bar.transform, Data.Ui("simulate"), () => StartCoroutine(SimulateRound()), Palette.Button, 34);
             UIKit.PlaceFixed((RectTransform)_simulateButton.transform, new Vector2(1, 0.5f), new Vector2(-190, 0), new Vector2(330, 100));
@@ -543,12 +543,12 @@ namespace SFE.Game
 
             // Lösungshilfe erst nach Runde 3 ohne Stern – und nur auf Wunsch (UX-09: „kann geladen werden“).
             // Links unter der Legende: rechts liegt das Ergebnis, unten die Werkzeugleiste.
-            _exampleButton = UIKit.Button(layer, Data.Ui("loadExample"), LoadExample, new Color(0.45f, 0.32f, 0.2f), 24);
+            _exampleButton = UIKit.Button(layer, Data.Ui("loadExample"), LoadExample, Palette.ButtonSide, 24);
             UIKit.PlaceFixed((RectTransform)_exampleButton.transform, new Vector2(0, 1), new Vector2(170, -300), new Vector2(300, 64));
             _exampleButton.gameObject.SetActive(false);
 
             // Legende
-            var legend = UIKit.Panel(layer, new Color(0.1f, 0.14f, 0.22f, 0.8f), "Legend");
+            var legend = UIKit.Panel(layer, Palette.PanelSoft, "Legend");
             UIKit.PlaceFixed(legend.rectTransform, new Vector2(0, 1), new Vector2(170, -170), new Vector2(300, 170));
             var lg = Data.Mg1Content.Obj("legend");
             AddLegendRow(legend.transform, 0, HeatColors.Cold, lg.Str("cold"));
@@ -557,12 +557,12 @@ namespace SFE.Game
 
             // Blick unter die Haube (optional, Frage B-06)
             var techBtn = UIKit.Button(layer, Data.Ui("techButton"), () => { _techVisible = !_techVisible; _techPanel.SetActive(_techVisible); },
-                new Color(0.25f, 0.3f, 0.4f), 22);
+                Palette.ButtonQuiet, 22);
             // Unter Notizbuch- und Ton-Knopf; der Kasten selbst links, damit ihn das Ergebnis rechts nicht verdeckt.
             UIKit.PlaceFixed((RectTransform)techBtn.transform, new Vector2(1, 1), new Vector2(-170, -240), new Vector2(300, 56));
-            _techPanel = UIKit.Panel(layer, new Color(0.03f, 0.05f, 0.1f, 0.9f), "Tech").gameObject;
+            _techPanel = UIKit.Panel(layer, Palette.Panel, "Tech").gameObject;
             UIKit.PlaceFixed((RectTransform)_techPanel.transform, new Vector2(0, 1), new Vector2(300, -540), new Vector2(560, 300));
-            _techText = UIKit.Label(_techPanel.transform, Data.Tech("techNotYet"), 22, new Color(0.7f, 0.95f, 1f), TextAnchor.UpperLeft);
+            _techText = UIKit.Label(_techPanel.transform, Data.Tech("techNotYet"), 22, Palette.TextTechLight, TextAnchor.UpperLeft);
             UIKit.Place(_techText.rectTransform, 0, 0, 1, 1, 16, 12, 16, 12);
             _techPanel.SetActive(false);
 
@@ -791,13 +791,13 @@ namespace SFE.Game
 
             for (int s = 0; s < 3; s++)
             {
-                var star = UIKit.Panel(panel.transform, s < r.Stars ? Palette.Selected : new Color(0.75f, 0.78f, 0.85f), "Star");
+                var star = UIKit.Panel(panel.transform, s < r.Stars ? Palette.Selected : Palette.StarOff, "Star");
                 UIKit.PlaceFixed(star.rectTransform, new Vector2(0.5f, 0), new Vector2(-90 + s * 90, 230), new Vector2(54, 54));
                 star.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
             }
             var starText = UIKit.Label(panel.transform, StarText(r.Stars), 24, Palette.Text);
             UIKit.PlaceFixed(starText.rectTransform, new Vector2(0.5f, 0), new Vector2(0, 175), new Vector2(560, 40));
-            var tap = UIKit.Label(panel.transform, Data.Ui("resultTapIgloo"), 20, new Color(0.35f, 0.4f, 0.5f), TextAnchor.MiddleCenter, FontStyle.Italic);
+            var tap = UIKit.Label(panel.transform, Data.Ui("resultTapIgloo"), 20, Palette.TextMuted, TextAnchor.MiddleCenter, FontStyle.Italic);
             UIKit.PlaceFixed(tap.rectTransform, new Vector2(0.5f, 0), new Vector2(0, 135), new Vector2(560, 34));
             return panel.rectTransform;
         }
@@ -882,7 +882,7 @@ namespace SFE.Game
             if (_techVisible)
             {
                 var nums = UIKit.Label(prt, Data.Tech("techBalance", inSum, outSum, _lastSim.Temperatures[cell]), 18,
-                    new Color(0.3f, 0.45f, 0.55f), TextAnchor.LowerRight);
+                    Palette.TextTech, TextAnchor.LowerRight);
                 UIKit.Place(nums.rectTransform, 0, 0, 1, 0, 24, 4, 24, -30);
             }
         }
@@ -900,12 +900,12 @@ namespace SFE.Game
             barA.rectTransform.pivot = new Vector2(0, 0.5f);
             barA.rectTransform.anchoredPosition = new Vector2(40, y - 40);
             barA.rectTransform.sizeDelta = new Vector2(Mathf.Max(2, wa), 34);
-            var barB = UIKit.Panel(parent, Color.Lerp(color, Color.white, 0.45f), "BarB");
+            var barB = UIKit.Panel(parent, Color.Lerp(color, Palette.Siemens.LightSand, 0.45f), "BarB");
             barB.rectTransform.anchorMin = barB.rectTransform.anchorMax = new Vector2(0, 1);
             barB.rectTransform.pivot = new Vector2(0, 0.5f);
             barB.rectTransform.anchoredPosition = new Vector2(40 + wa, y - 40);
             barB.rectTransform.sizeDelta = new Vector2(Mathf.Max(2, wb), 34);
-            var parts = UIKit.Label(parent, partA + "  +  " + partB, 18, new Color(0.3f, 0.35f, 0.45f), TextAnchor.MiddleLeft);
+            var parts = UIKit.Label(parent, partA + "  +  " + partB, 18, Palette.TextMuted, TextAnchor.MiddleLeft);
             UIKit.PlaceFixed(parts.rectTransform, new Vector2(0, 1), new Vector2(280, y - 76), new Vector2(500, 28));
         }
 
@@ -924,7 +924,7 @@ namespace SFE.Game
             var color = level == 2 ? Palette.Good : level == 1 ? Palette.Warn : Palette.Bad;
             var lamp = UIKit.Panel(parent, color, "Lamp");
             UIKit.PlaceFixed(lamp.rectTransform, new Vector2(0, 1), new Vector2(70, -125 - row * 73), new Vector2(64, 64));
-            var sym = UIKit.Label(lamp.transform, level == 2 ? "OK" : level == 1 ? "!" : "X", 28, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var sym = UIKit.Label(lamp.transform, level == 2 ? "OK" : level == 1 ? "!" : "X", 28, Palette.TextLight, TextAnchor.MiddleCenter, FontStyle.Bold);
             UIKit.Fill(sym.rectTransform);
             var t = UIKit.Label(parent, text, 28, Palette.Text, TextAnchor.MiddleLeft);
             UIKit.PlaceFixed(t.rectTransform, new Vector2(0, 1), new Vector2(330, -125 - row * 73), new Vector2(440, 70));

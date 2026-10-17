@@ -103,7 +103,7 @@ namespace SFE.Game
 
             _windArrow = new GameObject("Wind").transform;
             _windArrow.SetParent(transform, false);
-            var c = new Color(0.35f, 0.55f, 0.85f);
+            var c = Palette.Wind;
             Prims.Make(PrimitiveType.Cube, _windArrow, new Vector3(0, 0, -0.5f), new Vector3(0.3f, 0.12f, 1.8f), c, "Shaft");
             var head = Prims.Make(PrimitiveType.Cube, _windArrow, new Vector3(0, 0, 0.5f), new Vector3(0.8f, 0.12f, 0.8f), c, "Head");
             head.transform.localRotation = Quaternion.Euler(0, 45, 0);
@@ -123,7 +123,7 @@ namespace SFE.Game
             _ui = new GameObject("PrologueUI");
             var rt = UIKit.Rect(_ui, _root.Hud.Root);
             UIKit.Fill(rt);
-            var bar = UIKit.Panel(rt, new Color(0.1f, 0.14f, 0.22f, 0.85f), "Bar");
+            var bar = UIKit.Panel(rt, Palette.PanelSoft, "Bar");
             UIKit.PlaceFixed(bar.rectTransform, new Vector2(0.5f, 1f), new Vector2(0, -60), new Vector2(760, 64));
             _barFill = UIKit.Panel(bar.transform, HeatColors.Comfy, "Fill");
             UIKit.Place(_barFill.rectTransform, 0, 0, 0, 1, 4, 4, 0, 4);
@@ -179,15 +179,15 @@ namespace SFE.Game
             UIKit.PlaceFixed(panel.rectTransform, new Vector2(0.5f, 1f), new Vector2(0, -330), new Vector2(1500, 420));
             var title = UIKit.Label(panel.transform, data.Ui("pairTitle"), 30, Palette.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
             UIKit.PlaceFixed(title.rectTransform, new Vector2(0, 1), new Vector2(430, -35), new Vector2(800, 44));
-            var stepLabel = UIKit.Label(panel.transform, "", 24, new Color(0.35f, 0.4f, 0.5f), TextAnchor.MiddleRight);
+            var stepLabel = UIKit.Label(panel.transform, "", 24, Palette.TextMuted, TextAnchor.MiddleRight);
             UIKit.PlaceFixed(stepLabel.rectTransform, new Vector2(1, 1), new Vector2(-180, -35), new Vector2(320, 44));
 
             // Spalten: Name | vorher | + | selbst | + | Nachbar | - | Wind | ergibt | neu
             float[] colX = { 90, 270, 375, 480, 585, 690, 795, 900, 1010, 1130 };
             string[] heads0 = { "", data.Ui("pairBefore"), data.Ui("pairPlus"), data.Ui("pairOwn"), data.Ui("pairPlus"), data.Ui("pairNeighbour"),
                 data.Ui("pairMinus"), data.Ui("pairWind"), data.Ui("pairResult"), data.Ui("pairAfter") };
-            Color[] tint = { Color.clear, new Color(0.85f, 0.88f, 0.94f), Color.clear, HeatColors.Comfy, Color.clear, Palette.Thread,
-                Color.clear, HeatColors.Cold, Color.clear, new Color(0.85f, 0.88f, 0.94f) };
+            Color[] tint = { Color.clear, Palette.TableHead, Color.clear, HeatColors.Comfy, Color.clear, Palette.Thread,
+                Color.clear, HeatColors.Cold, Color.clear, Palette.TableHead };
             for (int c = 1; c < colX.Length; c++)
             {
                 bool op = tint[c] == Color.clear;
@@ -211,17 +211,17 @@ namespace SFE.Game
                     UIKit.PlaceFixed(cells[r, c].rectTransform, new Vector2(0, 1), new Vector2(colX[c] + 40, y), new Vector2(170, 50));
                 }
             }
-            var conservation = UIKit.Label(panel.transform, "", 22, new Color(0.55f, 0.3f, 0.05f), TextAnchor.MiddleLeft, FontStyle.Italic);
+            var conservation = UIKit.Label(panel.transform, "", 22, Palette.TextWarm, TextAnchor.MiddleLeft, FontStyle.Italic);
             UIKit.PlaceFixed(conservation.rectTransform, new Vector2(0.5f, 1), new Vector2(0, -280), new Vector2(1420, 44));
 
             // Blick unter die Haube: die Formel hinter der Bild-Gleichung (optional, docs/00)
             var p0 = _level.Model;
             var tech = UIKit.Label(panel.transform, data.Tech("pairFormula") + "\n" + data.Tech("pairParams", lesson.Dt, p0.Capacity, p0.Heat,
-                p0.Contact, p0.HExposed, p0.HShielded, p0.AirTemp), 17, new Color(0.15f, 0.35f, 0.45f), TextAnchor.UpperLeft);
+                p0.Contact, p0.HExposed, p0.HShielded, p0.AirTemp), 17, Palette.TextTech, TextAnchor.UpperLeft);
             UIKit.PlaceFixed(tech.rectTransform, new Vector2(0.5f, 1), new Vector2(0, -330), new Vector2(1420, 56));
             tech.gameObject.SetActive(false);
             var techBtn = UIKit.Button(panel.transform, data.Ui("techButton"), () => tech.gameObject.SetActive(!tech.gameObject.activeSelf),
-                new Color(0.25f, 0.3f, 0.4f), 20);
+                Palette.ButtonQuiet, 20);
             UIKit.PlaceFixed((RectTransform)techBtn.transform, new Vector2(0, 0), new Vector2(180, 38), new Vector2(300, 52));
 
             bool go = false;

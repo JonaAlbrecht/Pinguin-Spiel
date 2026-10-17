@@ -72,12 +72,12 @@ namespace SFE.Game
             sign.SetParent(t, false);
             sign.localPosition = new Vector3(3.6f, 0, 6.5f);
             sign.localRotation = Quaternion.Euler(0, 200, 0);
-            Prims.Make(PrimitiveType.Cylinder, sign, new Vector3(0, 0.8f, 0), new Vector3(0.12f, 0.8f, 0.12f), new Color(0.45f, 0.32f, 0.2f), "Post");
-            Prims.Make(PrimitiveType.Cube, sign, new Vector3(0, 1.75f, 0), new Vector3(2.8f, 1.1f, 0.08f), new Color(0.98f, 0.96f, 0.9f), "Board");
+            Prims.Make(PrimitiveType.Cylinder, sign, new Vector3(0, 0.8f, 0), new Vector3(0.12f, 0.8f, 0.12f), Palette.Wood, "Post");
+            Prims.Make(PrimitiveType.Cube, sign, new Vector3(0, 1.75f, 0), new Vector3(2.8f, 1.1f, 0.08f), Palette.SignBoard, "Board");
             var ui = _root.Data;
             var l1 = Prims.Label(sign, ui.Ui("signPlaza"), new Vector3(0, 2.0f, -0.06f), 0.05f, Palette.Text);
             l1.transform.localRotation = Quaternion.Euler(0, 180, 0);
-            var l2 = Prims.Label(sign, ui.Ui("signBusiness"), new Vector3(0, 1.6f, -0.06f), 0.028f, new Color(0, 0.45f, 0.45f));
+            var l2 = Prims.Label(sign, ui.Ui("signBusiness"), new Vector3(0, 1.6f, -0.06f), 0.028f, Palette.SignAccent);
             l2.transform.localRotation = Quaternion.Euler(0, 180, 0);
 
             // Friedas Labor
@@ -90,7 +90,7 @@ namespace SFE.Game
             site.SetParent(t, false);
             site.localPosition = new Vector3(-7f, 0, -2f);
             for (int i = 0; i < 4; i++)
-                Prims.Make(PrimitiveType.Cube, site, new Vector3(i % 2 * 0.9f, 0.35f + i / 2 * 0.7f, 0), Vector3.one * 0.7f, new Color(0.75f, 0.55f, 0.3f), "Crate");
+                Prims.Make(PrimitiveType.Cube, site, new Vector3(i % 2 * 0.9f, 0.35f + i / 2 * 0.7f, 0), Vector3.one * 0.7f, Palette.Crate, "Crate");
             Prims.Lantern(site, 1f, false).transform.localPosition = new Vector3(1.8f, 0, 0.5f);
             Prims.Lantern(site, 1f, false).transform.localPosition = new Vector3(2.3f, 0, -0.2f);
 
@@ -103,8 +103,8 @@ namespace SFE.Game
             future.SetParent(t, false);
             future.localPosition = new Vector3(12f, 0, 3f);
             future.localRotation = Quaternion.Euler(0, 240, 0);
-            Prims.Make(PrimitiveType.Cylinder, future, new Vector3(0, 0.7f, 0), new Vector3(0.1f, 0.7f, 0.1f), new Color(0.45f, 0.32f, 0.2f), "Post");
-            Prims.Make(PrimitiveType.Cube, future, new Vector3(0, 1.5f, 0), new Vector3(2.4f, 0.8f, 0.06f), new Color(0.98f, 0.96f, 0.9f), "Board");
+            Prims.Make(PrimitiveType.Cylinder, future, new Vector3(0, 0.7f, 0), new Vector3(0.1f, 0.7f, 0.1f), Palette.Wood, "Post");
+            Prims.Make(PrimitiveType.Cube, future, new Vector3(0, 1.5f, 0), new Vector3(2.4f, 0.8f, 0.06f), Palette.SignBoard, "Board");
             var fl = Prims.Label(future, ui.Ui("signFuture"), new Vector3(0, 1.5f, -0.05f), 0.026f, Palette.Text);
             fl.transform.localRotation = Quaternion.Euler(0, 180, 0);
 
@@ -155,11 +155,11 @@ namespace SFE.Game
             var lab = new GameObject("Lab").transform;
             lab.SetParent(parent, false);
             lab.localPosition = pos;
-            var wall = new Color(0.78f, 0.84f, 0.92f);
+            var wall = Palette.LabWall;
             var b = new Building { Center = pos, Half = new Vector2(1.6f, 1.3f), DoorZ = 0f, DoorHalf = 0.55f };
             float hx = b.Half.x, hz = b.Half.y, h = 1.8f, th = WallThickness;
 
-            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0, 0.01f, 0), new Vector3(hx * 2, 0.02f, hz * 2), new Color(0.62f, 0.68f, 0.78f), "Floor");
+            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0, 0.01f, 0), new Vector3(hx * 2, 0.02f, hz * 2), Palette.LabFloor, "Floor");
             Prims.Make(PrimitiveType.Cube, lab, new Vector3(0, h / 2, hz - th / 2), new Vector3(hx * 2, h, th), wall, "WallN");
             Prims.Make(PrimitiveType.Cube, lab, new Vector3(hx - th / 2, h / 2, 0), new Vector3(th, h, hz * 2), wall, "WallE");
             var south = Prims.Make(PrimitiveType.Cube, lab, new Vector3(0, h / 2, -hz + th / 2), new Vector3(hx * 2, h, th), wall, "WallS");
@@ -167,13 +167,13 @@ namespace SFE.Game
             float doorLow = b.DoorZ - b.DoorHalf, doorHigh = b.DoorZ + b.DoorHalf;
             Prims.Make(PrimitiveType.Cube, lab, new Vector3(-hx + th / 2, h / 2, (doorHigh + hz) / 2), new Vector3(th, h, hz - doorHigh), wall, "WallW1");
             Prims.Make(PrimitiveType.Cube, lab, new Vector3(-hx + th / 2, h / 2, (doorLow - hz) / 2), new Vector3(th, h, doorLow + hz), wall, "WallW2");
-            Prims.Make(PrimitiveType.Cube, lab, new Vector3(-hx + th / 2, h - 0.15f, b.DoorZ), new Vector3(th, 0.3f, b.DoorHalf * 2), new Color(0.3f, 0.5f, 0.65f), "DoorFrame");
-            var roof = Prims.Make(PrimitiveType.Cube, lab, new Vector3(0, h + 0.12f, 0), new Vector3(hx * 2 + 0.3f, 0.25f, hz * 2 + 0.3f), new Color(0.3f, 0.5f, 0.65f), "Roof");
+            Prims.Make(PrimitiveType.Cube, lab, new Vector3(-hx + th / 2, h - 0.15f, b.DoorZ), new Vector3(th, 0.3f, b.DoorHalf * 2), Palette.LabTrim, "DoorFrame");
+            var roof = Prims.Make(PrimitiveType.Cube, lab, new Vector3(0, h + 0.12f, 0), new Vector3(hx * 2 + 0.3f, 0.25f, hz * 2 + 0.3f), Palette.LabTrim, "Roof");
 
             // Einrichtung: Arbeitstisch mit Bildschirm (Wärmebild) an der Nordwand
-            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0.3f, 0.4f, hz - 0.5f), new Vector3(1.6f, 0.08f, 0.6f), new Color(0.55f, 0.4f, 0.25f), "Desk");
-            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0.3f, 0.2f, hz - 0.5f), new Vector3(1.4f, 0.4f, 0.5f), new Color(0.45f, 0.32f, 0.2f), "DeskBase");
-            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0.3f, 0.85f, hz - th - 0.05f), new Vector3(1.0f, 0.6f, 0.04f), new Color(0.6f, 0.9f, 1f), "Screen");
+            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0.3f, 0.4f, hz - 0.5f), new Vector3(1.6f, 0.08f, 0.6f), Palette.Desk, "Desk");
+            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0.3f, 0.2f, hz - 0.5f), new Vector3(1.4f, 0.4f, 0.5f), Palette.DeskBase, "DeskBase");
+            Prims.Make(PrimitiveType.Cube, lab, new Vector3(0.3f, 0.85f, hz - th - 0.05f), new Vector3(1.0f, 0.6f, 0.04f), Palette.Screen, "Screen");
             Prims.Make(PrimitiveType.Cube, lab, new Vector3(0.05f, 0.9f, hz - th - 0.08f), new Vector3(0.25f, 0.2f, 0.02f), HeatColors.Comfy, "HeatSpot");
             Prims.Make(PrimitiveType.Cube, lab, new Vector3(0.55f, 0.78f, hz - th - 0.08f), new Vector3(0.3f, 0.2f, 0.02f), HeatColors.Cold, "ColdSpot");
 
@@ -227,7 +227,7 @@ namespace SFE.Game
             var go = Prims.Penguin(transform, id, look, 1.4f);
             go.transform.localPosition = pos;
             go.transform.localRotation = Quaternion.Euler(0, yaw, 0);
-            var marker = Prims.Label(go.transform, "!", new Vector3(0, 1.35f, 0), 0.06f, new Color(1f, 0.75f, 0f));
+            var marker = Prims.Label(go.transform, "!", new Vector3(0, 1.35f, 0), 0.06f, Palette.Marker);
             marker.fontStyle = FontStyle.Bold;
             marker.gameObject.AddComponent<Bobber>().Amplitude = 0.08f;
             marker.gameObject.SetActive(false);
@@ -450,7 +450,7 @@ namespace SFE.Game
                                 if (states[idx] == IglooState.Comfortable)
                                     Prims.SetColor(go.transform.Find("Door").gameObject, Palette.LanternGlow);
                                 else if (states[idx] == IglooState.Cold)
-                                    Prims.SetColor(go.transform.Find("Dome").gameObject, new Color(0.70f, 0.86f, 1f));
+                                    Prims.SetColor(go.transform.Find("Dome").gameObject, Palette.IglooCold);
                             }
                             break;
                         case Cell.Lantern: go = Prims.Lantern(_settlement.transform, cell * 1.6f, false); break;

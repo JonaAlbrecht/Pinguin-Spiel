@@ -6,6 +6,7 @@ unity/*/[Bb]uild/
 unity/*/[Bb]uilds/
 unity/*/[Ll]ogs/
 unity/*/[Uu]ser[Ss]ettings/
+unity/*/[Ss]tilprobe/
 unity/*/*.csproj
 unity/*/*.sln
 unity/*/.vs/
