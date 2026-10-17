@@ -135,6 +135,7 @@ namespace SFE.Game
             {
                 var skip = UIKit.Button(rt, _root.Data.Ui("prologueSkip"), () => _progress = (float)_level.TargetSeconds, Palette.ButtonAlt, 24);
                 UIKit.PlaceFixed((RectTransform)skip.transform, new Vector2(1f, 1f), new Vector2(-130, -60), new Vector2(220, 56));
+                _root.Hud.LockWhileBlocking(skip);
             }
         }
 
@@ -183,11 +184,12 @@ namespace SFE.Game
             UIKit.PlaceFixed(stepLabel.rectTransform, new Vector2(1, 1), new Vector2(-180, -35), new Vector2(320, 44));
 
             // Spalten: Name | vorher | + | selbst | + | Nachbar | - | Wind | ergibt | neu
-            float[] colX = { 90, 270, 375, 480, 585, 690, 795, 900, 1010, 1130 };
+            // „ergibt“ braucht mehr Platz als + und - (brach sonst um: „ergib/t“, Spieltest 17.10.)
+            float[] colX = { 90, 270, 375, 480, 585, 690, 795, 900, 1025, 1150 };
             string[] heads0 = { "", data.Ui("pairBefore"), data.Ui("pairPlus"), data.Ui("pairOwn"), data.Ui("pairPlus"), data.Ui("pairNeighbour"),
                 data.Ui("pairMinus"), data.Ui("pairWind"), data.Ui("pairResult"), data.Ui("pairAfter") };
-            Color[] tint = { Color.clear, new Color(0.85f, 0.88f, 0.94f), Color.clear, HeatColors.Comfy, Color.clear, Palette.Thread,
-                Color.clear, HeatColors.Cold, Color.clear, new Color(0.85f, 0.88f, 0.94f) };
+            Color[] tint = { Color.clear, PairPlain, Color.clear, HeatColors.Comfy, Color.clear, Palette.Thread,
+                Color.clear, HeatColors.Cold, Color.clear, PairPlain };
             for (int c = 1; c < colX.Length; c++)
             {
                 bool op = tint[c] == Color.clear;
@@ -196,7 +198,7 @@ namespace SFE.Game
                     var box = UIKit.Panel(panel.transform, tint[c], "Head");
                     UIKit.PlaceFixed(box.rectTransform, new Vector2(0, 1), new Vector2(colX[c] + 40, -100), new Vector2(170, 56));
                 }
-                var t = UIKit.Label(panel.transform, heads0[c], op ? 30 : 21, Palette.Text, TextAnchor.MiddleCenter, op ? FontStyle.Bold : FontStyle.Normal);
+                var t = UIKit.Label(panel.transform, heads0[c], c == 8 ? 22 : op ? 30 : 21, Palette.Text, TextAnchor.MiddleCenter, op ? FontStyle.Bold : FontStyle.Normal);
                 UIKit.PlaceFixed(t.rectTransform, new Vector2(0, 1), new Vector2(colX[c] + 40, -100), new Vector2(op ? 80 : 165, 56));
             }
             var cells = new Text[2, 10];
@@ -214,19 +216,17 @@ namespace SFE.Game
             var conservation = UIKit.Label(panel.transform, "", 22, new Color(0.55f, 0.3f, 0.05f), TextAnchor.MiddleLeft, FontStyle.Italic);
             UIKit.PlaceFixed(conservation.rectTransform, new Vector2(0.5f, 1), new Vector2(0, -280), new Vector2(1420, 44));
 
-            // Blick unter die Haube: die Formel hinter der Bild-Gleichung (optional, docs/00)
-            var p0 = _level.Model;
-            var tech = UIKit.Label(panel.transform, data.Tech("pairFormula") + "\n" + data.Tech("pairParams", lesson.Dt, p0.Capacity, p0.Heat,
-                p0.Contact, p0.HExposed, p0.HShielded, p0.AirTemp), 17, new Color(0.15f, 0.35f, 0.45f), TextAnchor.UpperLeft);
-            UIKit.PlaceFixed(tech.rectTransform, new Vector2(0.5f, 1), new Vector2(0, -330), new Vector2(1420, 56));
-            tech.gameObject.SetActive(false);
-            var techBtn = UIKit.Button(panel.transform, data.Ui("techButton"), () => tech.gameObject.SetActive(!tech.gameObject.activeSelf),
-                new Color(0.25f, 0.3f, 0.4f), 20);
+            // Blick unter die Haube: die Formel hinter der Bild-Gleichung im eigenen Fenster (optional, docs/00)
+            var techBtn = UIKit.Button(panel.transform, data.Ui("techButton"), () => ShowPairFormula(lesson), new Color(0.25f, 0.3f, 0.4f), 20);
             UIKit.PlaceFixed((RectTransform)techBtn.transform, new Vector2(0, 0), new Vector2(180, 38), new Vector2(300, 52));
+            _root.Hud.TechOnly(techBtn.gameObject);
+            _root.Hud.LockWhileBlocking(techBtn);
 
             bool go = false;
             var next = UIKit.Button(panel.transform, data.Ui("pairNext"), () => go = true, Palette.Button, 26);
             UIKit.PlaceFixed((RectTransform)next.transform, new Vector2(1, 0), new Vector2(-190, 38), new Vector2(340, 60));
+            // Solange Grete spricht, ist der Knopf ausgegraut – weiter geht es dann nur in der Sprechblase.
+            _root.Hud.LockWhileBlocking(next);
 
             void ShowState(int step)
             {
@@ -284,6 +284,80 @@ namespace SFE.Game
             foreach (var p in _penguins) p.SetActive(true);
             foreach (var f in _flakes) f.gameObject.SetActive(true);
             SetWind(0);
+        }
+
+        private static readonly Color PairPlain = new Color(0.85f, 0.88f, 0.94f);
+
+        /// <summary>
+        /// „Blick unter die Haube“ zur Rechenregel: Modell, Zeitschritt, welches Kästchen der Bild-Gleichung welcher
+        /// Term ist, und die Werte des Beispiels. Formeln wie LaTeX gesetzt (<see cref="UIKit.Formula"/>).
+        /// </summary>
+        private void ShowPairFormula(HuddlePairLesson lesson)
+        {
+            var data = _root.Data;
+            var p = _level.Model;
+            var page = _root.Hud.OpenPopup(data.Tech("techTitle"), new Vector2(1400, 960));
+            var ink = Palette.Text;
+
+            void Heading(string text, float x, float y, float width)
+            {
+                var t = UIKit.Label(page, text, 26, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                UIKit.PlaceFixed(t.rectTransform, new Vector2(0, 1), new Vector2(x + width / 2, y), new Vector2(width, 40));
+            }
+            void Formula(string name, float x, float y, float scale = 0.5f)
+            {
+                var rt = UIKit.Formula(page, name, ink, scale).rectTransform;
+                rt.anchorMin = rt.anchorMax = new Vector2(0, 1);
+                rt.anchoredPosition = new Vector2(x, y);
+            }
+            void Line(string text, float x, float y, float width, int size = 22, FontStyle style = FontStyle.Normal)
+            {
+                var t = UIKit.Label(page, text, size, ink, TextAnchor.MiddleLeft, style);
+                UIKit.PlaceFixed(t.rectTransform, new Vector2(0, 1), new Vector2(x + width / 2, y), new Vector2(width, 56));
+            }
+
+            Heading(data.Tech("pairModel"), 60, -125, 1280);
+            Formula("huddle_ode", 90, -205, 0.6f);
+            Heading(data.Tech("pairStep"), 60, -295, 1280);
+            Formula("huddle_step", 90, -370, 0.6f);
+            Line(data.Tech("pairStepNote"), 60, -452, 1280, 20, FontStyle.Italic);
+
+            // links: Kästchen der Bild-Gleichung → Term der Formel (gleiche Farben wie auf der Rechentafel)
+            Heading(data.Tech("pairTerms"), 60, -515, 600);
+            var terms = new (string ui, Color tint, string formula)[]
+            {
+                ("pairBefore", PairPlain, "term_before"), ("pairOwn", HeatColors.Comfy, "term_own"),
+                ("pairNeighbour", Palette.Thread, "term_neighbour"), ("pairWind", HeatColors.Cold, "term_wind"),
+                ("pairAfter", PairPlain, "term_after"),
+            };
+            for (int r = 0; r < terms.Length; r++)
+            {
+                float y = -570 - r * 62;
+                var chip = UIKit.Panel(page, terms[r].tint, "Chip");
+                UIKit.PlaceFixed(chip.rectTransform, new Vector2(0, 1), new Vector2(155, y), new Vector2(190, 50));
+                var label = UIKit.Label(chip.transform, data.Ui(terms[r].ui), 20, ink);
+                UIKit.Fill(label.rectTransform);
+                Formula(terms[r].formula, 275, y, 0.42f);
+            }
+
+            // rechts: Werte des Zwei-Pinguine-Beispiels, direkt aus den Leveldaten
+            Heading(data.Tech("pairParams"), 700, -515, 640);
+            var values = new (string formula, string meaning, string value)[]
+            {
+                ("sym_dt", "pairParamDt", data.Tech("pairParamValue", lesson.Dt)),
+                ("sym_c", "pairParamC", data.Tech("pairParamValue", p.Capacity)),
+                ("sym_q", "pairParamQ", data.Tech("pairParamValue", p.Heat)),
+                ("sym_g", "pairParamG", data.Tech("pairParamValue", p.Contact)),
+                ("sym_h", "pairParamH", data.Tech("pairParamHValue", p.HExposed, p.HShielded)),
+                ("sym_air", "pairParamAir", data.Tech("pairParamValue", p.AirTemp)),
+            };
+            for (int r = 0; r < values.Length; r++)
+            {
+                float y = -565 - r * 52;
+                Formula(values[r].formula, 700, y, 0.42f);
+                Line(data.Tech(values[r].meaning), 775, y, 250, 20);
+                Line(values[r].value, 1030, y, 310, 20, FontStyle.Bold);
+            }
         }
 
         private void AddGlossary(string phase)
@@ -352,7 +426,7 @@ namespace SFE.Game
 
             if (!_root.Hud.Blocking)
             {
-                _windTimer += Time.deltaTime;
+                _windTimer += Time.deltaTime * Settings.PaceFactor;
                 if (!_warned && _windTimer > _level.WindChangeEvery - _level.WindWarning)
                 {
                     _warned = true;
@@ -360,7 +434,7 @@ namespace SFE.Game
                 }
                 if (_windTimer >= _level.WindChangeEvery) SetWind(_windIndex + 1);
 
-                _accumulated += Time.deltaTime * (float)_level.SimSecondsPerSecond;
+                _accumulated += Time.deltaTime * (float)_level.SimSecondsPerSecond * Settings.PaceFactor; // Einstellung „Tempo im Huddle“
                 while (_accumulated >= _level.SimStep)
                 {
                     _model.Step(_level.SimStep, _windE, _windN);

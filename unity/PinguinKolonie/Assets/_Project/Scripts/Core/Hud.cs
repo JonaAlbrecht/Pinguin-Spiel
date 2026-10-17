@@ -20,6 +20,7 @@ namespace SFE.Game
         private readonly Text _speaker;
         private readonly Text _line;
         private readonly Text _continueHint;
+        private readonly Image _continueChip;
         private bool _advance;
 
         private readonly Image _toastBox;
@@ -32,12 +33,16 @@ namespace SFE.Game
 
         private readonly Button _notebookButton;
         private GameObject _notebook;
+        private GameObject _popup;
+        private readonly List<CanvasGroup> _locked = new List<CanvasGroup>();
+        private readonly List<(GameObject go, System.Action onHidden)> _techOnly = new List<(GameObject, System.Action)>();
         private GameState _state;
 
         public bool DialogOpen => _dialogBox.gameObject.activeSelf;
         public bool NotebookOpen => _notebook != null;
-        /// <summary>Solange ein Dialog oder das Notizbuch offen ist, ruht das Spiel (Eingabe, Wind, Zeitbalken).</summary>
-        public bool Blocking => DialogOpen || NotebookOpen;
+        public bool PopupOpen => _popup != null;
+        /// <summary>Solange ein Dialog, das Notizbuch oder ein Pop-up offen ist, ruht das Spiel (Eingabe, Wind, Zeitbalken).</summary>
+        public bool Blocking => DialogOpen || NotebookOpen || PopupOpen;
         /// <summary>Wie sehr ZWILLI gerade stottert (0…1); setzt das Minigame je Schritt.</summary>
         public float ZwilliGlitch = 0.6f;
 
@@ -69,9 +74,15 @@ namespace SFE.Game
             _speaker = UIKit.Label(_dialogBox.transform, "", 30, Palette.Text, TextAnchor.UpperLeft, FontStyle.Bold);
             UIKit.Place(_speaker.rectTransform, 0, 0, 1, 1, 32, 0, 32, 18);
             _line = UIKit.Label(_dialogBox.transform, "", 34, Palette.Text, TextAnchor.UpperLeft);
-            UIKit.Place(_line.rectTransform, 0, 0, 1, 1, 32, 40, 32, 64);
-            _continueHint = UIKit.Label(_dialogBox.transform, data.Ui("continueHint"), 24, new Color(0.3f, 0.35f, 0.45f), TextAnchor.LowerRight);
-            UIKit.Place(_continueHint.rectTransform, 0, 0, 1, 1, 32, 14, 32, 0);
+            UIKit.Place(_line.rectTransform, 0, 0, 1, 1, 32, 40, 250, 64);
+            // „Weiter »“ als sichtbarer Knopf: Solange jemand spricht, geht es nur hier weiter (Spieltest 17.10.:
+            // der blasse Hinweis unten rechts ging neben „Nächster Zeitschritt“ unter). Der Klick zählt für die
+            // ganze Sprechblase, der Knopf fängt ihn nicht selbst ab.
+            _continueChip = UIKit.Panel(_dialogBox.transform, Palette.Button, "Continue");
+            _continueChip.raycastTarget = false;
+            UIKit.PlaceFixed(_continueChip.rectTransform, new Vector2(1, 0), new Vector2(-130, 42), new Vector2(200, 56));
+            _continueHint = UIKit.Label(_continueChip.transform, data.Ui("continueHint"), 26, Palette.TextLight, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UIKit.Fill(_continueHint.rectTransform);
             _dialogBox.gameObject.SetActive(false);
 
             // Hinweis-Leiste
@@ -87,13 +98,10 @@ namespace SFE.Game
             // Unter der Phasenleiste (y −10…−70), sonst verdeckt der Knopf „6 So macht's Siemens“.
             UIKit.PlaceFixed((RectTransform)_notebookButton.transform, new Vector2(1, 1), new Vector2(-110, -108), new Vector2(190, 52));
             _notebookButton.gameObject.SetActive(false);
-            Button sound = null;
-            sound = UIKit.Button(Root, data.Ui(Sfx.Muted ? "soundOff" : "soundOn"), () =>
-            {
-                Sfx.SetMuted(!Sfx.Muted);
-                UIKit.SetButtonLabel(sound, _data.Ui(Sfx.Muted ? "soundOff" : "soundOn"));
-            }, new Color(0.25f, 0.3f, 0.4f), 22);
-            UIKit.PlaceFixed((RectTransform)sound.transform, new Vector2(1, 1), new Vector2(-110, -166), new Vector2(190, 44));
+            // Einstellungen (Ton, Lautstärke, Tempo, Bild …) statt eines einzelnen Ton-Knopfs – jederzeit erreichbar
+            var settings = UIKit.Button(Root, data.Ui("settingsButton"), OpenSettings, new Color(0.25f, 0.3f, 0.4f), 22);
+            UIKit.PlaceFixed((RectTransform)settings.transform, new Vector2(1, 1), new Vector2(-110, -166), new Vector2(190, 44));
+            Settings.Changed += ApplyTechVisibility;
 
             // Blende
             _fade = UIKit.Panel(Root, new Color(0.05f, 0.08f, 0.14f, 0f), "Fade");
@@ -105,7 +113,15 @@ namespace SFE.Game
         {
             Sfx.Tick();
             if (_toastBox.gameObject.activeSelf && Time.time > _toastUntil) _toastBox.gameObject.SetActive(false);
-            if (DialogOpen) _continueHint.color = new Color(0.3f, 0.35f, 0.45f, 0.5f + 0.5f * Mathf.Sin(Time.time * 4f));
+            if (DialogOpen) _continueChip.color = Color.Lerp(Palette.Button, Color.white, 0.18f + 0.18f * Mathf.Sin(Time.time * 4f));
+            // Gesperrte Bedienelemente: ausgegraut und nicht klickbar, solange ein Dialog oder Fenster offen ist
+            bool blocked = Blocking;
+            _locked.RemoveAll(g => g == null);
+            foreach (var g in _locked)
+            {
+                g.interactable = !blocked;
+                g.alpha = blocked ? 0.45f : 1f;
+            }
         }
 
         /// <summary>Spielt einen Dialogknoten aus dialogue_de.json ab; jede Zeile wartet auf Klick.</summary>
@@ -120,6 +136,7 @@ namespace SFE.Game
             // wartet er. Zwei gleichzeitige Dialoge teilten sich _advance – einer blieb dann hängen (QA-Befund).
             while (DialogOpen) yield return null;
             if (NotebookOpen) ToggleNotebook();
+            ClosePopup();
             _dialogBox.gameObject.SetActive(true);
             _dialogBox.transform.SetAsLastSibling();
             foreach (var line in lines)
@@ -137,7 +154,7 @@ namespace SFE.Game
                 yield return null; // die Taste, die den Dialog gestartet hat, blättert nicht gleich weiter
                 while (!_advance)
                 {
-                    if (InputHelper.ConfirmPressed) _advance = true;
+                    if (InputHelper.ConfirmPressed && !PopupOpen) _advance = true;
                     yield return null;
                 }
             }
@@ -190,6 +207,111 @@ namespace SFE.Game
             var close = UIKit.Button(page.transform, _data.Ui("close"), ToggleNotebook, Palette.Button, 28);
             UIKit.PlaceFixed((RectTransform)close.transform, new Vector2(0.5f, 0), new Vector2(0, 60), new Vector2(280, 80));
             _notebook.transform.SetAsLastSibling();
+        }
+
+        /// <summary>
+        /// Eigenes Fenster über allem (z. B. „Blick unter die Haube“): abgedunkelter Hintergrund, Titel oben,
+        /// „Schließen“ unten. Gibt die Seite zurück; Inhalt mit Anker oben links (0, 1) und negativem y daraufsetzen.
+        /// </summary>
+        public RectTransform OpenPopup(string title, Vector2 size)
+        {
+            ClosePopup();
+            if (NotebookOpen) ToggleNotebook();
+            Sfx.Play(Sfx.Sound.Click);
+            _popup = new GameObject("Popup");
+            var rt = UIKit.Rect(_popup, Root);
+            UIKit.Fill(rt);
+            var shade = UIKit.Panel(rt, new Color(0, 0, 0, 0.55f), "Shade");
+            UIKit.Fill(shade.rectTransform);
+            shade.gameObject.AddComponent<Button>().onClick.AddListener(ClosePopup); // Klick daneben schließt
+            var page = UIKit.Panel(rt, Palette.PanelLight, "Page");
+            UIKit.PlaceFixed(page.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, size);
+            var head = UIKit.Label(page.transform, title, 36, Palette.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
+            UIKit.Place(head.rectTransform, 0, 1, 1, 1, 60, -80, 60, 20);
+            var close = UIKit.Button(page.transform, _data.Ui("close"), ClosePopup, Palette.Button, 26);
+            UIKit.PlaceFixed((RectTransform)close.transform, new Vector2(0.5f, 0), new Vector2(0, 50), new Vector2(260, 64));
+            _popup.transform.SetAsLastSibling();
+            _fade.transform.SetAsLastSibling();
+            return page.rectTransform;
+        }
+
+        public void ClosePopup()
+        {
+            if (_popup == null) return;
+            Object.Destroy(_popup);
+            _popup = null;
+        }
+
+        /// <summary>
+        /// Das Element (Knopf oder Leiste) ist ausgegraut und nicht klickbar, solange <see cref="Blocking"/> gilt –
+        /// so sieht man, dass es gerade nur in der Sprechblase weitergeht. Eigene interactable-Werte bleiben unberührt.
+        /// </summary>
+        public void LockWhileBlocking(Component element)
+        {
+            var g = element.GetComponent<CanvasGroup>();
+            if (g == null) g = element.gameObject.AddComponent<CanvasGroup>();
+            _locked.Add(g);
+        }
+
+        /// <summary>
+        /// Gehört zum Modus „Blick unter die Haube“ und verschwindet, wenn er in den Einstellungen ausgeblendet wird.
+        /// <paramref name="onHidden"/> räumt dazu Offenes weg (z. B. das Technik-Feld der Siedlung).
+        /// </summary>
+        public void TechOnly(GameObject go, System.Action onHidden = null)
+        {
+            _techOnly.Add((go, onHidden));
+            go.SetActive(Settings.TechButtons);
+        }
+
+        private void ApplyTechVisibility()
+        {
+            _techOnly.RemoveAll(t => t.go == null);
+            foreach (var (go, onHidden) in _techOnly)
+            {
+                go.SetActive(Settings.TechButtons);
+                if (!Settings.TechButtons) onHidden?.Invoke();
+            }
+        }
+
+        private void OpenSettings()
+        {
+            var rows = new List<(string label, string[] options, System.Func<int> get, System.Action<int> set)>
+            {
+                ("settingSound", new[] { "settingOn", "settingOff" }, () => Settings.Muted ? 1 : 0, i => Settings.Muted = i == 1),
+                ("settingVolume", new[] { "settingQuiet", "settingMedium", "settingLoud" }, () => Settings.Volume, i => Settings.Volume = i),
+                ("settingPace", new[] { "settingPaceCalm", "settingPaceNormal" }, () => Settings.Pace, i => Settings.Pace = i),
+                ("settingQuality", new[] { "settingQualityHigh", "settingQualityLow" }, () => Settings.HighQuality ? 0 : 1, i => Settings.HighQuality = i == 0),
+                ("settingTech", new[] { "settingOn", "settingOff" }, () => Settings.TechButtons ? 0 : 1, i => Settings.TechButtons = i == 0),
+            };
+            if (Settings.FullscreenAvailable)
+                rows.Add(("settingFullscreen", new[] { "settingOn", "settingOff" }, () => Settings.Fullscreen ? 0 : 1, i => Settings.Fullscreen = i == 0));
+
+            const float rowH = 78;
+            var page = OpenPopup(_data.Ui("settingsTitle"), new Vector2(1000, 260 + rows.Count * rowH));
+            for (int r = 0; r < rows.Count; r++)
+            {
+                var row = rows[r];
+                float y = -135 - r * rowH;
+                var label = UIKit.Label(page, _data.Ui(row.label), 28, Palette.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
+                UIKit.PlaceFixed(label.rectTransform, new Vector2(0, 1), new Vector2(60 + 210, y), new Vector2(420, 60));
+                var buttons = new Button[row.options.Length];
+                void Mark()
+                {
+                    int sel = row.get();
+                    for (int i = 0; i < buttons.Length; i++)
+                        buttons[i].GetComponent<Image>().color = i == sel ? Palette.Button : Palette.ButtonAlt;
+                }
+                for (int i = 0; i < row.options.Length; i++)
+                {
+                    int choice = i;
+                    buttons[i] = UIKit.Button(page, _data.Ui(row.options[i]), () => { row.set(choice); Sfx.Play(Sfx.Sound.Click); Mark(); },
+                        Palette.ButtonAlt, 24);
+                    UIKit.PlaceFixed((RectTransform)buttons[i].transform, new Vector2(0, 1), new Vector2(570 + i * 145, y), new Vector2(135, 56));
+                }
+                Mark();
+            }
+            var note = UIKit.Label(page, _data.Ui("settingsNote"), 22, new Color(0.35f, 0.4f, 0.5f), TextAnchor.MiddleCenter, FontStyle.Italic);
+            UIKit.Place(note.rectTransform, 0, 0, 1, 0, 60, 95, 60, -135);
         }
 
         public void Toast(string text, float seconds = 3.5f)
