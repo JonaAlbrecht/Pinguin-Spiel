@@ -18,7 +18,7 @@ Die früher ausgearbeitete Smart City **Pingopolis** ist jetzt eine optionale **
 |---|---|
 | [docs/00_Zielgruppe_und_Siemens-Bezug.md](docs/00_Zielgruppe_und_Siemens-Bezug.md) | **Leitplanke:** Zielgruppe, Lernziele, Siemens-Landkarte, Sprachregeln, Abnahme-Kriterien |
 | [docs/01_Konzept_Kolonie.md](docs/01_Konzept_Kolonie.md) | Vision, Design-Säulen, Core Loop, Umfang, offene Entscheidungen |
-| [docs/02_Story_und_Charaktere.md](docs/02_Story_und_Charaktere.md) | Welt, Storyline (Prolog – Akt 3 – Epilog), Charaktere, Dialogton |
+| [docs/02_Story_und_Charaktere.md](docs/02_Story_und_Charaktere.md) | Welt, Storyline (Auftakt – Akt 3 – Epilog), Charaktere, Dialogton |
 | [docs/03_Minigames.md](docs/03_Minigames.md) | 3 Kern-Minigames (+ 1 Bonus) – je „Für Spielende“ (ohne Formeln) und „Technik“ (Entwicklerteam) |
 | [docs/04_Technische_Spezifikation.md](docs/04_Technische_Spezifikation.md) | Architektur, Unity/Blender-Pipeline, Full-Code-Workflow, Tests, Hosting |
 | [docs/05_Erweiterung_Pingopolis_SmartCity.md](docs/05_Erweiterung_Pingopolis_SmartCity.md) | **Erweiterung:** Smart City Pingopolis – Konzept, Story, 8 weitere Minigames |
@@ -33,7 +33,7 @@ Unity 6 LTS (URP, WebGL) · Blender LTS (FBX) · reiner C#-Simulationskern als U
 
 ## Prototyp v0.1 – Vertical Slice
 
-Titel → Hub „Huddle-Platz“ → Prolog „Der letzte Huddle“ → MG1 „Die erste Siedlung“ (Schritte 1–5) → „So macht's Siemens“ (Entwurf) → Siedlung im Hub.
+Titel → Hub „Huddle-Platz“ → MG1 „Die erste Siedlung“ (Schritte 1–5, Rechenschritt-Tafel in Schritt 2) → „So macht's Siemens“ (Entwurf) → Siedlung im Hub.
 
 | Teil | Ordner | Stand |
 |---|---|---|

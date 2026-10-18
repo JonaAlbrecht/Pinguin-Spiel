@@ -57,7 +57,7 @@ Werten, darum geht die Zerlegung exakt auf und der Austausch summiert exakt zu n
 damit die Zahlen lesbar sind. Verworfen: eigene, explizite Lehr-Rechnung (zweite Wahrheit neben dem Huddle-Modell).
 Ebenfalls Jonas Wahl: nur der Zwei-Pinguine-Schritt vor dem Huddle, nicht der ganze Prolog nach fünf Phasen.
 
-**ADR-13 Batterie-Transfer nach dem Prolog, Landkarte mit 4 Karten.** Dieselbe Regel wie im Huddle steckt in der
+**ADR-13 Batterie-Transfer nach dem Prolog, Landkarte mit 4 Karten.** *(Ersetzt durch ADR-20.)* Dieselbe Regel wie im Huddle steckt in der
 Batterie-Thermik (Simcenter, Vorschlag). docs/00 hatte drei Karten (je Minigame); der Prolog bekommt eine eigene.
 Verworfen: Schaltschrank zweimal zeigen (Wiederholung).
 
@@ -101,3 +101,15 @@ Knöpfe und Leisten aus, solange ein Dialog oder Fenster offen ist, und „Weite
 Der Ton-Knopf wurde zum Menü „Einstellungen“ (`Settings`): Ton, Lautstärke, Tempo im Huddle, Bildqualität
 (hoch/sparsam), Knopf „Blick unter die Haube“ an/aus, Vollbild (nicht im Editor). Nur für die Sitzung, nichts wird
 gespeichert (Titelbildschirm verspricht das). Verworfen: PlayerPrefs.
+
+## 2026-10-18 – Prolog raus, Rechentafel in die Siedlung
+
+**ADR-20 Kein Prolog „Der letzte Huddle“, die Rechentafel steht in MG1 Schritt 2.** Entscheidung von Jona: Der
+Huddle-Prolog (12 Pinguine ziehen) und der Akku-Transfer danach entfallen; die Landkarte hat wieder 3 Karten (ersetzt
+ADR-13). Behalten wird sein erster Schritt, die Tafel „vorher + selbst + vom Nachbarn − an den Wind = neu“: jetzt mit
+zwei Feldern der Siedlung, Laterne und Iglu, direkt nach der Waage (`PairLessonView`). Modell: dieselbe Zellbilanz
+wie die Siedlung mit Speicherglied, implizites Euler (`SettlementPairLesson`, `simref/settlement_pair.py`, Golden
+`pair_settlement`); eigene, lesbare Werte im Level-JSON. Gegen eine zweite Wahrheit (ADR-12) prüft ein Test, dass der
+Siedlungs-Löser auf dem Raster „L I“ genau den Gleichgewichtspunkt der Tafel liefert. Die Tafel endet mit diesem
+Punkt – Brücke zu Schritt 3 (alle Felder) und Schritt 5. Einstellung „Tempo im Huddle“ entfällt mit. Verworfen:
+Schritt 3 als Ort (Jona: direkt nach der Waage) und den Akku-Transfer mit neuem Bild behalten.

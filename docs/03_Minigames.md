@@ -38,24 +38,23 @@ Pro Minigame ist **eine** Phase der Schwerpunkt (ausführlich spielbar). Die and
 
 ## MG1 – Huddle (Wärme) — *Vertical Slice*
 
-**Storyline:** Die Pinguine wärmen sich oben auf dem Eis – und gründen ihre erste Siedlung.
+**Storyline:** Früher rückten die Pinguine bei jedem Sturm im Huddle zusammen. Jetzt hat Frieda ein Stromnetz mit Laternen gebaut – und die Kolonie gründet ihre erste Siedlung.
 **Siemens-Bezug:** Schaltschrank des Stromnetzes: thermische Simulation der Komponenten, damit keine Schäden durch Überhitzung entstehen (SIMARIS therm, Simcenter 3D – Vorschlag).
 **Auftrag (Frieda):** „Die Laternen geben Licht und Wärme. Bau mit ihnen eine Siedlung, in der es gemütlich ist – aber nichts schmilzt!“
 **Kalles Versuch:** Laternen direkt zwischen alle Iglus → die Iglus zerlaufen zu Schmelzwasser.
 
 ### Für Spielende
 
-**Teil A – Der letzte Huddle (Prolog, Tutorial):**
-Schneesturm auf der Eisscholle. Pip schiebt Pinguine so zusammen, dass niemand friert. Pinguine am Rand werden blau, in der Mitte rot-warm. Der Wind dreht – die Gruppe muss sich bewegen.
-- **Ziel:** 60 Sekunden lang friert kein Pinguin (die Zeit läuft nur, wenn der Spieler nichts tut – kein Stress).
-- **Aha:** Jeder Pinguin wärmt nur seine direkten Nachbarn, trotzdem entsteht ein warmer Kern.
-
-**Teil B – Die erste Siedlung (Hauptteil):**
+**Die erste Siedlung:**
 Die Siedlung ist ein Raster aus Feldern auf dem Eis. Bausteine: **Iglu**, **Industrie-Laterne** (Licht + Abwärme), **Schneewall** (Windschutz), **Eisfläche**, **Weg**.
 
 1. **Was ist wichtig?** Karten: Laternen-Wärme ✔, Abstand ✔, Wind ✔, Schneewall ✔ – *Farbe der Iglus* ✘, *Musik im Dorf* ✘.
 2. **Welche Regel gilt?** Ein Iglu als Waage. Rein: Wärme von Laternen und warmen Nachbarn. Raus: Wind und Kälte. Kippt die Waage zu weit nach „warm“, tropft das Iglu.
-3. **Alles hängt zusammen (Schwerpunkt):** Spieler zieht Wärmefäden zwischen benachbarten Feldern – „wie beim Huddle: jeder wärmt seinen Nachbarn“. Dann verbindet der Computer die ganze Siedlung automatisch – hunderte Fäden in Sekunden („Genau dafür braucht man Computer“).
+   **Danach – „Zwei Felder: Laterne und Iglu“ (Rechenschritt):** Die Waage bekommt Zahlen. Auf dem Brett liegen nur zwei Felder, eine Laterne und ein Iglu, beide so kalt wie die Luft. Die Laterne geht an. Eine Rechentafel zeigt je Feld *vorher + selbst + vom Nachbarn − an den Wind = neu*. Der Spieler klickt „Nächster Zeitschritt“, die Zeilen füllen sich von links nach rechts, das Iglu färbt sich von blau nach grün.
+   - Nach dem ersten Schritt: Was das Iglu bekommt, gibt die Laterne ab – beim Weitergeben geht keine Wärme verloren, nur an den Wind.
+   - Nach 6 Schritten: Jeder Schritt bringt weniger. **Aha:** Irgendwann ändert sich fast nichts mehr – das ist der **Gleichgewichtspunkt**. Den sucht der Computer gleich für die ganze Siedlung (fast 600 Felder auf einmal) – Brücke zu Schritt 3 und Schritt 5.
+   - Notizbuch: „Zeitschritt“. Bis 18.10.2026 stand diese Tafel als Zwei-Pinguine-Beispiel im Prolog „Der letzte Huddle“; Prolog und Akku-Transfer sind entfallen.
+3. **Alles hängt zusammen (Schwerpunkt):** Spieler zieht Wärmefäden zwischen benachbarten Feldern – „wie eben Laterne und Iglu: jedes Feld wärmt nur seine Nachbarn“. Dann verbindet der Computer die ganze Siedlung automatisch – hunderte Fäden in Sekunden („Genau dafür braucht man Computer“).
 4. **Der Computer probiert's aus:** Ein Wärmebild legt sich über die Siedlung. Blau = zu kalt, grün = gemütlich, rot = schmilzt. Zu warme Iglus sacken sichtbar zusammen – mit Pfütze.
 5. **Besser machen (Schwerpunkt) – „Der Gleichgewichtspunkt“:** 3 Runden. Strom-Budget für Laternen. Iglus, Laternen und Schneewälle verschieben, neu simulieren. Ziel: **möglichst viele Iglus**, die gemütlich sind und nicht schmelzen.
 6. **So macht's Siemens:** Wärmebild der Siedlung neben dem Wärmebild eines echten Schaltschranks.
@@ -75,8 +74,8 @@ Ehrlich vereinfacht: Im Schaltschrank zählt vor allem die Obergrenze („nicht 
 - **Das kannst du jetzt erzählen:** „Bevor ein Schaltschrank gebaut wird, simuliert man, wie warm die Bauteile werden. So geht nichts durch Überhitzung kaputt – und man spart teure Tests.“
 
 ### Technik (nur Entwicklerteam)
-- **Teil A (Huddle):** Wärmenetzwerk, Pinguin = Knoten: `C·dT_i/dt = q + Σ_j G_ij (T_j − T_i) − h_i (T_i − T_luft)`, implizites Euler. Natürlich diskret.
-- **Teil B (Siedlung):** 2D-Finite-Volumen-Gitter 24 × 24 (2 m), stationäre Bilanz je Zelle:
+- **Zwei-Felder-Tafel (Schritt 2):** dieselbe Zellbilanz wie die Siedlung, mit Speicherglied: `C·dT_i/dt = q_i + k (T_j − T_i) − h (T_i − T_luft)`, zwei Zellen, implizites Euler (Zeitdiskretisierung). Eigene, lesbare Werte im Level-JSON (`pairLesson`: q_Laterne 11, k 1, h 0,2, C 10, Δt 40, 6 Schritte): Iglu −30 → −5,8 °C, Gleichgewicht −5 °C. Der Endzustand ist genau die stationäre Bilanz unten für diese zwei Zellen (getestet). Referenz `simref/settlement_pair.py`, C# `SettlementPairLesson`, Golden `pair_settlement`.
+- **Siedlung:** 2D-Finite-Volumen-Gitter 24 × 24 (2 m), stationäre Bilanz je Zelle:
   `0 = q_i − h_i (T_i − T_luft) + Σ_N k_ij (T_j − T_i)` → `A·T = b`, A dünnbesetzt, SPD (5-Punkt-Stern) → Conjugate Gradient.
   - `q_i` > 0 nur in Laternen-Zellen; `h_i` klein hinter Schneewällen (Windschutz), groß auf freier Fläche.
   - Lufttemperatur −30 °C. Iglu „gemütlich“ bei −8 °C ≤ T < 0 °C, „schmilzt“ bei T ≥ 0 °C.

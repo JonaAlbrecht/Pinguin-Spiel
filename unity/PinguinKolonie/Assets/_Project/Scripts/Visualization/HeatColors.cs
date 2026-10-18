@@ -27,12 +27,5 @@ namespace SFE.Game
         public static Color Cold => ColdLight;
         public static Color Comfy => ComfyHigh;
         public static Color Melt => MeltLow;
-
-        /// <summary>Farbe für einen Pinguin im Prolog (unter der Frostgrenze blau, darüber gelb bis orange).</summary>
-        public static Color Penguin(double t, double freezeBelow)
-        {
-            if (t < freezeBelow) return Color.Lerp(ColdDeep, ColdLight, Mathf.InverseLerp((float)freezeBelow - 20f, (float)freezeBelow, (float)t));
-            return Color.Lerp(ComfyLow, MeltLow, Mathf.InverseLerp((float)freezeBelow, (float)freezeBelow + 20f, (float)t));
-        }
     }
 }

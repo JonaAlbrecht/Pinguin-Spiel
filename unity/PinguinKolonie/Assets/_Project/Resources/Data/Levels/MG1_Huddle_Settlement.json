@@ -25,6 +25,16 @@
   "budget": 1000,
   "rounds": 3,
   "maxMeltPasses": 5,
+  "pairLesson": {
+    "note": "Zwei-Felder-Beispiel am Ende von Schritt 2: Laterne und Iglu nebeneinander, beide starten bei Lufttemperatur. Gleiche Zellbilanz wie die Siedlung, aber mit Speicherglied und Zeitschritt, damit man das Rechnen Schritt fuer Schritt sieht. Eigene Werte (kleine Laterne, keine Eis-Nachbarn), damit die Zahlen lesbar bleiben.",
+    "lanternHeat": 11.0,
+    "iglooHeat": 0.0,
+    "k": 1.0,
+    "h": 0.2,
+    "capacity": 10.0,
+    "dt": 40.0,
+    "steps": 6
+  },
   "whatIf": {
     "noWind": {
       "overrides": { "wind": 2.0 },

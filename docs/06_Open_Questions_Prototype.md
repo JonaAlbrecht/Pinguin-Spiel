@@ -59,6 +59,8 @@
 
 ### D. Prologue – MG1 part A "Der letzte Huddle"
 
+> **Obsolete since 18.10.2026:** the prologue and the battery transfer screen were removed. Its first step, the step-by-step heat table, moved to MG1 step 2 ("Zwei Felder: Laterne und Iglu", docs/03). The questions below are kept for history only.
+
 | ID | Question | Context | Answer |
 |---|---|---|---|
 | D-01 | How many penguins are in the huddle? | Not specified. | |

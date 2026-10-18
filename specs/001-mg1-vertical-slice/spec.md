@@ -11,7 +11,7 @@
 | Im Prototyp | Nicht im Prototyp (bewusst) |
 |---|---|
 | Titelbild, Hub-Ausschnitt „Huddle-Platz“ (laufen, Figuren ansprechen) | MG2 Polar-Express, MG3 Fischfabrik (nur Hinweisschild im Hub) |
-| Prolog „Der letzte Huddle“ (MG1 Teil A) | Speichern/Fortsetzen (R-01) |
+| ~~Prolog „Der letzte Huddle“ (MG1 Teil A)~~ *(entfallen 18.10.2026 mit dem Prolog, ADR-20)* | Speichern/Fortsetzen (R-01) |
 | MG1 Teil B „Die erste Siedlung“ mit Schritten 1–5 | Englisch (K-01), Vorlesefunktion (K-03) |
 | „So macht's Siemens“ als **Entwurf** (Schritt 6) | Vorher-/Nachher-Quiz im Spiel (L-02: besser extern, z. B. Forms) |
 | Abschluss: Siemens-Landkarte (Karte 1 von 3), Notizbuch-Begriffe | Kosmetik, Pip anpassen (H-03), Musik/Sound (J-04) |
@@ -30,7 +30,7 @@ Spielzeit: ca. 15 Minuten (A-05).
 | SIM-01 | WHEN die Siedlung simuliert wird, THE SYSTEM SHALL die stationäre Wärmebilanz je Feld wie in docs/03 (MG1 Technik) lösen; Abweichung zur Python-Referenz ≤ 1e-6 relativ. | auto – `SettlementGoldenTests` |
 | SIM-02 | WHEN ein Iglu nach dem Lösen ≥ 0 °C hat, THE SYSTEM SHALL es zu Wasser machen und neu lösen, höchstens 5 Durchläufe. | auto – Golden `kalle`, `hint_with_walls`, `random_*` |
 | SIM-03 | THE SYSTEM SHALL Zellen im Lee eines Schneewalls (Abstand ≤ 3,5 Felder, Kegel cos ≥ 0,7 zur Windrichtung) mit 0,4 × Wärmeverlust rechnen. | auto – Golden `shielded`, pytest `test_wall_shields_downwind_only` |
-| SIM-04 | THE SYSTEM SHALL den Huddle (Teil A) transient mit implizitem Euler rechnen; Abweichung zur Referenz ≤ 1e-6. | auto – `HuddleGoldenTests` |
+| SIM-04 | THE SYSTEM SHALL den Huddle (Teil A) transient mit implizitem Euler rechnen; Abweichung zur Referenz ≤ 1e-6. | auto – `HuddleGoldenTests` *(entfallen 18.10.2026 mit dem Prolog, ADR-20)* |
 | SIM-05 | THE SYSTEM SHALL alle Löser schrittweise ausführbar machen (`IStepSolver`), damit das Wärmebild sich sichtbar aufbaut (O-10: echte Iterationen, kein Fake). | auto – `ConjugateGradient_IsSteppable` |
 | SIM-06 | THE SYSTEM SHALL Sterne vergeben: ★ ≥ 12 gemütliche Iglus im Budget, ★★ dazu nichts geschmolzen, ★★★ dazu ≤ 80 % Budget. | auto – `Stars_FollowTheRules` |
 | SIM-07 | Das Level SHALL lösbar sein: Beispiel-Siedlung erreicht ★★ mit 9 Laternen; ★★★ (8 Laternen) ist erreichbar. | auto – pytest `test_hint_layout_reaches_two_stars`; ★★★ per Suche in der Balancing-Sitzung gefunden (O-06) |
@@ -41,8 +41,8 @@ Spielzeit: ca. 15 Minuten (A-05).
 |---|---|---|
 | UX-01 | WHEN der Spieler auf den Boden klickt/tippt, THE SYSTEM SHALL Pip dorthin laufen lassen; ein Klick auf eine Figur startet das Gespräch. | manuell |
 | UX-02 | THE SYSTEM SHALL anzeigen, wer als Nächstes eine Aufgabe hat („!“ über der Figur). | manuell |
-| UX-03 | Im Prolog SHALL der Balken „Alle warm“ nur wachsen, solange kein Pinguin friert, und sonst pausieren (kein Zurücksetzen, kein Scheitern). | manuell |
-| UX-04 | WHEN ein Pinguin länger als 8 s friert, THE SYSTEM SHALL einen Tipp von Oma Grete zeigen (max. 3-mal). | manuell |
+| UX-03 | Im Prolog SHALL der Balken „Alle warm“ nur wachsen, solange kein Pinguin friert, und sonst pausieren (kein Zurücksetzen, kein Scheitern). *(entfallen 18.10.2026 mit dem Prolog, ADR-20)* | manuell |
+| UX-04 | WHEN ein Pinguin länger als 8 s friert, THE SYSTEM SHALL einen Tipp von Oma Grete zeigen (max. 3-mal). *(entfallen 18.10.2026 mit dem Prolog, ADR-20)* | manuell |
 | UX-05 | MG1 SHALL die Schritte 1–6 in fester Reihenfolge zeigen; die Phasenleiste oben zeigt den aktuellen Schritt. | manuell |
 | UX-06 | Iglu-Zustand SHALL nicht nur über Farbe erkennbar sein (frierend: zittert, bläulich; gemütlich: Tür leuchtet; schmilzt: sackt zusammen → Pfütze). Ampeln zeigen zusätzlich „OK / ! / X“. | manuell |
 | UX-07 | WHEN der Spieler mehr Laternen/Iglus/Schneewälle setzen will als erlaubt, THE SYSTEM SHALL einen erklärenden Hinweis zeigen. | manuell |

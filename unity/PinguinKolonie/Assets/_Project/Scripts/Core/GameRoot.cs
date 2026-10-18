@@ -5,8 +5,8 @@ namespace SFE.Game
 {
     /// <summary>
     /// Einstiegspunkt des Vertical Slice. Baut die ganze Welt per Code (keine Prefabs, keine Szenen-YAML)
-    /// und führt durch den Ablauf: Titel → Hub → Prolog „Der letzte Huddle“ → Hub → MG1 „Die erste Siedlung“
-    /// (Schritte 1–5) → „So macht's Siemens“ → Hub mit Siedlung → Abschluss.
+    /// und führt durch den Ablauf: Titel → Hub → MG1 „Die erste Siedlung“ (Schritte 1–5) → „So macht's Siemens“
+    /// → Hub mit Siedlung → Abschluss.
     /// In eine leere Szene legen oder über das Menü „Pinguin-Spiel → Prototyp-Szene erstellen“ anlegen.
     /// </summary>
     public sealed class GameRoot : MonoBehaviour
@@ -48,30 +48,15 @@ namespace SFE.Game
         {
             yield return TitleScreen();
 
-            // Hub: Oma Grete ruft zum Huddle
+            // Hub: Oma Grete erinnert an den Huddle, Frieda ruft ins Labor
             _hub.Enter();
             yield return Hud.FadeIn();
             yield return Hud.Say("hub_intro");
             Hud.Toast(Data.Ui("hubControls"), 7f);
-            yield return _hub.WaitForTalk("grete");
-
-            // Prolog
-            yield return Hud.FadeOut();
-            _hub.Exit();
-            yield return PrologueHuddle.Create(this, MinigameOrigin).Play();
-            // „So macht's Siemens“ auch nach dem Huddle: dieselbe Rechenregel steckt im Akku eines E-Autos.
-            yield return TransferScreen.PlayBattery(this);
-            State.MapCards = Mathf.Max(State.MapCards, 1);
-            State.PrologueDone = true;
             Hud.EnableNotebook(State);
             _hub.SetIdleNode("theo", "hub_theo");
             _hub.SetIdleNode("klara", "hub_klara");
             _hub.SetIdleNode("flocke", "hub_flocke");
-
-            // Zurück im Hub: zu Frieda
-            _hub.Enter();
-            yield return Hud.FadeIn();
-            Hud.Toast(Data.Ui("hubGoToFrieda"), 4f);
             yield return _hub.WaitForTalk("frieda");
 
             while (true)
@@ -84,7 +69,7 @@ namespace SFE.Game
                 Hud.ShowPhases(5);
                 yield return TransferScreen.Play(this);
                 Hud.ShowPhases(-1);
-                State.MapCards = Mathf.Max(State.MapCards, 2);
+                State.MapCards = Mathf.Max(State.MapCards, 1);
                 State.Takeaway = GameData.Loc(Data.TransferCard["takeaway"]);
 
                 _hub.Enter();

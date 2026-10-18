@@ -57,20 +57,6 @@ namespace SFE.Game
             return root;
         }
 
-        /// <summary>Färbt den Bauch und den Ring darunter (Prolog: Temperatur je Pinguin).</summary>
-        public static void Tint(GameObject penguin, Color belly, Color ring)
-        {
-            var t = penguin.transform.Find("Body/Torso");
-            if (t != null)
-            {
-                var r = t.GetComponent<Renderer>();
-                var mats = r.sharedMaterials;
-                if (mats.Length > BellySlot) { mats[BellySlot] = Prims.Mat(belly); r.sharedMaterials = mats; }
-            }
-            var ringT = penguin.transform.Find("Ring");
-            if (ringT != null) Prims.SetColor(ringT.gameObject, ring);
-        }
-
         // ---------- Körper ----------
 
         private static Outline OutlineOf(PenguinShape s)

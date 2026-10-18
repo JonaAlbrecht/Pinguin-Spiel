@@ -5,13 +5,10 @@ Aufruf:  python generate_golden.py
 from __future__ import annotations
 
 import json
-import math
 import random
 from pathlib import Path
 
-import numpy as np
-
-from simref import huddle, settlement
+from simref import settlement, settlement_pair
 from simref.cases import MELT_TWO_PASSES, SINGLE_WALL
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -97,48 +94,26 @@ def main() -> None:
         (out / f"settlement_{name}.json").write_text(json.dumps(doc, indent=1), encoding="utf-8")
         print(f"settlement_{name}: {doc['result']} passes={doc['meltPasses']}")
 
-    hp = huddle.load_params(DATA / "Levels/MG1A_LastHuddle.json")
-    rnd = random.Random(7)
-    pos = np.array([[rnd.uniform(-2, 2), rnd.uniform(-2, 2)] for _ in range(12)])
-    temps = np.full(12, 25.0)
-    winds = [(1.0, 0.0)] * 30 + [(0.0, -1.0)] * 30 + [(-math.sqrt(0.5), math.sqrt(0.5))] * 30
-    history = []
-    for w in winds:
-        temps = huddle.step(temps, pos, w, hp, 1.0)
-        history.append([round(float(v), 10) for v in temps])
-    doc = {
-        "case": "huddle_random_7",
-        "tolerance": 1e-6,
-        "dt": 1.0,
-        "startTemp": 25.0,
-        "positions": [[round(float(a), 10), round(float(b), 10)] for a, b in pos],
-        "windTo": [list(w) for w in winds],
-        "exposedAtStart": [int(v) for v in huddle.exposure(pos, winds[0], hp)],
-        "temperatures": history,
-    }
-    (out / "huddle_random_7.json").write_text(json.dumps(doc, indent=1), encoding="utf-8")
-    print("huddle_random_7: final", [round(v, 2) for v in history[-1]])
-
-    # Zwei-Pinguine-Beispiel vor dem Huddle: Temperaturen UND die Zerlegung jedes Schritts,
-    # denn genau diese Zahlen zeigt das Spiel in der Rechenregel.
-    pos, temps, wind, dt, steps = huddle.pair_lesson(DATA / "Levels/MG1A_LastHuddle.json")
+    # Zwei-Felder-Beispiel am Ende von Schritt 2: Temperaturen UND die Zerlegung jedes Schritts,
+    # denn genau diese Zahlen zeigt das Spiel auf der Rechentafel.
+    pair = settlement_pair.load(DATA / "Levels/MG1_Huddle_Settlement.json")
+    temps = settlement_pair.start(pair)
     rows = []
-    for _ in range(steps):
-        after = huddle.step(temps, pos, wind, hp, dt)
-        t = huddle.step_terms(temps, after, pos, wind, hp, dt)
+    for _ in range(pair.steps):
+        after = settlement_pair.step(temps, pair)
+        t = settlement_pair.step_terms(after, pair)
         rows.append({
             "before": [round(float(v), 10) for v in temps],
             "after": [round(float(v), 10) for v in after],
             "own": [round(float(v), 10) for v in t.own],
-            "fromNeighbours": [round(float(v), 10) for v in t.from_neighbours],
+            "fromNeighbour": [round(float(v), 10) for v in t.from_neighbour],
             "toWind": [round(float(v), 10) for v in t.to_wind],
         })
         temps = after
-    doc = {"case": "huddle_pair", "tolerance": 1e-6, "dt": dt, "windTo": list(wind),
-           "positions": [[float(a), float(b)] for a, b in pos], "steps": rows}
-    (out / "huddle_pair.json").write_text(json.dumps(doc, indent=1), encoding="utf-8")
-    print("huddle_pair: Ende", [round(v, 2) for v in temps])
-
+    doc = {"case": "pair_settlement", "tolerance": 1e-6, "dt": pair.dt, "steps": rows,
+           "steady": [round(float(v), 10) for v in settlement_pair.steady(pair)]}
+    (out / "pair_settlement.json").write_text(json.dumps(doc, indent=1), encoding="utf-8")
+    print("pair_settlement: Ende", [round(v, 2) for v in temps], "Gleichgewicht", doc["steady"])
 
 if __name__ == "__main__":
     main()

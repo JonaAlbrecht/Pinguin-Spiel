@@ -145,7 +145,7 @@ Die Assemblierung meldet optional jeden `Add`-Aufruf über einen Callback – so
 
 | Modul | Kern-API | Größe zur Laufzeit |
 |---|---|---|
-| `Thermal` | `HuddleModel` (transient, implizites Euler), `SettlementModel(Level) → (CsrMatrix, b)` inkl. `MeltCascade` (Iglu → Wasser, neu lösen, max. 5 Durchläufe) | 24×24 = 576 Unbekannte (Erweiterung MG01: 32×32) |
+| `Thermal` | `SettlementPairLesson` (Zwei-Felder-Tafel, transient, implizites Euler), `SettlementModel(Level) → (CsrMatrix, b)` inkl. `MeltCascade` (Iglu → Wasser, neu lösen, max. 5 Durchläufe) | 24×24 = 576 Unbekannte (Erweiterung MG01: 32×32) |
 | `Flow` | `LbmD2Q9(nx, ny, tau)`, `SetObstacle(mask)`, `Step(n)`, `DragForce`, `Streamlines()`; optional `ScalarField` für MG2-B (Temperatur) | 160×64 fein / 80×32 grob |
 | `DiscreteEvent` | `Simulator` (Ereignis-Heap), Bausteine `Source, ScheduledSource (Zug), Buffer, Station, Conveyor, Agv, Loss (Möwen), Sink`, `Replications.Run(n, seed)` | ~10⁴ Ereignisse/Schicht |
 | `Optimization` | `HillClimber`, `GeneticAlgorithm`, `ParetoFront` – ebenfalls steppable | — |
@@ -357,8 +357,8 @@ Das ist der Hebel für das Token-Budget: Der Großteil der KI-generierten Arbeit
 | # | Meilenstein | Ergebnis |
 |---|---|---|
 | M0 | Setup | Repo-Struktur, CI (Python + dotnet), Unity-Projekt mit lokalem `simcore`-Paket, Blender-Exportskript, Stil-Test (1 Pinguin + 1 Iglu + 1 Laterne im Toon-Look) |
-| M1 | Sim-Core Vertical Slice | `LinearAlgebra`, `Thermal` (Huddle + Siedlung + Schmelz-Kaskade) in Python + C#, Golden-Tests grün |
-| M2 | Vertical Slice spielbar | Hub-Ausschnitt (Huddle-Platz), MG1 mit allen Phasen, 1 Transfer-Screen (Schaltschrank), Prolog-/Akt-1-Dialoge, WebGL-Build intern gehostet |
+| M1 | Sim-Core Vertical Slice | `LinearAlgebra`, `Thermal` (Siedlung + Schmelz-Kaskade + Zwei-Felder-Tafel) in Python + C#, Golden-Tests grün |
+| M2 | Vertical Slice spielbar | Hub-Ausschnitt (Huddle-Platz), MG1 mit allen Phasen, 1 Transfer-Screen (Schaltschrank), Hub-/Akt-1-Dialoge, WebGL-Build intern gehostet |
 | M3 | Playtest & Auswertung | Playtest mit 10–15 Kolleg:innen ohne technischen Hintergrund, Vorher-/Nachher-Quiz, Anpassungen Didaktik/UX |
 | M4 | Release 1 – Kernspiel | + `Flow` (LBM) und `DiscreteEvent`/`Random`, MG2 Polar-Express, MG3 Fischfabrik, Epilog, Speichern, Lokalisierung EN |
 | M5 | Release 2 – Erweiterung (optional) | Smart City Pingopolis gemäß Dokument 05; optional MG2-B, Leaderboard |
