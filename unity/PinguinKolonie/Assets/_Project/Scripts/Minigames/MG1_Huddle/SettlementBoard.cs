@@ -151,14 +151,7 @@ namespace SFE.Game
                 if (_shown[i] == c) continue;
                 if (_objects.TryGetValue(i, out var old)) { Destroy(old); _objects.Remove(i); }
                 _shown[i] = c;
-                GameObject go = null;
-                switch (c)
-                {
-                    case Cell.Igloo: go = Prims.Igloo(transform); break;
-                    case Cell.Lantern: go = Prims.Lantern(transform, 1f, true); break;
-                    case Cell.Wall: go = Prims.SnowWall(transform); break;
-                    case Cell.Water: go = Prims.Puddle(transform); break;
-                }
+                var go = CreatePiece(c);
                 if (go != null)
                 {
                     go.transform.position = CellCenter(i);
@@ -166,6 +159,42 @@ namespace SFE.Game
                 }
             }
             _states = null;
+        }
+
+        private GameObject CreatePiece(char c)
+        {
+            switch (c)
+            {
+                case Cell.Igloo: return Prims.Igloo(transform);
+                case Cell.Lantern: return Prims.Lantern(transform, 1f, true);
+                case Cell.Wall: return Prims.SnowWall(transform);
+                case Cell.Water: return Prims.Puddle(transform);
+                default: return null;
+            }
+        }
+
+        private GameObject _carried;
+        private char _carriedSymbol = Cell.Ice;
+
+        /// <summary>
+        /// Ein angehobener Baustein (Werkzeug „Verschieben“): schwebt über dem Feld unter dem Zeiger.
+        /// <c>Cell.Ice</c> oder ein Feld kleiner 0 blendet ihn aus.
+        /// </summary>
+        public void ShowCarried(char symbol, int cell)
+        {
+            if (symbol == Cell.Ice || cell < 0)
+            {
+                if (_carried != null) _carried.SetActive(false);
+                return;
+            }
+            if (_carried == null || _carriedSymbol != symbol)
+            {
+                if (_carried != null) Destroy(_carried);
+                _carried = CreatePiece(symbol);
+                _carriedSymbol = symbol;
+            }
+            _carried.SetActive(true);
+            _carried.transform.position = CellCenter(cell) + Vector3.up * (0.55f + 0.08f * Mathf.Sin(Time.time * 6f));
         }
 
         public void Clear()

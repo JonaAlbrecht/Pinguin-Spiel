@@ -20,7 +20,7 @@ namespace SFE.Game
     /// </summary>
     public sealed class SettlementMinigame : MonoBehaviour
     {
-        private enum Tool { Igloo, Lantern, Wall, Erase }
+        private enum Tool { Igloo, Lantern, Wall, Move, Erase }
 
         private GameRoot _root;
         private SettlementLevel _level;
@@ -34,6 +34,11 @@ namespace SFE.Game
         private bool _painting;
         private bool _paintRemoves;
         private string[] _beforeStroke;
+        // Werkzeug „Verschieben“: angehobener Baustein und sein Herkunftsfeld
+        private char _carry = Cell.Ice;
+        private int _carryFrom = -1;
+        private bool _carryJustLifted;
+        private bool _moveHintShown;
 
         private GameObject _ui;
         private readonly Dictionary<Tool, Button> _toolButtons = new Dictionary<Tool, Button>();
@@ -95,6 +100,9 @@ namespace SFE.Game
             BoardView(snap: true);
             yield return Hud.FadeIn();
             yield return Hud.Say("mg1_intro");
+            // Näher heran ans Brett: Mausrad, Touchpad, zwei Finger, + und − (Wunsch von Jona, 18.10.2026)
+            _root.Rig.ZoomEnabled = true;
+            Hud.Toast(Data.Ui("zoomHint"), 6f);
 
             // Kalles Versuch lief schon draußen im Hub (HubWorld.PlayKalleAttempt) – hier ist alles Rechnung.
 
@@ -106,6 +114,8 @@ namespace SFE.Game
             yield return PhaseBuild();
             yield return Hud.FadeOut();
             Hud.ShowPhases(-1);
+            _root.Rig.ZoomEnabled = false;
+            _root.Rig.ResetZoom();
             if (_ui != null) Destroy(_ui);
             Destroy(gameObject);
         }
@@ -539,17 +549,18 @@ namespace SFE.Game
             var bar = UIKit.Panel(layer, Palette.Panel, "Toolbar");
             UIKit.Place(bar.rectTransform, 0, 0, 1, 0, 0, 0, 0, -130);
             Hud.LockWhileBlocking(bar); // ausgegraut, solange jemand spricht
-            var tools = new[] { Tool.Igloo, Tool.Lantern, Tool.Wall, Tool.Erase };
+            var tools = new[] { Tool.Igloo, Tool.Lantern, Tool.Wall, Tool.Move, Tool.Erase };
             for (int i = 0; i < tools.Length; i++)
             {
                 var tool = tools[i];
                 var b = UIKit.Button(bar.transform, "", () => SelectTool(tool), Palette.ButtonAlt, 26);
-                UIKit.PlaceFixed((RectTransform)b.transform, new Vector2(0, 0.5f), new Vector2(150 + i * 250, 0), new Vector2(230, 96));
+                UIKit.PlaceFixed((RectTransform)b.transform, new Vector2(0, 0.5f), new Vector2(130 + i * 220, 0), new Vector2(205, 96));
                 _toolButtons[tool] = b;
             }
+            UIKit.SetButtonLabel(_toolButtons[Tool.Move], Data.Ui("toolMove"));
             UIKit.SetButtonLabel(_toolButtons[Tool.Erase], Data.Ui("toolErase"));
             var undo = UIKit.Button(bar.transform, Data.Ui("undo"), Undo, Palette.ButtonQuiet, 24);
-            UIKit.PlaceFixed((RectTransform)undo.transform, new Vector2(0, 0.5f), new Vector2(1150, 0), new Vector2(200, 80));
+            UIKit.PlaceFixed((RectTransform)undo.transform, new Vector2(0, 0.5f), new Vector2(1240, 0), new Vector2(180, 80));
             _simulateButton = UIKit.Button(bar.transform, Data.Ui("simulate"), () => StartCoroutine(SimulateRound()), Palette.Button, 34);
             UIKit.PlaceFixed((RectTransform)_simulateButton.transform, new Vector2(1, 0.5f), new Vector2(-190, 0), new Vector2(330, 100));
             _roundLabel = UIKit.Label(bar.transform, "", 26, Palette.TextLight);
@@ -601,7 +612,13 @@ namespace SFE.Game
 
         private void SelectTool(Tool t)
         {
+            PutBack();
             _tool = t;
+            if (t == Tool.Move && !_moveHintShown)
+            {
+                _moveHintShown = true;
+                Hud.Toast(Data.Ui("moveHint"), 4.5f);
+            }
             foreach (var kv in _toolButtons) kv.Value.GetComponent<Image>().color = kv.Key == t ? Palette.Button : Palette.ButtonAlt;
         }
 
@@ -618,6 +635,7 @@ namespace SFE.Game
         {
             if (Hud.Blocking) return;
             bool onBoard = _board.CellAtPointer(Cam, out int cell) && !InputHelper.PointerOverUI;
+            if (_tool == Tool.Move) { HandleMove(onBoard, cell); return; }
             _board.ShowCursor(onBoard ? cell : -1, _tool == Tool.Erase ? Palette.Bad : Palette.Selected);
             if (InputHelper.PointerUp) EndStroke();
             if (!onBoard) return;
@@ -633,6 +651,76 @@ namespace SFE.Game
                 _lastPainted = cell;
                 Apply(cell);
             }
+        }
+
+        /// <summary>
+        /// Werkzeug „Verschieben“ (Wunsch von Jona, 18.10.2026): Baustein antippen hebt ihn an, ein freies Feld antippen
+        /// setzt ihn ab – oder in einem Zug ziehen und loslassen. Das Herkunftsfeld erneut antippen legt ihn zurück.
+        /// Ein Verschieben ist ein Rückgängig-Schritt. Die Grenzen (Anzahl je Baustein) ändern sich dabei nicht.
+        /// </summary>
+        private void HandleMove(bool onBoard, int cell)
+        {
+            _board.ShowCursor(onBoard ? cell : -1, Palette.Selected);
+            if (_carry != Cell.Ice) _board.ShowCarried(_carry, onBoard ? cell : _carryFrom);
+
+            if (InputHelper.PointerDown)
+            {
+                if (_carry == Cell.Ice)
+                {
+                    if (!onBoard || _grid[cell] == Cell.Ice || _grid[cell] == Cell.Water) return;
+                    _beforeStroke = _grid.ToRows();
+                    _carry = _grid[cell];
+                    _carryFrom = cell;
+                    _carryJustLifted = true;
+                    _grid[cell] = Cell.Ice;
+                    _board.Show(_grid);
+                    _board.ShowCarried(_carry, cell);
+                    Sfx.Play(Sfx.Sound.Click, 0.6f);
+                    return;
+                }
+                // Zweites Antippen: absetzen (außerhalb des Bretts: zurücklegen)
+                if (!onBoard) PutBack();
+                else TryDrop(cell);
+            }
+            else if (InputHelper.PointerUp && _carry != Cell.Ice)
+            {
+                // Loslassen nach dem Ziehen setzt ab; Loslassen auf dem Herkunftsfeld heißt „angetippt“ – weitertragen.
+                bool lifted = _carryJustLifted;
+                _carryJustLifted = false;
+                if (lifted && onBoard && cell != _carryFrom) TryDrop(cell);
+            }
+        }
+
+        private void TryDrop(int cell)
+        {
+            if (cell != _carryFrom && _grid[cell] != Cell.Ice)
+            {
+                Sfx.Play(Sfx.Sound.Wrong, 0.4f);
+                Hud.Toast(Data.Ui("moveOccupied"), 2.5f);
+                return;
+            }
+            _grid[cell] = _carry;
+            _carry = Cell.Ice;
+            _carryFrom = -1;
+            _board.ShowCarried(Cell.Ice, -1);
+            _board.Show(_grid);
+            Sfx.Play(Sfx.Sound.Plop, 0.5f);
+            if (_beforeStroke != null && SettlementRounds.Changed(_beforeStroke, _grid.ToRows())) _undo.Push(_beforeStroke);
+            _beforeStroke = null;
+            UpdateToolbar();
+        }
+
+        /// <summary>Angehobenen Baustein zurück auf sein Feld (Werkzeugwechsel, Simulieren, Rückgängig).</summary>
+        private void PutBack()
+        {
+            if (_carry == Cell.Ice) return;
+            _grid[_carryFrom] = _carry;
+            _carry = Cell.Ice;
+            _carryFrom = -1;
+            _carryJustLifted = false;
+            _beforeStroke = null;
+            _board.ShowCarried(Cell.Ice, -1);
+            _board.Show(_grid);
         }
 
         /// <summary>
@@ -671,6 +759,7 @@ namespace SFE.Game
 
         private void Undo()
         {
+            PutBack();
             if (_undo.Count == 0 || !_editing) return;
             _grid = SettlementGrid.FromRows(_undo.Pop());
             _board.Show(_grid);
@@ -681,6 +770,7 @@ namespace SFE.Game
         private void LoadExample()
         {
             if (!_editing) return;
+            PutBack();
             _undo.Push(_grid.ToRows());
             _grid = SettlementGrid.FromRows(_level.HintTiles);
             _board.Show(_grid);
@@ -692,6 +782,7 @@ namespace SFE.Game
         private IEnumerator SimulateRound()
         {
             if (!_editing) yield break;
+            PutBack(); // ein angehobener Baustein gehört zur Planung
             if (_grid.Count(Cell.Igloo) == 0) { Hud.Toast(Data.Ui("needIgloos"), 3f); yield break; }
             _editing = false;
             _simulateButton.interactable = false;
