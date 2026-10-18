@@ -48,113 +48,11 @@
       "lines": [
         {
           "speaker": "grete",
-          "text": "Brrr! Spürst du den Wind, Pip? Ein Schneesturm kommt."
-        },
-        {
-          "speaker": "grete",
-          "text": "Komm zu mir auf den Huddle-Platz. Wir brauchen jede Flosse."
-        }
-      ]
-    },
-    {
-      "id": "pair_intro",
-      "lines": [
-        {
-          "speaker": "grete",
-          "text": "Bevor wir alle zusammenrücken, schau dir erst zwei von uns an: dich und mich."
-        },
-        {
-          "speaker": "grete",
-          "text": "Ich bin warm, du bist durchgefroren. Ich stehe im Wind, du stehst in meinem Windschatten."
-        },
-        {
-          "speaker": "pip",
-          "text": "Und wie wird mir wieder warm?"
-        },
-        {
-          "speaker": "grete",
-          "text": "Schritt für Schritt. In jedem Augenblick gilt dieselbe Regel – sie steht oben. Drück auf „Nächster Zeitschritt“."
-        }
-      ]
-    },
-    {
-      "id": "pair_conservation",
-      "lines": [
-        {
-          "speaker": "grete",
-          "text": "Siehst du? Was du von mir bekommst, fehlt mir genau. Beim Teilen geht keine Wärme verloren."
-        },
-        {
-          "speaker": "grete",
-          "text": "Verloren geht sie nur an den Wind. Darum frierst du hinter mir weniger als ich vorne."
-        }
-      ]
-    },
-    {
-      "id": "pair_done",
-      "lines": [
-        {
-          "speaker": "pip",
-          "text": "Mir wird warm – und dir wird kälter."
-        },
-        {
-          "speaker": "grete",
-          "text": "So rechnet man Wärme aus: kleine Zeitschritte, immer dieselbe Regel. Für zwei geht das im Kopf."
-        },
-        {
-          "speaker": "grete",
-          "text": "Für zwölf rechnet der Computer die Regel für dich – viele Male pro Sekunde. Du siehst es an den Farben."
-        }
-      ]
-    },
-    {
-      "id": "prologue_intro",
-      "lines": [
-        {
-          "speaker": "grete",
-          "text": "Wenn es stürmt, rücken wir eng zusammen. Das nennen wir Huddle."
-        },
-        {
-          "speaker": "grete",
-          "text": "Jeder wärmt seinen Nachbarn – so überlebt die ganze Kolonie."
-        },
-        {
-          "speaker": "pip",
-          "text": "Und was soll ich tun?"
-        },
-        {
-          "speaker": "grete",
-          "text": "Schieb die Pinguine zusammen. Zieh sie einfach mit der Maus oder dem Finger."
-        },
-        {
-          "speaker": "grete",
-          "text": "Blau heißt: Der Pinguin friert. Orange heißt: schön warm. Halte alle warm, bis der Balken voll ist."
-        }
-      ]
-    },
-    {
-      "id": "prologue_hint_freeze",
-      "lines": [
-        {
-          "speaker": "grete",
-          "text": "Die Blauen am Rand stehen voll im Wind. Schieb sie dorthin, wo die anderen sie schützen."
-        }
-      ]
-    },
-    {
-      "id": "prologue_done",
-      "lines": [
-        {
-          "speaker": "grete",
-          "text": "Geschafft! Siehst du? Keiner hat allein gewärmt – und trotzdem ist allen warm."
+          "text": "Brrr! Spürst du den Wind, Pip? Früher sind wir bei jedem Sturm eng zusammengerückt – im Huddle."
         },
         {
           "speaker": "frieda",
-          "text": "Das war hoffentlich der letzte Huddle."
-        },
-        {
-          "speaker": "frieda",
-          "text": "Ich habe ein Stromnetz gebaut – mit Laternen, die Licht und Wärme geben."
+          "text": "Damit ist bald Schluss! Ich habe ein Stromnetz gebaut – mit Laternen, die Licht und Wärme geben."
         },
         {
           "speaker": "frieda",
@@ -163,15 +61,57 @@
       ]
     },
     {
-      "id": "transfer_battery_after",
+      "id": "pair_intro",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Wie pendelt sich ein Iglu ein? Das rechnen wir jetzt einmal mit Zahlen nach – mit nur zwei Feldern."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Links eine Laterne, rechts ein Iglu. Beide sind so kalt wie die Luft. Jetzt schalten wir die Laterne an."
+        },
+        {
+          "speaker": "pip",
+          "text": "Und wie wird das Iglu warm?"
+        },
+        {
+          "speaker": "frieda",
+          "text": "Schritt für Schritt. In jedem Zeitschritt gilt dieselbe Regel – sie steht oben. Drück auf „Nächster Zeitschritt“."
+        }
+      ]
+    },
+    {
+      "id": "pair_conservation",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Siehst du? Was das Iglu von der Laterne bekommt, fehlt der Laterne genau. Beim Weitergeben geht keine Wärme verloren."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Verloren geht sie nur an den Wind. Darum braucht die Laterne Strom – sonst wird es wieder kalt."
+        }
+      ]
+    },
+    {
+      "id": "pair_done",
       "lines": [
         {
           "speaker": "pip",
-          "text": "Pinguine und Batterien – wer hätte das gedacht?"
+          "text": "Das Iglu wird warm – aber jeder Schritt bringt weniger."
         },
         {
-          "speaker": "grete",
-          "text": "Wärme ist Wärme. Ob im Federkleid oder im Auto."
+          "speaker": "frieda",
+          "text": "Genau. Irgendwann ändert sich fast nichts mehr: Rein und raus halten sich die Waage. Das ist der Gleichgewichtspunkt."
+        },
+        {
+          "speaker": "frieda",
+          "text": "So rechnet man Wärme aus: kleine Zeitschritte, immer dieselbe Regel. Für zwei Felder geht das noch im Kopf."
+        },
+        {
+          "speaker": "zwilli",
+          "text": "F-f-für die ganze Siedlung rechne ich das! *bzzt* Fast 600 Felder – und ich springe gleich zum Gleichgewichtspunkt."
         }
       ]
     },
@@ -320,7 +260,7 @@
         },
         {
           "speaker": "frieda",
-          "text": "Jedes Feld tauscht Wärme nur mit seinen direkten Nachbarn – wie die Pinguine im Huddle."
+          "text": "Jedes Feld tauscht Wärme nur mit seinen direkten Nachbarn – wie eben die Laterne und das Iglu."
         },
         {
           "speaker": "frieda",
@@ -587,7 +527,7 @@
         },
         {
           "speaker": "grete",
-          "text": "Ihr macht ja dasselbe wie wir damals beim Huddle – nur mit mehr Kabeln."
+          "text": "Früher sind wir bei jedem Sturm im Huddle zusammengerückt. Ihr macht dasselbe – nur mit Laternen und Kabeln."
         }
       ]
     },

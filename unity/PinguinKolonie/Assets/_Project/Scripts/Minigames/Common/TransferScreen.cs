@@ -19,11 +19,6 @@ namespace SFE.Game
             Play(root, root.Data.TransferCard, root.State.Mg1Snapshot, "transferImageSettlement",
                 SwitchgearPlaceholder(), "transferImageSwitchgear", "transfer_after");
 
-        /// <summary>„So macht's Siemens“ nach dem Huddle (Prolog): Huddle neben Batteriezellen im Akku.</summary>
-        public static IEnumerator PlayBattery(GameRoot root) =>
-            Play(root, root.Data.BatteryCard, root.State.PrologueSnapshot, "transferImageHuddle",
-                BatteryPlaceholder(), "transferImageBattery", "transfer_battery_after");
-
         /// <param name="placeholder">Erzeugtes Symbolbild rechts; wird am Ende freigegeben.</param>
         private static IEnumerator Play(GameRoot root, Dictionary<string, object> card, Texture leftImage, string leftCaption,
             Texture2D placeholder, string rightCaption, string afterNode)
@@ -184,41 +179,6 @@ namespace SFE.Game
         /// <summary>Spaltenkopf der Übersetzungstabelle aus der Karte („Im Akku“), sonst der allgemeine Text.</summary>
         private static string TableHead(Dictionary<string, object> card, string key, string fallback) =>
             card.Has(key) ? GameData.Loc(card[key]) : fallback;
-
-        /// <summary>
-        /// Platzhalter: Akku von oben, 8 × 5 Zellen. Innen warm, am Rand kühler – dieselbe Farbskala wie die Pinguine.
-        /// Symbolbild, keine Rechnung; das sagt auch die Bildunterschrift.
-        /// </summary>
-        private static Texture2D BatteryPlaceholder()
-        {
-            // Gezeichnet in einem 96er-Raster, abgetastet mit Res Pixeln – scharf auf großen Bildschirmen.
-            const int w = 96, h = 96, cols = 8, rows = 5;
-            var tex = new Texture2D(Res, Res, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear };
-            var frame = Palette.PixelFrame;
-            float cellW = (w - 8) / (float)cols, cellH = (h - 30) / (float)rows;
-            for (int py = 0; py < Res; py++)
-            {
-                for (int px = 0; px < Res; px++)
-                {
-                    float x = px * (float)w / Res, y = py * (float)h / Res;
-                    var c = frame;
-                    int cx = (int)((x - 4) / cellW), cy = (int)((y - 15) / cellH);
-                    bool inside = x >= 4 && x < w - 4 && y >= 15 && y < h - 15;
-                    float lx = (x - 4) - cx * cellW, ly = (y - 15) - cy * cellH;
-                    bool gap = lx < 1.5f || ly < 1.5f;
-                    if (inside && !gap && cx < cols && cy < rows)
-                    {
-                        // Abstand zur Mitte des Akkus: innen wärmer
-                        float dx = (cx + 0.5f) / cols - 0.5f, dy = (cy + 0.5f) / rows - 0.5f;
-                        float t = 40f - 55f * Mathf.Sqrt(dx * dx + dy * dy) * 1.6f;
-                        c = HeatColors.Penguin(t, 18);
-                    }
-                    tex.SetPixel(px, py, c);
-                }
-            }
-            tex.Apply();
-            return tex;
-        }
 
         /// <summary>Kantenlänge der erzeugten Symbolbilder (v0.1: 96 – auf dem Bildschirm sichtbar verwaschen).</summary>
         private const int Res = 288;

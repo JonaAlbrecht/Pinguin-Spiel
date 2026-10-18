@@ -321,6 +321,11 @@ namespace SFE.Game
             AddGlossary("equation");
             yield return Hud.Say("phase2_done");
             Destroy(_ui);
+
+            // Die Waage in Zahlen: zwei Felder, Zeitschritt für Zeitschritt (bis 18.10.2026 im Prolog „Der letzte Huddle“)
+            yield return PairLessonView.Play(_root, _board, _level);
+            AddGlossary("timestep");
+            BoardView();
         }
 
         // ---------- Schritt 3: Alles hängt zusammen ----------

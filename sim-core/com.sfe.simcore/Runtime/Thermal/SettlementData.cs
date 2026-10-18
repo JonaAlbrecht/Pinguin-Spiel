@@ -95,6 +95,8 @@ namespace SFE.SimCore.Thermal
         public string[] HintTiles;
         /// <summary>„Was wäre, wenn …“-Varianten aus dem Level-JSON (<c>whatIf</c>), z. B. „noWind“.</summary>
         public Dictionary<string, SettlementWhatIf> WhatIf = new Dictionary<string, SettlementWhatIf>();
+        /// <summary>Zwei-Felder-Beispiel am Ende von Schritt 2 (Block <c>pairLesson</c>); null, wenn er fehlt.</summary>
+        public SettlementPairLesson PairLesson;
 
         public static SettlementLevel FromJson(string json)
         {
@@ -127,6 +129,7 @@ namespace SFE.SimCore.Thermal
                 KalleTiles = o.StrArray("kalleTiles"),
                 HintTiles = o.StrArray("hintTiles"),
                 WhatIf = ReadWhatIf(o),
+                PairLesson = SettlementPairLesson.FromLevel(o, climate.Num("airTemp")),
             };
         }
 

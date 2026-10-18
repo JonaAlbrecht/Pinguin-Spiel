@@ -78,12 +78,20 @@ def test_every_transfer_card_is_a_draft_until_approved(card):
     assert not all(d["approval"].values()), "Freigabe eingetragen – bitte bewusst prüfen und diesen Test anpassen"
 
 
-def test_both_transfer_screens_are_reached():
-    """Nach dem Huddle der Akku, nach MG1 der Schaltschrank (Spieltest 17.10.2026: der erste fehlte)."""
+def test_transfer_screen_follows_the_settlement():
+    """Nach MG1 der Schaltschrank. Der Akku-Transfer nach dem Prolog entfiel mit dem Prolog (18.10.2026)."""
     code = (SCRIPTS / "Core/GameRoot.cs").read_text(encoding="utf-8")
-    assert "TransferScreen.PlayBattery(this)" in code
-    assert "TransferScreen.Play(this)" in code
-    assert code.index("PrologueHuddle.Create") < code.index("PlayBattery") < code.index("SettlementMinigame.Create")
+    assert "PrologueHuddle" not in code and "PlayBattery" not in code
+    assert code.index("SettlementMinigame.Create") < code.index("TransferScreen.Play(this)")
+
+
+def test_pair_lesson_follows_the_scale_in_step_2():
+    """Die Rechentafel (Laterne und Iglu) steht direkt nach der Waage und meldet den Zeitschritt fürs Notizbuch."""
+    code = (SCRIPTS / "Minigames/MG1_Huddle/SettlementMinigame.cs").read_text(encoding="utf-8")
+    scale = code.index("private IEnumerator PhaseScale()")
+    threads = code.index("private IEnumerator PhaseThreads()")
+    lesson = code.index("PairLessonView.Play(")
+    assert scale < code.index('Hud.Say("phase2_done")', scale) < lesson < code.index('AddGlossary("timestep")') < threads
 
 
 def test_level_grids_are_complete():

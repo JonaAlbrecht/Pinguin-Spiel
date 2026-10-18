@@ -48,7 +48,7 @@ namespace SFE.Game
         }
 
         /// <summary>
-        /// Ein Material je Farbe, geteilt. Farben werden auf 1/32 gerundet: Der Prolog färbt Pinguine
+        /// Ein Material je Farbe, geteilt. Farben werden auf 1/32 gerundet: Der frühere Prolog färbte Pinguine
         /// stufenlos nach Temperatur, ohne Rundung entstanden so rund 100 neue Materialien pro Sekunde,
         /// die der Cache nie freigab (Review zu PR #2). 32 Stufen je Kanal sieht man nicht als Sprung.
         /// </summary>
@@ -128,11 +128,9 @@ namespace SFE.Game
 
         public enum Look { Plain, Pip, Frieda, Kalle, Grete, Theo, Klara, Flocke }
 
-        /// <summary>Ein Pinguin nach den Stilregeln, ca. 0,76 m hoch (Größe 1). Bauch und „Ring“ sind einfärbbar.</summary>
+        /// <summary>Ein Pinguin nach den Stilregeln, ca. 0,76 m hoch (Größe 1).</summary>
         public static GameObject Penguin(Transform parent, string name, Look look = Look.Plain, float size = 1f) =>
             PenguinFigure.Build(parent, name, look, size);
-
-        public static void SetPenguinTint(GameObject penguin, Color belly, Color ring) => PenguinFigure.Tint(penguin, belly, ring);
 
         // ---------- Bausteine der Siedlung ----------
 

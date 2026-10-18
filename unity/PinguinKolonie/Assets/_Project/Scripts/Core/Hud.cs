@@ -279,7 +279,6 @@ namespace SFE.Game
             {
                 ("settingSound", new[] { "settingOn", "settingOff" }, () => Settings.Muted ? 1 : 0, i => Settings.Muted = i == 1),
                 ("settingVolume", new[] { "settingQuiet", "settingMedium", "settingLoud" }, () => Settings.Volume, i => Settings.Volume = i),
-                ("settingPace", new[] { "settingPaceCalm", "settingPaceNormal" }, () => Settings.Pace, i => Settings.Pace = i),
                 ("settingQuality", new[] { "settingQualityHigh", "settingQualityLow" }, () => Settings.HighQuality ? 0 : 1, i => Settings.HighQuality = i == 0),
                 ("settingTech", new[] { "settingOn", "settingOff" }, () => Settings.TechButtons ? 0 : 1, i => Settings.TechButtons = i == 0),
             };
