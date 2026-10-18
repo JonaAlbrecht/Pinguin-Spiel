@@ -103,7 +103,7 @@ Botschaft für Nicht-Techniker: *Wer Simulation einmal verstanden hat, erkennt s
 
 | Paket | Inhalt | Begründung |
 |---|---|---|
-| **Vertical Slice** | Hub-Ausschnitt (Huddle-Platz), **MG1 Huddle** komplett, 1 Transfer-Screen, Prolog-Dialoge | Kleinster vollständiger Ausschnitt; zeigt alle didaktischen Phasen; nutzt den Wärme-Kern, der schon spezifiziert ist |
+| **Vertical Slice** | Hub-Ausschnitt (Huddle-Platz), **MG1 Huddle** komplett (mit Rechenschritt-Tafel in Schritt 2), 1 Transfer-Screen, Hub-Dialoge | Kleinster vollständiger Ausschnitt; zeigt alle didaktischen Phasen; nutzt den Wärme-Kern, der schon spezifiziert ist |
 | **Release 1 – Kernspiel** | + **MG2 Polar-Express**, + **MG3 Fischfabrik**, ganze Story, Epilog | Alle Ideen der Kolleg:innen spielbar; drei Siemens-Geschäftsfelder |
 | **Release 2 – Erweiterung (optional)** | Die Siedlung wächst zur Smart City **Pingopolis** | Vollständig ausgearbeitet in [05_Erweiterung_Pingopolis_SmartCity.md](05_Erweiterung_Pingopolis_SmartCity.md); wird erst nach Release 1 priorisiert |
 

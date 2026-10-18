@@ -18,7 +18,7 @@ keine von Hand gebauten Szenen. Die Szene enthält nur ein Objekt mit `GameRoot`
 |---|---|
 | Hub (Huddle-Platz) | **W A S D / Pfeiltasten** laufen, **E / Leertaste / Enter** Figur ansprechen – oder hinklicken/-tippen |
 | Dialoge | Klick auf die Sprechblase oder **E / Leertaste / Enter** |
-| Prolog, Schritt 5 | Maus oder Finger: Pinguine ziehen, Bausteine setzen |
+| Schritt 2, Schritt 5 | Maus oder Finger: „Nächster Zeitschritt“ klicken, Bausteine setzen |
 
 ## Bauen
 
@@ -50,7 +50,7 @@ keine von Hand gebauten Szenen. Die Szene enthält nur ein Objekt mit `GameRoot`
 Assets/_Project/
   Scripts/Core/        GameRoot (Ablauf), Hud (Dialoge, Hinweise, Phasenleiste), Kamera, Eingabe, Grafik-Helfer
   Scripts/Hub/         Huddle-Platz zum Herumlaufen
-  Scripts/Minigames/   MG1 Teil A (Prolog), MG1 Teil B (Siedlung), Transfer-Screen
+  Scripts/Minigames/   MG1 „Die erste Siedlung“ (mit Rechenschritt-Tafel `PairLessonView`), Transfer-Screen
   Scripts/Editor/      Szene erzeugen, Builds
   Resources/Data/      Level, Materialien, Dialoge, Inhalte, Transfer-Karte (JSON – auch für Python und dotnet-Tests)
 ```

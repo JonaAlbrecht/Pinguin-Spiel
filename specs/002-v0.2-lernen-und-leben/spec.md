@@ -57,14 +57,14 @@ folgenreich, fragt die Abnahme-Kriterien aus docs/00 im Spiel ab und gibt dem Sp
 |---|---|---|
 | UX-27 | Im Hub läuft Pip mit **W A S D / Pfeiltasten** (kamerabezogen); Klicken bleibt für Tablets. Steht Pip bei einer Figur, zeigt sie „E: ansprechen“; **E / Leertaste / Enter** sprechen an und blättern im Dialog weiter. Leertaste/Enter drücken keinen zuletzt geklickten Knopf erneut (EventSystem ohne Navigation). Pip läuft nicht durch Figuren und nicht über den Rand. | manuell |
 | UX-28 | Das Simulationslabor ist begehbar: Tür zum Platz, Arbeitstisch; drinnen blenden Dach, Südwand und Schild aus. Wände sind fest. | manuell |
-| UX-29 | **Vor dem Huddle die Rechenregel mit zwei Pinguinen:** Grete (warm, im Wind) und Pip (kalt, im Windschatten). Bild-Gleichung *Wärme vorher + selbst erzeugt + vom Nachbarn − an den Wind ergibt Wärme neu*, 5 Zeitschritte per Knopf, Zahlen aus dem Huddle-Modell. Nach Schritt 1: „Was Pip bekommt, gibt Grete ab – zusammen 0“. Formel nur unter „Blick unter die Haube“ (docs/00 Regel 2). Begriff „Zeitschritt“ im Notizbuch. | auto – Golden `huddle_pair`, `HuddlePairTests`, pytest `test_step_terms_add_up_exactly`, `test_exchange_between_penguins_conserves_heat` + manuell (Anzeige) |
+| UX-29 | **Vor dem Huddle die Rechenregel mit zwei Pinguinen:** Grete (warm, im Wind) und Pip (kalt, im Windschatten). Bild-Gleichung *Wärme vorher + selbst erzeugt + vom Nachbarn − an den Wind ergibt Wärme neu*, 5 Zeitschritte per Knopf, Zahlen aus dem Huddle-Modell. Nach Schritt 1: „Was Pip bekommt, gibt Grete ab – zusammen 0“. Formel nur unter „Blick unter die Haube“ (docs/00 Regel 2). Begriff „Zeitschritt“ im Notizbuch. **Seit 18.10.2026 (ADR-20):** dieselbe Tafel mit zwei Feldern, Laterne und Iglu, am Ende von MG1 Schritt 2, 6 Zeitschritte bis nahe an den Gleichgewichtspunkt. | auto – Golden `pair_settlement`, `SettlementPairTests`, pytest `test_settlement_pair.py` + `test_content.py::test_pair_lesson_follows_the_scale_in_step_2` + manuell (Anzeige) |
 | UX-30 | **Nach dem Huddle „So macht's Siemens“ mit Batteriezellen im Akku** (Entwurf, Simcenter als Vorschlag): Huddle-Wärmebild neben Akku-Symbolbild, Übersetzungstabelle, eine Kurz-nachgedacht-Frage. Siemens-Landkarte: 4 Karten (Akku, Schaltschrank, MG2, MG3). | auto – `test_both_transfer_screens_are_reached`, `test_every_transfer_card_is_a_draft_until_approved` + manuell |
 | TXT-05 | Die Unity-Prüfung kennt auch die Paketliste: Jedes Paket in `manifest.json` muss der installierte Editor kennen (sonst bricht Unity beim Öffnen ab, wie bei `com.unity.modules.textrendering` in Unity 6.4). | auto (lokal) – `tools/unity_compile_check/check.ps1` |
 | UX-19 | Die Beispiel-Siedlung lädt nur per Knopf und nur einmal (Spec 001 UX-09 korrigiert). | manuell |
 | UX-20 | Ergebnis-Knöpfe erscheinen erst, wenn Frieda fertig gesprochen hat. | manuell |
 | UX-21 | „Siedlung nochmal planen“: Eine schlechtere Runde überschreibt die beste nicht (Hub, Endkarte). | auto – `SettlementRounds.IsBetter` + manuell |
-| UX-22 | Notizbuch oben rechts ab dem Prolog jederzeit: Begriffe, Landkarte n von 3, Satz zum Erzählen, Flockes Pfützen. Offenes Notizbuch pausiert das Spiel. | manuell |
-| UX-23 | Ton: Wind im Prolog (lauter, je mehr Pinguine frieren), Plopp beim Bauen, Platschen beim Schmelzen, Ding je Stern, ZWILLI-Piepen; Knopf „Ton: an/aus“. Kein Audio-Asset, alles erzeugt. | manuell |
+| UX-22 | Notizbuch oben rechts ab dem Hub-Auftakt jederzeit: Begriffe, Landkarte n von 3, Satz zum Erzählen, Flockes Pfützen. Offenes Notizbuch pausiert das Spiel. | manuell |
+| UX-23 | Ton: ~~Wind im Prolog (lauter, je mehr Pinguine frieren)~~ (entfallen 18.10.2026), Plopp beim Bauen, Platschen beim Schmelzen, Ding je Stern, ZWILLI-Piepen; Knopf „Ton: an/aus“. Kein Audio-Asset, alles erzeugt. | manuell |
 | UX-24 | Transfer: „Kurz nachgedacht“ – Satz und Geschäftsfeld aus je 3 Antworten wählen; falsche Antwort wird erklärt, keine Punkte; die richtige steht nicht immer an derselben Stelle. | auto – `test_content.py` (Daten) + manuell |
 | UX-25 | Hub: Theo, Klara, Flocke ansprechbar; Kolonie-Pinguine watscheln; in der eigenen Siedlung leuchten die Türen gemütlicher Iglus, frierende sind bläulich. | manuell |
 
@@ -72,7 +72,7 @@ folgenreich, fragt die Abnahme-Kriterien aus docs/00 im Spiel ab und gibt dem Sp
 
 1. Projekt öffnen; erscheint ein Dialog zum neuen Input System, „Yes“ oder „No“ – beides läuft (TXT-04).
 2. **Pinguin-Spiel → Prototyp starten.** Titel ist deutsch („Simulation für alle“).
-3. Prolog: Ton an? Wind wird lauter, wenn Pinguine am Rand frieren. Notizbuch-Knopf erscheint danach (UX-22, UX-23).
+3. ~~Prolog: Ton an? Wind wird lauter, wenn Pinguine am Rand frieren.~~ (entfallen 18.10.2026) Notizbuch-Knopf ist ab dem Hub da (UX-22).
 4. MG1: ZWILLI schwebt türkis neben Frieda und flackert (UX-13). Kalles Szene: Flocke planscht und fragt „warum?“.
 5. Schritt 2: Kärtchen legen – die Waage neigt sich und steht am Ende gerade (UX-16).
 6. Schritt 4: Theo misst nach (UX-14), danach Was-wäre-wenn (UX-15). Notizbuch öffnen: „Digitaler Zwilling“ steht drin.
@@ -84,7 +84,7 @@ folgenreich, fragt die Abnahme-Kriterien aus docs/00 im Spiel ab und gibt dem Sp
 ## 5. Bekannte Grenzen / offen
 
 - **Nicht im Editor gespielt** – kompiliert gegen Unity 6, Verhalten zur Laufzeit ungeprüft.
-- Offene Fragen an das Team: Prolog-Ziel 45 s vs. 60 s (docs/03); Igluwärme q = 0,3 vs. „nur Laternen“ (docs/03).
+- Offene Fragen an das Team: ~~Prolog-Ziel 45 s vs. 60 s (docs/03)~~ (Prolog entfallen); Igluwärme q = 0,3 vs. „nur Laternen“ (docs/03).
 - Leveldaten werden noch nicht validiert (Wind 0 oder k = 0 führen erst nach vielen Iterationen zu einer Meldung).
 - `.meta`-Dateien sind nicht im Repository – nach dem ersten Import committen, sonst brechen GUIDs.
 - Siemens-Inhalte (auch die Antworten in „Kurz nachgedacht“) bleiben Entwurf bis zur Freigabe.

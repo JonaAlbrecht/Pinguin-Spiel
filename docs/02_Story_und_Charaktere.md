@@ -29,10 +29,9 @@ Die Orte liegen auf dem Weg vom Inland zur Küste. Jeder Ort trägt ein Schild m
 **Leitmotiv:** *„Erst simulieren, dann bauen.“*
 **Zweites Motiv:** *Vom Huddle zur Siedlung – die Naturgesetze bleiben dieselben.*
 
-### Prolog – Der letzte Huddle (Tutorial, ~3 Min.)
-Ein Schneesturm zieht über die Kolonie. Pip hilft beim Huddle: Pinguine so zusammenschieben, dass niemand auskühlt. **Oma Grete** erklärt: „Jeder wärmt seinen Nachbarn – so überlebt die ganze Kolonie.“
-Nach dem Sturm zeigt Frieda auf die neuen Laternen: „Das war der letzte Huddle. Ab jetzt bauen wir Iglus – und heizen mit Strom.“
-*Didaktik:* erste Begegnung mit „lokale Beziehung → Gesamtsystem“. Der Prolog ist der Einstieg in MG1.
+### Auftakt im Hub (~1 Min.)
+Ein Sturm zieht auf. **Oma Grete** erinnert sich: Früher ist die Kolonie bei jedem Sturm im Huddle zusammengerückt. Frieda hat ein Stromnetz mit Laternen gebaut: „Ab jetzt bauen wir Iglus. Pip, komm zu meinem Labor!“
+*Bis 18.10.2026 stand hier der spielbare Prolog „Der letzte Huddle“. Er ist entfallen; sein erster Schritt – die Rechentafel Zeitschritt für Zeitschritt – steht jetzt als „Zwei Felder: Laterne und Iglu“ in MG1 Schritt 2 (docs/03).*
 
 ### Akt 1 – Die erste Siedlung (MG1 Huddle, ~10 Min.)
 Frieda braucht helfende Flossen für ihr Simulationslabor – und nimmt Pip, obwohl Pip „noch nie etwas mit Technik zu tun hatte“. Frieda: „Perfekt. Dann erklären wir es so, dass es jeder versteht.“ Pip bekommt das **ZWILLI-Tablet**.
@@ -73,7 +72,7 @@ Freispiel: alle Minigames im Optimierungsmodus mit Bestwerten.
 | **Prof. Dr. Frieda Frost** | Erfinderin des Stromnetzes, leitet das Simulationslabor | Übersetzt Technik in Alltagssprache (Waage, Gartenschlauch, Supermarktkasse); präsentiert „So macht's Siemens“ | warmherzig, präzise, trockener Humor, liebt Kaffee mit Eiswürfeln | Felsenpinguin mit gelben Federbüscheln, Laborkittel, Brille |
 | **ZWILLI** | Friedas Simulationsprogramm auf dem Tablet (Hologramm) | Stellt Querbezüge zwischen den Minigames her; wird mit jedem Minigame klüger | anfangs stotternd/glitchig, dann klüger und witziger | Blau leuchtendes Wireframe-Hologramm eines Pinguins, das mit jedem Minigame vollständiger wird |
 | **Kalle Klotz** | Bauunternehmer, freundlicher Gegenspieler | Verkörpert „Trial & Error“ – zeigt, was ohne Simulation passiert | laut, optimistisch, „Wird schon halten!“, gutes Herz | Stämmiger Königspinguin, gelber Bauhelm, Hosenträger |
-| **Oma Grete** | Älteste der Kolonie | Prolog/Epilog; verbindet den Huddle (Natur) mit der Technik | weise, verschmitzt | Alt, zerzaust, Strickjacke |
+| **Oma Grete** | Älteste der Kolonie | Auftakt/Epilog; verbindet den Huddle (Natur) mit der Technik | weise, verschmitzt | Alt, zerzaust, Strickjacke |
 
 ### Auftraggeber der Minigames
 
