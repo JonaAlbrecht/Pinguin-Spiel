@@ -5,7 +5,7 @@ namespace SFE.Game
 {
     /// <summary>
     /// Einstiegspunkt des Vertical Slice. Baut die ganze Welt per Code (keine Prefabs, keine Szenen-YAML)
-    /// und führt durch den Ablauf: Titel → Hub → MG1 „Die erste Siedlung“ (Schritte 1–5) → „So macht's Siemens“
+    /// und führt durch den Ablauf: Titel → Hub mit Kalles Versuch draußen → MG1 „Die erste Siedlung“ (Schritte 1–5) → „So macht's Siemens“
     /// → Hub mit Siedlung → Abschluss.
     /// In eine leere Szene legen oder über das Menü „Pinguin-Spiel → Prototyp-Szene erstellen“ anlegen.
     /// </summary>
@@ -58,6 +58,9 @@ namespace SFE.Game
             _hub.SetIdleNode("klara", "hub_klara");
             _hub.SetIdleNode("flocke", "hub_flocke");
             yield return _hub.WaitForTalk("frieda");
+
+            // Kalle kommt Frieda zuvor – draußen, in echt (kein Raster, kein ZWILLI). Danach geht es ins Labor.
+            yield return _hub.PlayKalleAttempt(Data.Settlement, Data.Materials, State);
 
             while (true)
             {

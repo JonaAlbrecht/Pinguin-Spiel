@@ -148,6 +148,10 @@
       "id": "kalle_intro",
       "lines": [
         {
+          "speaker": "frieda",
+          "text": "Da bist du ja, Pip! Bevor wir die Siedlung bauen, planen wir sie gründlich –"
+        },
+        {
           "speaker": "kalle",
           "text": "Planen? Rechnen? Ach was, ich mach das einfach!"
         },
@@ -187,6 +191,10 @@
         {
           "speaker": "frieda",
           "text": "Man sieht vorher, was passiert – ohne dass etwas kaputtgeht. Ich zeige es dir in sechs kleinen Schritten."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Komm mit ins Labor. Dort wartet ZWILLI."
         }
       ]
     },
@@ -312,7 +320,7 @@
       "lines": [
         {
           "speaker": "frieda",
-          "text": "Siehst du? Der Computer sagt ziemlich gut voraus, was bei Kalle passiert ist."
+          "text": "Links das Foto von draußen, in der Mitte ZWILLIS Rechnung: Der Computer sagt ziemlich gut voraus, was bei Kalle passiert ist."
         },
         {
           "speaker": "theo",

@@ -105,6 +105,11 @@ namespace SFE.Game
         public static readonly Color Desk = Siemens.DarkSand;
         public static readonly Color DeskBase = Siemens.DeepBlue55;
         public static readonly Color Screen = Siemens.BoldBlue;
+        /// <summary>ZWILLIS Bildschirm im Labor: dunkler Rahmen, leuchtende Kante, kühl getöntes „Rechen-Eis“ –
+        /// damit niemand das Raster mit der echten Scholle verwechselt (Kalles Versuch läuft draußen in Weiß).</summary>
+        public static readonly Color ScreenFrame = Siemens.DeepBlue85;
+        public static readonly Color ScreenIce = Tint(Siemens.BoldBlue, 0.14f);
+        public static readonly Color ScreenIceAlt = Tint(Siemens.BoldBlue, 0.24f);
 
         // ---------- Figuren ----------
         public static readonly Color PenguinBlack = Siemens.DeepBlue85;

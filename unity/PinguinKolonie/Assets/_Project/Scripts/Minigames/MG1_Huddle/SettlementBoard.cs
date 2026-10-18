@@ -8,6 +8,8 @@ namespace SFE.Game
     /// <summary>
     /// 3D-Darstellung des Siedlungsrasters: Eisfläche mit Feldern, Bausteine, Wärmebild, Wärmefäden.
     /// Eine Zelle = 1 Unity-Einheit (im Modell 2 m). Zeile 0 liegt im Norden (+z).
+    /// Das Brett ist ZWILLIS Bildschirm (Rahmen, Leuchtkante, Beschriftung): alles darauf ist Rechnung, nichts echt.
+    /// Echt passiert nur Kalles Versuch draußen im Hub (<see cref="HubWorld.PlayKalleAttempt"/>).
     /// </summary>
     public sealed class SettlementBoard : MonoBehaviour
     {
@@ -31,14 +33,16 @@ namespace SFE.Game
         public int Height => _h;
 
         private string _windLabel;
+        private string _screenLabel;
 
-        public static SettlementBoard Create(Transform parent, Vector3 origin, SettlementLevel level, string windLabel)
+        public static SettlementBoard Create(Transform parent, Vector3 origin, SettlementLevel level, string windLabel, string screenLabel)
         {
             var go = new GameObject("SettlementBoard");
             go.transform.SetParent(parent, false);
             go.transform.position = origin;
             var b = go.AddComponent<SettlementBoard>();
             b._windLabel = windLabel;
+            b._screenLabel = screenLabel;
             b.Init(level);
             return b;
         }
@@ -51,9 +55,8 @@ namespace SFE.Game
             _shown = new char[_w * _h];
             for (int i = 0; i < _shown.Length; i++) _shown[i] = Cell.Ice;
 
-            // Eissockel
-            Prims.Make(PrimitiveType.Cube, transform, new Vector3(_w / 2f, -0.26f, _h / 2f), new Vector3(_w + 1.2f, 0.5f, _h + 1.2f),
-                Palette.IceShadow, "Plinth");
+            // Bildschirm statt Eissockel: dunkler Rahmen mit Leuchtkante und Beschriftung
+            BuildScreen();
 
             // Bodentextur mit Feldern
             _ground = new Texture2D(_w, _h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
@@ -76,6 +79,22 @@ namespace SFE.Game
 
             // Windpfeil (Nordwesten)
             BuildWindArrow();
+        }
+
+        private void BuildScreen()
+        {
+            const float rim = 0.9f, lip = 0.12f, glow = 0.08f;
+            Prims.Make(PrimitiveType.Cube, transform, new Vector3(_w / 2f, -0.26f, _h / 2f), new Vector3(_w + rim * 2, 0.5f, _h + rim * 2),
+                Palette.ScreenFrame, "ScreenFrame");
+            // Leuchtkante direkt am Raster – vier Leisten, knapp über dem Boden
+            Prims.Make(PrimitiveType.Cube, transform, new Vector3(_w / 2f, lip / 2, -glow / 2), new Vector3(_w + glow * 2, lip, glow), Palette.Screen, "GlowS");
+            Prims.Make(PrimitiveType.Cube, transform, new Vector3(_w / 2f, lip / 2, _h + glow / 2), new Vector3(_w + glow * 2, lip, glow), Palette.Screen, "GlowN");
+            Prims.Make(PrimitiveType.Cube, transform, new Vector3(-glow / 2, lip / 2, _h / 2f), new Vector3(glow, lip, _h), Palette.Screen, "GlowW");
+            Prims.Make(PrimitiveType.Cube, transform, new Vector3(_w + glow / 2, lip / 2, _h / 2f), new Vector3(glow, lip, _h), Palette.Screen, "GlowE");
+            if (string.IsNullOrEmpty(_screenLabel)) return;
+            var label = Prims.Label(transform, _screenLabel, new Vector3(_w / 2f, 0.03f, _h + rim / 2), 0.07f, Palette.Screen);
+            label.fontStyle = FontStyle.Bold;
+            label.transform.rotation = Quaternion.Euler(60, 0, 0);
         }
 
         private void BuildWindArrow()
@@ -255,7 +274,7 @@ namespace SFE.Game
                 {
                     int i = y * _w + x;
                     _pixels[(_h - 1 - y) * _w + x] = temperatures == null // Texturzeile 0 liegt unten (Süden)
-                        ? ((x + y) % 2 == 0 ? Palette.Ice : Color.Lerp(Palette.Ice, Palette.IceShadow, 0.35f))
+                        ? ((x + y) % 2 == 0 ? Palette.ScreenIce : Palette.ScreenIceAlt)
                         : HeatColors.For(temperatures[i], _level.AirTemp, _level.ComfortMin, _level.Melt);
                 }
             }

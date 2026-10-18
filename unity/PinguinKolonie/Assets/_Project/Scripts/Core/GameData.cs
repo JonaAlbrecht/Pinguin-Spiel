@@ -125,6 +125,8 @@ namespace SFE.Game
         public SettlementResult Mg1BestResult;
         public double[] Mg1BestTemperatures;
         public Texture2D Mg1Snapshot;
+        /// <summary>Foto von Kalles geschmolzener Siedlung draußen im Hub – in Schritt 4 neben der Rechnung.</summary>
+        public Texture2D KallePhoto;
         public readonly List<string> Glossary = new List<string>();
         /// <summary>Wie viele Iglus im ganzen Spiel zu Pfützen wurden – Flockes Sammlung im Notizbuch.</summary>
         public int Puddles;

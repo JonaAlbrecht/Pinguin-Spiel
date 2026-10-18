@@ -85,6 +85,16 @@ def test_transfer_screen_follows_the_settlement():
     assert code.index("SettlementMinigame.Create") < code.index("TransferScreen.Play(this)")
 
 
+def test_kalle_builds_outside_before_the_lab():
+    """Kalles Versuch ist echt und läuft draußen im Hub – im Labor gibt es nur ZWILLIS Rechnung (18.10.2026)."""
+    root = (SCRIPTS / "Core/GameRoot.cs").read_text(encoding="utf-8")
+    assert root.index("_hub.PlayKalleAttempt(") < root.index("SettlementMinigame.Create")
+    lab = (SCRIPTS / "Minigames/MG1_Huddle/SettlementMinigame.cs").read_text(encoding="utf-8")
+    assert 'Say("kalle_intro")' not in lab and 'Say("kalle_after")' not in lab
+    hub = (SCRIPTS / "Hub/HubWorld.cs").read_text(encoding="utf-8")
+    assert 'Say("kalle_intro")' in hub and 'Say("kalle_after")' in hub
+
+
 def test_pair_lesson_follows_the_scale_in_step_2():
     """Die Rechentafel (Laterne und Iglu) steht direkt nach der Waage und meldet den Zeitschritt fürs Notizbuch."""
     code = (SCRIPTS / "Minigames/MG1_Huddle/SettlementMinigame.cs").read_text(encoding="utf-8")

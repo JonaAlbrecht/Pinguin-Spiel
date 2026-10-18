@@ -80,7 +80,7 @@ namespace SFE.Game
 
         public IEnumerator Play()
         {
-            _board = SettlementBoard.Create(transform, transform.position, _level, Data.Ui("signWind"));
+            _board = SettlementBoard.Create(transform, transform.position, _level, Data.Ui("signWind"), Data.Ui("boardScreen"));
             var side = new Vector3(-2.2f, 0, _level.Height / 2f);
             Stand(Prims.Penguin(transform, "Frieda", Prims.Look.Frieda, 1.3f), side + new Vector3(0, 0, 1.2f));
             Stand(Prims.Penguin(transform, "Kalle", Prims.Look.Kalle, 1.3f), side + new Vector3(0, 0, -1.2f));
@@ -96,20 +96,7 @@ namespace SFE.Game
             yield return Hud.FadeIn();
             yield return Hud.Say("mg1_intro");
 
-            // Kalles Versuch – „in echt“, ohne Wärmebild
-            yield return Hud.Say("kalle_intro");
-            var kalleGrid = SettlementGrid.FromRows(_level.KalleTiles);
-            _board.Show(kalleGrid);
-            yield return new WaitForSeconds(1.2f);
-            var kalleRun = new SettlementSimulation(kalleGrid, _level, _mats);
-            kalleRun.RunToEnd();
-            foreach (var pass in kalleRun.MeltPasses)
-            {
-                _root.State.Puddles += pass.Length;
-                yield return _board.Melt(pass, 1.4f);
-                yield return new WaitForSeconds(0.4f);
-            }
-            yield return Hud.Say("kalle_after");
+            // Kalles Versuch lief schon draußen im Hub (HubWorld.PlayKalleAttempt) – hier ist alles Rechnung.
 
             yield return PhaseCards();
             yield return PhaseScale();
@@ -410,9 +397,29 @@ namespace SFE.Game
             b.gameObject.SetActive(false);
 
             yield return Animate(kalleGrid, _level);
+            ShowKallePhoto(layer);
             AddGlossary("solution");
             yield return Hud.Say("phase4_done");
             Destroy(_ui);
+        }
+
+        /// <summary>
+        /// Vergleich in Schritt 4: links das Foto von draußen (was wirklich passiert ist), in der Mitte ZWILLIS Rechnung.
+        /// Ohne Foto (z. B. Szene direkt gestartet) bleibt es bei der Rechnung.
+        /// </summary>
+        private void ShowKallePhoto(RectTransform layer)
+        {
+            var photo = _root.State.KallePhoto;
+            if (photo == null) return;
+            var frame = UIKit.Panel(layer, Palette.PanelLight, "KallePhoto");
+            UIKit.PlaceFixed(frame.rectTransform, new Vector2(0f, 0.5f), new Vector2(230, 60), new Vector2(400, 330));
+            var img = new GameObject("Image").AddComponent<RawImage>();
+            UIKit.Rect(img.gameObject, frame.transform);
+            UIKit.Place(img.rectTransform, 0, 0, 1, 1, 12, 12, 12, 70);
+            img.texture = photo;
+            var cap = UIKit.Label(frame.transform, Data.Ui("kallePhotoCaption"), 22, Palette.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UIKit.Place(cap.rectTransform, 0, 1, 1, 1, 10, -62, 10, 6);
+            Sfx.Play(Sfx.Sound.Click, 0.5f);
         }
 
         /// <summary>

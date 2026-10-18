@@ -41,7 +41,7 @@ Pro Minigame ist **eine** Phase der Schwerpunkt (ausführlich spielbar). Die and
 **Storyline:** Früher rückten die Pinguine bei jedem Sturm im Huddle zusammen. Jetzt hat Frieda ein Stromnetz mit Laternen gebaut – und die Kolonie gründet ihre erste Siedlung.
 **Siemens-Bezug:** Schaltschrank des Stromnetzes: thermische Simulation der Komponenten, damit keine Schäden durch Überhitzung entstehen (SIMARIS therm, Simcenter 3D – Vorschlag).
 **Auftrag (Frieda):** „Die Laternen geben Licht und Wärme. Bau mit ihnen eine Siedlung, in der es gemütlich ist – aber nichts schmilzt!“
-**Kalles Versuch:** Laternen direkt zwischen alle Iglus → die Iglus zerlaufen zu Schmelzwasser.
+**Kalles Versuch:** Laternen direkt zwischen alle Iglus → die Iglus zerlaufen zu Schmelzwasser. Das passiert **draußen auf der Scholle, in echt** (kein Raster, kein ZWILLI, Kamera auf Augenhöhe), bevor es ins Labor geht. Im Labor ist das Brett erkennbar ZWILLIS Bildschirm (dunkler Rahmen, Leuchtkante, Beschriftung „ZWILLI – die Siedlung im Computer“). In Schritt 4 steht das Foto von draußen neben der Rechnung.
 
 ### Für Spielende
 

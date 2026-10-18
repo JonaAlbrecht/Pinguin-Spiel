@@ -113,3 +113,11 @@ wie die Siedlung mit Speicherglied, implizites Euler (`SettlementPairLesson`, `s
 Siedlungs-Löser auf dem Raster „L I“ genau den Gleichgewichtspunkt der Tafel liefert. Die Tafel endet mit diesem
 Punkt – Brücke zu Schritt 3 (alle Felder) und Schritt 5. Einstellung „Tempo im Huddle“ entfällt mit. Verworfen:
 Schritt 3 als Ort (Jona: direkt nach der Waage) und den Akku-Transfer mit neuem Bild behalten.
+
+**ADR-21 Kalles Versuch draußen, das Brett ist ZWILLIS Bildschirm.** Hinweis von Jona (18.10.): Kalle baute auf
+demselben Raster, auf dem später simuliert wird – es sah aus, als hätte auch Kalle simuliert, und die Botschaft
+„erst simulieren, dann bauen“ verschwamm. Jetzt baut Kalle draußen auf der Scholle neben seiner Baustelle
+(`HubWorld.PlayKalleAttempt`, Schmelzen nach demselben Modell = die Wirklichkeit des Spiels), Flocke planscht in der
+Pfütze, ein Foto der Szene steht in Schritt 4 neben der Rechnung. Das Labor-Brett hat Rahmen, Leuchtkante, kühles
+„Rechen-Eis“ und die Beschriftung „ZWILLI – die Siedlung im Computer“. Verworfen: nur das Wärmebild als Unterschied
+(zu schwach) und ein gezeichnetes Symbolbild statt Foto (zeigt nicht Kalles echte Siedlung).
