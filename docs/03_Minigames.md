@@ -59,6 +59,8 @@ Die Siedlung ist ein Raster aus Feldern auf dem Eis. Bausteine: **Iglu**, **Indu
 5. **Besser machen (Schwerpunkt) – „Der Gleichgewichtspunkt“:** 3 Runden. Strom-Budget für Laternen. Iglus, Laternen und Schneewälle verschieben, neu simulieren. Ziel: **möglichst viele Iglus**, die gemütlich sind und nicht schmelzen.
 6. **So macht's Siemens:** Wärmebild der Siedlung neben dem Wärmebild eines echten Schaltschranks.
 
+**Optional, später – zweite Simulationsrunde mit Hügeln (Wunsch von Jona, 18.10.2026):** Die Schneewälle bleiben wie sie sind. In einer zusätzlichen, freiwilligen Runde liegen feste Hügel/Berge im Gelände, die man nicht bebauen und nicht verschieben kann. Wer plant, nutzt ihren Windschatten. Modellidee: Windschatten wächst mit der Höhe (kleiner Hügel ≈ 3 Felder, Berg ≈ 6), Rechnung bleibt linear. Bezug zum Schaltschrank: Gehäuse und Lüftung sind vorgegeben, man ordnet die Bauteile geschickt an. Noch nicht umgesetzt.
+
 **Die Übersetzung im Transfer-Screen:**
 
 | In der Siedlung | Im Schaltschrank |
