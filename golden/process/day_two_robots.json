@@ -1,0 +1,90 @@
+{
+ "case": "two_robots",
+ "tiles": [
+  "D..........T",
+  "D..S.....P.T",
+  "D.....#....T",
+  "D....KFF...T",
+  "D....K#....T",
+  "D...RR.....T",
+  "D..........T"
+ ],
+ "seed": 2026,
+ "replications": 10,
+ "tolerance": 1e-09,
+ "day": {
+  "delivered": 68,
+  "finished": 68,
+  "arrived": 96,
+  "stolen": 2,
+  "spoiled": 0,
+  "leadTime": 73.4319540293,
+  "utilization": [
+   0.579725889,
+   0.5376032476,
+   0.4361653449
+  ],
+  "maxQueue": [
+   37,
+   9,
+   2
+  ],
+  "endQueue": [
+   9,
+   6,
+   0
+  ],
+  "bottleneck": 0,
+  "events": 893
+ },
+ "days": {
+  "delivered": [
+   68,
+   61,
+   59,
+   60,
+   62,
+   70,
+   57,
+   57,
+   53,
+   56
+  ],
+  "spoiled": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "stolen": [
+   2,
+   6,
+   0,
+   3,
+   3,
+   2,
+   1,
+   2,
+   3,
+   1
+  ],
+  "meanDelivered": 60.3,
+  "sdDelivered": 5.2925524193,
+  "halfWidth": 3.0679932902,
+  "lower": 57.2320067098,
+  "meanSpoiled": 0.0,
+  "meanLeadTime": 124.980797307,
+  "stars": 0,
+  "lights": [
+   1,
+   2,
+   0
+  ]
+ }
+}

@@ -1,0 +1,238 @@
+{
+  "language": "de",
+  "note": "MG3 Fischfabrik. Sprecher aus dialogue_de.json (frieda, pip, kalle, zwilli, klara) plus Olaf. Knoten beginnen mit mg3_.",
+  "speakers": [
+    {
+      "id": "olaf",
+      "name": "Fischer Olaf",
+      "color": "#805CFF"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "mg3_hall_intro",
+      "lines": [
+        { "speaker": "olaf", "text": "Ahoi, Pip! Willkommen in meiner Fischfabrik an der Küste." },
+        { "speaker": "olaf", "text": "Die Kutter liefern, der Zug bringt Nachschub – aber die Kisten stapeln sich, und das Sushi für die Siedlung kommt zu spät!" },
+        { "speaker": "pip", "text": "Wo hakt es denn?" },
+        { "speaker": "olaf", "text": "Wenn ich das wüsste! Der Fisch wird sortiert, filetiert, verpackt – und die Robo-Robben tragen die Kisten herum." }
+      ]
+    },
+    {
+      "id": "mg3_kalle_intro",
+      "lines": [
+        { "speaker": "kalle", "text": "Ganz einfach: Doppelt so viele Robo-Robben! Dann geht alles doppelt so schnell." },
+        { "speaker": "olaf", "text": "Na gut, Kalle. Wir probieren es heute aus – in echt." }
+      ]
+    },
+    {
+      "id": "mg3_kalle_after",
+      "lines": [
+        { "speaker": "olaf", "text": "Noch weniger Sushi als vorher! Und die Robo-Robben stehen sich gegenseitig im Weg." },
+        { "speaker": "kalle", "text": "Hm. Mehr Robben, mehr Gedränge. Das hab ich nicht kommen sehen." },
+        { "speaker": "frieda", "text": "Ein ganzer Tag Arbeit und viel verdorbener Fisch. Probieren wir so etwas lieber erst im Computer aus." },
+        { "speaker": "frieda", "text": "Komm mit ins Labor, Pip. ZWILLI baut die Fabrik nach – dort kostet ein Fehlversuch nichts." }
+      ]
+    },
+    {
+      "id": "mg3_lab_intro",
+      "lines": [
+        { "speaker": "zwilli", "text": "W-w-willkommen! *bzzt* Das hier ist mein Bildschirm. Alles darauf ist gerechnet, nichts ist echt." },
+        { "speaker": "frieda", "text": "Links legen die Kutter an, rechts hält der Polar-Express. Dazwischen bauen wir Olafs Fabrik nach." }
+      ]
+    },
+    {
+      "id": "mg3_cards_intro",
+      "lines": [
+        { "speaker": "frieda", "text": "Erst überlegen wir: Was müssen wir nachbauen, damit der Computer die Staus richtig vorhersagt?" }
+      ]
+    },
+    {
+      "id": "mg3_cards_done",
+      "lines": [
+        { "speaker": "frieda", "text": "Genau. Wann Fisch kommt, wie schnell jede Station arbeitet, wie viel ins Kühlregal passt und wie die Kisten wandern." },
+        { "speaker": "klara", "text": "Die Farbe der Kisten lassen wir weg. Spart Rechenzeit – und Farbe." }
+      ]
+    },
+    {
+      "id": "mg3_build_intro",
+      "lines": [
+        { "speaker": "frieda", "text": "Jetzt bau die Fabrik: eine Station zum Sortieren, eine zum Filetieren, eine zum Verpacken und ein Kühlregal." },
+        { "speaker": "frieda", "text": "Stehen zwei Stationen direkt nebeneinander, wird übergeben. Sonst brauchst du ein Förderband oder Robo-Robben." },
+        { "speaker": "olaf", "text": "Und denk ans Geld. Mehr als das Startgeld habe ich gerade nicht." }
+      ]
+    },
+    {
+      "id": "mg3_build_done",
+      "lines": [
+        { "speaker": "zwilli", "text": "F-f-fabrik steht! *bzzt* Das ist jetzt ein Modell: nur das, was für den Fischweg wichtig ist." }
+      ]
+    },
+    {
+      "id": "mg3_rule_intro",
+      "lines": [
+        { "speaker": "frieda", "text": "Welche Regel gilt in einer Fabrik? Denk an die Kasse im Supermarkt." }
+      ]
+    },
+    {
+      "id": "mg3_rule_done",
+      "lines": [
+        { "speaker": "frieda", "text": "Richtig: Kommen mehr, als die Kasse schafft, wird die Schlange länger. Je länger etwas wartet, desto voller wird das Lager." }
+      ]
+    },
+    {
+      "id": "mg3_lesson_intro",
+      "lines": [
+        { "speaker": "frieda", "text": "Das rechnen wir jetzt von Hand nach – an einer einzigen Station, der Filetier-Station." },
+        { "speaker": "frieda", "text": "Der Computer schaut nur auf Momente, in denen sich etwas ändert: Eine Kiste kommt an oder wird fertig." },
+        { "speaker": "frieda", "text": "Drück auf „Nächstes Ereignis“. Die Tafel zeigt, wie viele Kisten danach an der Station sind." }
+      ]
+    },
+    {
+      "id": "mg3_lesson_conservation",
+      "lines": [
+        { "speaker": "frieda", "text": "Siehst du? Kisten verschwinden nicht. Was ankommt, wartet im Regal oder ist in Arbeit – bis es fertig rausgeht." }
+      ]
+    },
+    {
+      "id": "mg3_lesson_queue",
+      "lines": [
+        { "speaker": "pip", "text": "Jetzt warten schon drei Kisten!" },
+        { "speaker": "frieda", "text": "Zwei Kisten kamen kurz hintereinander, die Station braucht für jede eine Weile. So wächst ein Stapel." }
+      ]
+    },
+    {
+      "id": "mg3_lesson_done",
+      "lines": [
+        { "speaker": "frieda", "text": "Mal wächst der Stapel, mal leert er sich. Immer gilt: vorher, plus was kommt, minus was fertig wird." },
+        { "speaker": "zwilli", "text": "D-d-das rechne ich gleich für alle Stationen zugleich! *bzzt* Hunderte Ereignisse pro Schicht – ich springe von einem zum nächsten." }
+      ]
+    },
+    {
+      "id": "mg3_flow_intro",
+      "lines": [
+        { "speaker": "frieda", "text": "Alles hängt zusammen: Jede Station bekommt ihren Fisch von der vorigen. Zeig mir den Weg des Fischs!" },
+        { "speaker": "frieda", "text": "Tipp die Stationen der Reihe nach an – von der Anlegestelle bis zur Verladung." }
+      ]
+    },
+    {
+      "id": "mg3_flow_done",
+      "lines": [
+        { "speaker": "frieda", "text": "Genau so wandert der Fisch. Staut es sich an einer Stelle, merken das alle dahinter – und alle davor." }
+      ]
+    },
+    {
+      "id": "mg3_run_intro",
+      "lines": [
+        { "speaker": "frieda", "text": "Jetzt lassen wir eine ganze Schicht laufen – im Zeitraffer. Drück auf „Schicht starten“." }
+      ]
+    },
+    {
+      "id": "mg3_run_done",
+      "lines": [
+        { "speaker": "frieda", "text": "Wo die Kisten sich stapeln, ist der Engpass. Die langsamste Stelle bestimmt, wie viel Sushi rauskommt." },
+        { "speaker": "olaf", "text": "Und das alles, ohne dass auch nur ein Fisch verdorben ist. Im Computer jedenfalls." }
+      ]
+    },
+    {
+      "id": "mg3_explain",
+      "lines": [
+        { "speaker": "pip", "text": "Wie hat ZWILLI das so schnell gerechnet?" },
+        { "speaker": "frieda", "text": "Genau wie wir an der Tafel: vorher, plus was kommt, minus was fertig wird. Nur für alle Stationen zugleich." },
+        { "speaker": "zwilli", "text": "I-i-ich springe von Ereignis zu Ereignis: Kutter legt an, Kiste fertig, Robbe zurück. *bzzt* Dazwischen passiert nichts." }
+      ]
+    },
+    {
+      "id": "mg3_gulls_intro",
+      "lines": [
+        { "speaker": "olaf", "text": "Schön und gut. Aber in echt ist jeder Tag anders! Mal kommen die Kutter spät, mal klauen die Möwen." },
+        { "speaker": "frieda", "text": "Das ist die Möwen-Frage. Probier „Noch ein Tag“: gleicher Plan, nur anderes Glück." }
+      ]
+    },
+    {
+      "id": "mg3_gulls_another",
+      "lines": [
+        { "speaker": "pip", "text": "Gleicher Plan – und trotzdem ein anderes Ergebnis!" },
+        { "speaker": "frieda", "text": "Ein einziger Tag sagt wenig. Drück auf „10 Tage simulieren“ – dann sehen wir gute und schlechte Tage." }
+      ]
+    },
+    {
+      "id": "mg3_gulls_days",
+      "lines": [
+        { "speaker": "frieda", "text": "Jeder Balken ist ein Tag. Erst viele Tage zusammen zeigen, wie gut ein Plan wirklich ist." },
+        { "speaker": "zwilli", "text": "Z-z-zehn Tage in einem Wimpernschlag! *bzzt* Jeder Tag mit anderem Wetter, anderen Möwen, anderen Pannen." }
+      ]
+    },
+    {
+      "id": "mg3_improve_intro",
+      "lines": [
+        { "speaker": "olaf", "text": "Ich lege noch Geld drauf. Mach die Fabrik besser – Sushi pünktlich, kaum verdorbener Fisch." },
+        { "speaker": "frieda", "text": "Für drei Sterne muss es auch an schlechten Tagen reichen. Die blinkende Station ist der Engpass – fang dort an." },
+        { "speaker": "klara", "text": "Ich schreibe nach jeder Runde mit, was die Änderung gebracht hat." }
+      ]
+    },
+    {
+      "id": "mg3_improve_one_star",
+      "lines": [
+        { "speaker": "olaf", "text": "Das Sushi kommt pünktlich! Aber es verdirbt noch zu viel Fisch, weil das Kühlregal überläuft." }
+      ]
+    },
+    {
+      "id": "mg3_improve_two_stars",
+      "lines": [
+        { "speaker": "frieda", "text": "Im Schnitt klappt es! Nur an schlechten Tagen wird es knapp. Ein bisschen Reserve fehlt noch." }
+      ]
+    },
+    {
+      "id": "mg3_improve_three_stars",
+      "lines": [
+        { "speaker": "olaf", "text": "Drei Sterne! Pünktlich, frisch und auch an schlechten Tagen. So bauen wir das!" },
+        { "speaker": "kalle", "text": "Und das, ohne vorher einen einzigen Tag echte Fische zu verschwenden. Respekt." }
+      ]
+    },
+    {
+      "id": "mg3_hint_bottleneck",
+      "lines": [
+        { "speaker": "frieda", "text": "Schau, wo sich die Kisten stapeln. Eine zweite Station dort hilft mehr als alles andere." }
+      ]
+    },
+    {
+      "id": "mg3_hint_spoil",
+      "lines": [
+        { "speaker": "frieda", "text": "Viel Fisch verdirbt, weil das Kühlregal voll ist. Ein zweites Regal fängt die Spitzen ab." }
+      ]
+    },
+    {
+      "id": "mg3_hint_robots",
+      "lines": [
+        { "speaker": "kalle", "text": "Zu viele Robo-Robben stehen sich im Weg, zu wenige schaffen es nicht. Oder Stationen direkt nebeneinander stellen!" }
+      ]
+    },
+    {
+      "id": "mg3_solution",
+      "lines": [
+        { "speaker": "frieda", "text": "Ich hab hier eine Beispiel-Fabrik. Lade sie mit dem Knopf links – und schau, was sie anders macht." }
+      ]
+    },
+    {
+      "id": "mg3_improve_done",
+      "lines": [
+        { "speaker": "olaf", "text": "Danke, Pip! Morgen bauen wir das in echt um – und wissen schon vorher, dass es klappt." },
+        { "speaker": "frieda", "text": "Ehrlich gesagt ist ZWILLIS Fabrik stark vereinfacht. Echte Simulationen bei Siemens sind viel genauer." }
+      ]
+    },
+    {
+      "id": "mg3_transfer_after",
+      "lines": [
+        { "speaker": "frieda", "text": "Siehst du? Was du mit Olafs Fabrik gemacht hast, machen Fabrikplaner bei Siemens jeden Tag." },
+        { "speaker": "pip", "text": "Erst im Computer laufen lassen, dann umbauen. Das merke ich mir!" }
+      ]
+    },
+    {
+      "id": "mg3_hub_olaf",
+      "lines": [
+        { "speaker": "olaf", "text": "Seit dem Umbau stapelt sich nichts mehr. Und das Sushi kommt pünktlich in die Siedlung!" }
+      ]
+    }
+  ]
+}
