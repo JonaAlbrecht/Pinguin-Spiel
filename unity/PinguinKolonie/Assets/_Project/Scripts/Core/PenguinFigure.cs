@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace SFE.Game
@@ -75,6 +76,17 @@ namespace SFE.Game
             int slots = Mathf.Max(2, Mathf.Max(headSlot, hasFace ? faceSlot : 0) + 1);
             var s = _shape;
             int segs = ArtStyle.Detail.FigureSegments, rings = ArtStyle.Detail.FigureRings;
+            if (!ArtStyle.Shading.Flat)
+            {
+                // Realistisch (ADR-27): eine Form, Farben als Bild mit geglätteten Grenzen. Die Facetten-Stufen am
+                // Bauch wirkten sonst bei weicher Schattierung wie Pixel-Treppen.
+                var smooth = Shapes.Cached($"penguin{s.GetHashCode()}_{segs}_{rings}_uv",
+                    () => Shapes.Revolve(_outline.Rings(rings), segs, s.Depth));
+                var torso = Part("Torso", smooth, Vector3.zero, Vector3.one * _h, Quaternion.identity, back);
+                torso.GetComponent<Renderer>().sharedMaterial =
+                    Prims.Textured(TorsoTexture(s, back, belly, head, hasFace ? face : head));
+                return;
+            }
             string key = $"penguin{s.GetHashCode()}_{segs}_{rings}_{headSlot}{faceSlot}{slots}";
             var mesh = Shapes.Cached(key, () => Shapes.Revolve(_outline.Rings(rings), segs, s.Depth,
                 region: (y, a) => Region(s, y, a, headSlot, hasFace ? faceSlot : headSlot), submeshes: slots));
@@ -86,6 +98,43 @@ namespace SFE.Game
             if (headSlot != BackSlot) mats[headSlot] = Prims.Mat(head);
             if (hasFace && faceSlot >= 2) mats[faceSlot] = Prims.Mat(face);
             go.GetComponent<Renderer>().sharedMaterials = mats;
+        }
+
+        private static readonly Dictionary<string, Texture2D> TorsoTextures = new Dictionary<string, Texture2D>();
+
+        /// <summary>
+        /// Farbbild des Körpers: u = Winkel (−180…180°, 0 = vorn), v = Höhe. Jeder Bildpunkt mittelt 4 × 4 Proben der
+        /// Farbregeln aus <see cref="Region"/> – die Grenze zwischen Bauch und Rücken wird so weich wie gemalt.
+        /// </summary>
+        private static Texture2D TorsoTexture(PenguinShape s, Color back, Color belly, Color head, Color face)
+        {
+            string key = $"{s.GetHashCode()}_{back}_{belly}_{head}_{face}";
+            if (TorsoTextures.TryGetValue(key, out var cached) && cached != null) return cached;
+            const int w = 512, h = 256, n = 4;
+            Color[] bySlot = { back, belly, head, face };
+            var px = new Color[w * h];
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    var sum = Color.clear;
+                    for (int sy = 0; sy < n; sy++)
+                        for (int sx = 0; sx < n; sx++)
+                        {
+                            float u = (x + (sx + 0.5f) / n) / w, v = (y + (sy + 0.5f) / n) / h;
+                            sum += bySlot[Region(s, v, -180f + 360f * u, 2, 3)];
+                        }
+                    px[y * w + x] = sum / (n * n);
+                }
+            }
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, true)
+            {
+                name = "Torso", wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Trilinear, anisoLevel = 8,
+            };
+            tex.SetPixels(px);
+            tex.Apply(true, true);
+            TorsoTextures[key] = tex;
+            return tex;
         }
 
         private static int Region(PenguinShape s, float y, float a, int headSlot, int faceSlot)
@@ -120,12 +169,14 @@ namespace SFE.Game
                     var p = Prims.Make(PrimitiveType.Sphere, eye.transform, new Vector3(0, -0.02f, 0.42f), new Vector3(0.55f, 0.6f, 0.5f),
                         Palette.PenguinBlack, "Pupil", segments: ArtStyle.Detail.SmallSegments);
                     p.transform.localRotation = Quaternion.identity;
+                    Prims.SetSurface(eye, ArtStyle.Surface.Glossy); // feuchter Glanz im Auge (mit Pupille)
                 }
                 else
                 {
                     var eye = Prims.Make(PrimitiveType.Sphere, _body, at, new Vector3(d * 0.7f, d * 0.8f, d * 0.4f), pupil, "Eye" + n,
                         segments: ArtStyle.Detail.SmallSegments);
                     eye.transform.localRotation = turn;
+                    Prims.SetSurface(eye, ArtStyle.Surface.Glossy);
                 }
 
                 if (s.EarPatches)

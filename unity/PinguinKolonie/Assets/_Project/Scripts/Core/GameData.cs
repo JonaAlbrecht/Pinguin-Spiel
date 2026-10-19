@@ -86,6 +86,7 @@ namespace SFE.Game
                     MergeUi(target, sub, source);
                     continue;
                 }
+                if (kv.Key == "note") continue; // Kommentar in der JSON-Datei, kein Text (sonst „doppelt“ bei jedem Minigame)
                 if (into.ContainsKey(kv.Key)) Debug.LogError($"Oberflächentext doppelt ({source}): {kv.Key}");
                 into[kv.Key] = kv.Value;
             }

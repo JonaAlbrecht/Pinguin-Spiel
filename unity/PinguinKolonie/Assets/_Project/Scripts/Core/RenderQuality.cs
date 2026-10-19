@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.Rendering;
+using UniversalRenderPipelineAsset = UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset;
 
 namespace SFE.Game
 {
@@ -47,12 +49,36 @@ namespace SFE.Game
             QualitySettings.globalTextureMipmapLimit = 0;
 
             cam.allowMSAA = true;
+            ApplyUrp(high, web);
+            RenderLook.SetupCamera(cam);
             if (sun != null)
             {
                 sun.shadowResolution = high ? UnityEngine.Rendering.LightShadowResolution.VeryHigh : UnityEngine.Rendering.LightShadowResolution.Medium;
                 sun.shadowBias = 0.03f;
                 sun.shadowNormalBias = 0.3f;     // keine Streifen („Shadow Acne“) auf den runden Formen
             }
+        }
+
+        private static UniversalRenderPipelineAsset _runtimeUrp;
+
+        /// <summary>
+        /// Unter URP stehen Kantenglättung, Auflösung und Schatten im Pipeline-Asset. Geändert wird eine Laufzeitkopie –
+        /// sonst schriebe jede Einstellung im Editor das Asset auf die Platte zurück.
+        /// </summary>
+        private static void ApplyUrp(bool high, bool web)
+        {
+            if (!(GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset current)) return;
+            if (_runtimeUrp == null || current != _runtimeUrp)
+            {
+                _runtimeUrp = Object.Instantiate(current);
+                _runtimeUrp.name = current.name + " (Laufzeit)";
+                QualitySettings.renderPipeline = _runtimeUrp;
+            }
+            _runtimeUrp.msaaSampleCount = high ? 4 : 2;
+            // WebGL auf schwachen Laptops: etwas unter voller Auflösung rechnen, SMAA glättet den Rest.
+            _runtimeUrp.renderScale = high ? 1f : web ? 0.8f : 0.9f;
+            _runtimeUrp.shadowDistance = high ? 90f : 60f;
+            _runtimeUrp.shadowCascadeCount = high ? 4 : 2;
         }
     }
 }

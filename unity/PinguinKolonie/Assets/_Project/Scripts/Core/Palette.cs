@@ -73,6 +73,14 @@ namespace SFE.Game
 
         // ---------- Welt ----------
         public static readonly Color Sky = Tint(Siemens.Blue, 0.32f);
+        /// <summary>Realistischer Himmel (ADR-27): Tönung des Himmels, Boden unter dem Horizont, Dunst am Horizont.</summary>
+        public static readonly Color SkyTint = Siemens.DeepBlue30;
+        public static readonly Color SkyGround = Shade(Siemens.DarkBlue, 0.35f);
+        public static readonly Color Haze = Tint(Siemens.SoftBlue, 0.30f);
+        /// <summary>Himmelslicht (dreifarbig): blau von oben, hell am Horizont, vom Schnee hell zurückgeworfen.</summary>
+        public static readonly Color AmbientSky = Tint(Siemens.Blue, 0.55f);
+        public static readonly Color AmbientHorizon = Tint(Siemens.SoftBlue, 0.35f);
+        public static readonly Color AmbientGround = Tint(Siemens.SoftBlue, 0.18f);
         public static readonly Color Sea = Siemens.DarkBlue;
         public static readonly Color Ice = Tint(Siemens.SoftBlue, 0.20f);
         public static readonly Color IceShadow = Tint(Siemens.SoftBlue, 0.34f);

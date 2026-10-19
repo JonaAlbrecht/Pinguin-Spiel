@@ -66,7 +66,7 @@ Verworfen: Schaltschrank zweimal zeigen (Wiederholung).
 keines davon; sie sind wieder entfernt. `com.unity.modules.textrendering` gibt es in Unity 6.4 nicht mehr als Paket –
 die Prüfung in `check.ps1` hätte das vor dem Öffnen gemeldet.
 
-**ADR-15 Bildqualität in der eingebauten Pipeline, URP später.** Ursachen der Pixeligkeit (Spieltest 17.10.): MSAA nur 2×
+**ADR-15 Bildqualität in der eingebauten Pipeline, URP später.** *(Umstieg erfolgt mit ADR-27.)* Ursachen der Pixeligkeit (Spieltest 17.10.): MSAA nur 2×
 (WebGL 0×), 8-Texel-Felder mit 1-Texel-Gitterlinien stark vergrößert, nur 2–4 Pixel-Lichter bei bis zu 13 Laternen,
 TextMesh mit fontSize 64, 96-px-Symbolbilder. Behoben per Code (`RenderQuality`, Felder als 1 Texel ohne Glättung +
 Gitterlinien als 3D-Streifen, Schrift in 160 gerastert, Bilder 256–288 px). Verworfen für jetzt: Umstieg auf URP
@@ -75,7 +75,7 @@ weil Materialien dabei leicht rosa werden. Vorschlag für den nächsten Schritt.
 
 ## 2026-10-17 – Stilregeln und neue Pinguine
 
-**ADR-16 Ein Stil aus Code statt fremder Assets.** Die Pinguine waren Kugeln und Würfel („Schneemann“). Statt freier
+**ADR-16 Ein Stil aus Code statt fremder Assets.** *(Schattierung und Detailgrad ersetzt durch ADR-27; „aus Code statt fremder Assets“ gilt weiter.)* Die Pinguine waren Kugeln und Würfel („Schneemann“). Statt freier
 Modelle (OpenGameArt CC0, Poly Pizza CC-BY, Asset Store) baut `PenguinFigure` sie aus einem Drehprofil – Entscheidung
 von Jona, damit alles aus einem Guss bleibt. Schattierung, Detailgrad und Proportionen stehen zentral in `ArtStyle.cs`
 (docs/07); alle runden Grundformen laufen über `Shapes` und werden facettiert, Materialien matt. Prüfen per
@@ -156,3 +156,19 @@ erklären). Die Rechentafel nutzt dieselbe Simulation mit einer Station. Die Mö
 **ADR-26 Spielablauf über drei Minigames.** Siedlung → Hub → Tilda am Gleis (MG2) → Hub → Olaf an der Küste (MG3) →
 Abschluss mit drei Karten; danach lässt sich jedes Minigame wiederholen. Tilda und Olaf erscheinen im Hub erst, wenn
 sie dran sind, und haben eigene Looks. Der Zugtakt von MG3 kommt (noch) nicht aus dem MG2-Ergebnis.
+
+## 2026-10-19 – Realistischer Look
+
+**ADR-27 URP und realistische Darstellung statt Diorama-Facetten.** Wunsch von Jona: „Verpixelung und Grafikqualität
+ändern, das Spiel soll ultra realistisch aussehen“. Umgesetzt, ohne fremde Modelle oder Texturen (ADR-16 bleibt
+insoweit): Universal Render Pipeline 17.4 (Forward+, HDR, 4× MSAA + SMAA, 4096er weiche Schatten, SSAO, linearer
+Farbraum), ACES-Tonemapping, Bloom für Laternen, Farbkorrektur, Vignette, Dunst, prozeduraler Himmel mit
+Himmels-Cubemap für Spiegelungen, dreifarbiges Himmelslicht. Weiche Rundungen mit hoher Segmentzahl, physikalische
+Oberflächen (`ArtStyle.Surfaces`: Schnee, Eis, Wasser, Gefieder, Metall, Glanz, Licht) mit prozeduralen
+Normal-Maps (`SurfaceTextures`), Pinguinkörper mit gemaltem Farbbild statt Stufen-Grenzen. Pipeline-Assets entstehen
+reproduzierbar über `RenderPipelineSetup` (Menü/Batchmode); `RenderQuality` ändert nur eine Laufzeitkopie.
+Geprüft per Stilprobe im Batchmode (eigener Worktree, damit der offene Editor unberührt bleibt). Grenzen: Die Figuren
+bleiben stilisierte Pinguine aus Drehprofilen – „fotorealistisch“ ginge nur mit modellierten, texturierten Assets
+(Blender, Federn, Fell-Shader). Verworfen: HDRP (kein WebGL), Post Processing Stack v2 in der eingebauten Pipeline
+(veraltet), Umgebungslicht per `DynamicGI.UpdateEnvironment` und Reflexionssonde (asynchron – erstes Bild zufällig
+getönt).

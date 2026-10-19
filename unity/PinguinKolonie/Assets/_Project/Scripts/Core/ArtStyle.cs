@@ -10,35 +10,35 @@ namespace SFE.Game
     /// </summary>
     public static class ArtStyle
     {
-        /// <summary>Wie Licht auf die Formen fällt: matte Facetten unter weicher Wintersonne (Diorama-Look).</summary>
+        /// <summary>
+        /// Wie Licht auf die Formen fällt. Seit 19.10.2026 realistisch (ADR-27, Wunsch von Jona: „ultra realistisch“):
+        /// weiche Rundungen, physikalische Oberflächen, tief stehende Polarsonne, Himmelslicht aus dem Himmel selbst.
+        /// Vorher: matte Facetten unter weicher Wintersonne (Diorama-Look, ADR-16).
+        /// </summary>
         public static class Shading
         {
             /// <summary>
-            /// Facetten statt weicher Rundungen: Jede Fläche hat einen Farbton. So sehen Kugeln, Würfel und Figuren
-            /// aus einem Guss aus, und eine niedrige Segmentzahl wirkt gewollt statt grob.
+            /// Facetten (true) oder weiche Rundungen (false). Realistisch heißt weich – die Segmentzahlen in
+            /// <see cref="Detail"/> sind dafür hoch genug, dass man keine Kanten sieht.
             /// </summary>
-            public static readonly bool Flat = true;
+            public static readonly bool Flat = false;
 
-            /// <summary>0 = stumpf wie Schnee, 1 = Spiegel. Unity setzt 0,5 – das glänzte wie Plastik.</summary>
-            public static readonly float Smoothness = 0.12f;
+            /// <summary>Standard-Glanz für alles ohne eigene Oberfläche (Federn, Holz, Stoff): leicht seidig.</summary>
+            public static readonly float Smoothness = 0.32f;
 
-            // Farbtreue: Sonne und Himmelslicht zusammen ergeben auf Flächen von oben etwa 1,2 – die Palettenfarbe
-            // erscheint fast so, wie sie im Siemens-Schema steht. Vorher (1,1 + 0,7) überstrahlte alles: Dark Blue
-            // wurde Knallblau, Eis und Iglu verschwammen zu reinem Weiß.
-            public static readonly Color SunColor = new Color(1f, 0.97f, 0.92f);
-            public static readonly float SunIntensity = 0.85f;
-            public static readonly Vector3 SunAngles = new Vector3(55f, -35f, 0f);
-            /// <summary>Kühles Himmelslicht von überall: hebt die Schattenseite an, damit Schwarz nicht absäuft.</summary>
+            // Licht in physikalischen Verhältnissen (linearer Farbraum, HDR, ACES-Tonemapping in RenderLook):
+            // Die Sonne ist deutlich heller als das Himmelslicht, die Schatten bleiben trotzdem bläulich aufgehellt.
+            public static readonly Color SunColor = new Color(1f, 0.93f, 0.84f);
+            public static readonly float SunIntensity = 2.1f;
+            /// <summary>Polarsonne: tief und seitlich – lange Schatten, Streiflicht auf Schnee.</summary>
+            public static readonly Vector3 SunAngles = new Vector3(32f, -40f, 0f);
+            /// <summary>Kühles Himmelslicht, nur als Rückfall ohne Himmel (RenderLook nimmt sonst den Himmel selbst).</summary>
             public static readonly Color Ambient = new Color(0.46f, 0.50f, 0.57f);
-            /// <summary>Weichere, freundlichere Schatten; 1 wäre tiefschwarz.</summary>
-            public static readonly float ShadowStrength = 0.65f;
+            public static readonly float AmbientIntensity = 1.05f;
+            /// <summary>Echte Schatten sind satt; das Himmelslicht hellt sie bläulich auf.</summary>
+            public static readonly float ShadowStrength = 0.92f;
 
-            public static void ApplyTo(Material m)
-            {
-                if (m.HasProperty("_Glossiness")) m.SetFloat("_Glossiness", Smoothness);   // eingebaute Pipeline
-                if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", Smoothness);   // URP
-                if (m.HasProperty("_Metallic")) m.SetFloat("_Metallic", 0f);
-            }
+            public static void ApplyTo(Material m) => Surfaces.ApplyTo(m, Surface.Default);
 
             public static void ApplyTo(Light sun)
             {
@@ -46,10 +46,111 @@ namespace SFE.Game
                 sun.intensity = SunIntensity;
                 sun.transform.rotation = Quaternion.Euler(SunAngles);
                 sun.shadowStrength = ShadowStrength;
-                // Ohne Flat wirkt ambientLight nicht: Eine leere Szene steht auf Skybox-Umgebungslicht (Review zu PR #2).
+                // Rückfall ohne Himmel (Stilprobe alter Art, Tests): flaches Himmelslicht. RenderLook schaltet auf den Himmel um.
                 RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
                 RenderSettings.ambientLight = Ambient;
             }
+        }
+
+        /// <summary>Oberflächenarten. Welche ein Teil hat, entscheidet der Bau (Prims) – die Werte stehen in <see cref="Surfaces"/>.</summary>
+        public enum Surface { Default, Snow, Ice, Water, Glossy, Metal, Glow, Feather }
+
+        /// <summary>
+        /// Physikalische Oberflächen (URP Lit): Glanz, Metall, Struktur (prozedurale Normal-Map) und Leuchten.
+        /// Werte nach realen Materialien: Neuschnee ist stumpf mit feiner Körnung, Eis glatt mit Schlieren,
+        /// Wasser fast ein Spiegel mit Wellen, Laternenglas leuchtet über die Bloom-Schwelle hinaus.
+        /// </summary>
+        public static class Surfaces
+        {
+            public sealed class Spec
+            {
+                public float Smoothness;
+                public float Metallic;
+                /// <summary>Welche prozedurale Struktur (null = glatt) und wie stark.</summary>
+                public SurfaceTextures.Kind? Normal;
+                public float NormalStrength = 1f;
+                /// <summary>Wiederholungen der Struktur je Meter (Struktur bleibt gleich groß, egal wie groß das Teil ist).</summary>
+                public float TilesPerMeter = 1f;
+                /// <summary>Leuchtkraft relativ zur Grundfarbe (HDR, über 1 blüht es im Bloom).</summary>
+                public float Emission;
+            }
+
+            public static readonly Spec Default = new Spec { Smoothness = Shading.Smoothness };
+            public static readonly Spec Snow = new Spec { Smoothness = 0.18f, Normal = SurfaceTextures.Kind.Snow, NormalStrength = 0.55f, TilesPerMeter = 0.9f };
+            public static readonly Spec Ice = new Spec { Smoothness = 0.62f, Normal = SurfaceTextures.Kind.Snow, NormalStrength = 0.35f, TilesPerMeter = 0.35f };
+            public static readonly Spec Water = new Spec { Smoothness = 0.94f, Normal = SurfaceTextures.Kind.Waves, NormalStrength = 0.45f, TilesPerMeter = 0.12f };
+            public static readonly Spec Glossy = new Spec { Smoothness = 0.86f };
+            public static readonly Spec Metal = new Spec { Smoothness = 0.58f, Metallic = 0.85f };
+            public static readonly Spec Glow = new Spec { Smoothness = 0.7f, Emission = 3.2f };
+            /// <summary>Gefieder: feine Struktur, leichter Glanz wie bei echtem Pinguin-Gefieder (dicht, ölig).</summary>
+            public static readonly Spec Feather = new Spec { Smoothness = 0.42f, Normal = SurfaceTextures.Kind.Snow, NormalStrength = 0.11f, TilesPerMeter = 6f };
+
+            public static Spec For(Surface s)
+            {
+                switch (s)
+                {
+                    case Surface.Snow: return Snow;
+                    case Surface.Ice: return Ice;
+                    case Surface.Water: return Water;
+                    case Surface.Glossy: return Glossy;
+                    case Surface.Metal: return Metal;
+                    case Surface.Glow: return Glow;
+                    case Surface.Feather: return Feather;
+                    default: return Default;
+                }
+            }
+
+            /// <summary>Oberfläche nach Farbe, wo die Farbe eindeutig ist (Eis, Meer, Wasser, Laternenlicht).</summary>
+            public static Surface ByColor(Color c)
+            {
+                if (c == Palette.Ice || c == Palette.IceShadow) return Surface.Ice;
+                if (c == Palette.Sea || c == Palette.Water) return Surface.Water;
+                if (c == Palette.LanternGlow) return Surface.Glow;
+                return Surface.Default;
+            }
+
+            public static void ApplyTo(Material m, Surface surface)
+            {
+                var s = For(surface);
+                if (m.HasProperty("_Glossiness")) m.SetFloat("_Glossiness", s.Smoothness);   // eingebaute Pipeline
+                if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", s.Smoothness);   // URP
+                if (m.HasProperty("_Metallic")) m.SetFloat("_Metallic", s.Metallic);
+                if (s.Normal.HasValue && m.HasProperty("_BumpMap"))
+                {
+                    m.SetTexture("_BumpMap", SurfaceTextures.Get(s.Normal.Value));
+                    m.SetFloat("_BumpScale", s.NormalStrength);
+                    m.EnableKeyword("_NORMALMAP");
+                }
+                if (s.Emission > 0f && m.HasProperty("_EmissionColor"))
+                {
+                    m.SetColor("_EmissionColor", m.color * s.Emission);
+                    m.EnableKeyword("_EMISSION");
+                    m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Himmel, Dunst und Nachbearbeitung (RenderLook). Werte für einen klaren Polartag: tiefblauer Zenit,
+        /// heller Horizont, leichter Dunst über dem Meer, ACES-Tonemapping wie im Film.
+        /// </summary>
+        public static class Atmosphere
+        {
+            public static readonly float SunSize = 0.035f;
+            public static readonly float AtmosphereThickness = 0.7f;
+            public static readonly float SkyExposure = 1.1f;
+            /// <summary>Dichte des Dunsts (exponentiell²): ab ~150 m verschwimmt das Meer mit dem Horizont.</summary>
+            public static readonly float FogDensity = 0.0065f;
+
+            public static readonly float PostExposure = 0.15f;
+            public static readonly float Contrast = 14f;
+            public static readonly float Saturation = 6f;
+            public static readonly float BloomThreshold = 1.05f;
+            public static readonly float BloomIntensity = 0.55f;
+            public static readonly float BloomScatter = 0.68f;
+            public static readonly float Vignette = 0.2f;
+            /// <summary>Umgebungsverdeckung (SSAO): dunkelt Fugen, Kontaktflächen und Ecken ab.</summary>
+            public static readonly float AmbientOcclusion = 1.1f;
         }
 
         /// <summary>
@@ -62,18 +163,18 @@ namespace SFE.Game
         public static class Detail
         {
             /// <summary>Segmente rundum für Figurenkörper und alles, was eng an ihnen anliegt (Kleidung).</summary>
-            public static readonly int FigureSegments = 16;
+            public static readonly int FigureSegments = 48;
             /// <summary>Ringe von den Füßen bis zum Scheitel einer Figur.</summary>
-            public static readonly int FigureRings = 14;
+            public static readonly int FigureRings = 40;
             /// <summary>Segmente rundum für mittlere Teile der Figuren (Flossen, Brillenfassung).</summary>
-            public static readonly int Segments = 12;
+            public static readonly int Segments = 32;
             /// <summary>Segmente rundum für Kleinteile kleiner als etwa eine Handbreit.</summary>
-            public static readonly int SmallSegments = 8;
+            public static readonly int SmallSegments = 20;
 
             /// <summary>Angestrebte Kantenlänge einer Facette am Umfang von Bauten, in Metern.</summary>
-            public static readonly float FacetLength = 0.3f;
-            /// <summary>Grenzen für Bauten: unter 8 wird rund eckig, über 48 sieht man keinen Unterschied mehr.</summary>
-            public static readonly int MinSegments = 8, MaxSegments = 48;
+            public static readonly float FacetLength = 0.08f;
+            /// <summary>Grenzen für Bauten: weich gerundet (realistisch, ADR-27) – unter 20 sähe man Kanten, über 128 keinen Unterschied.</summary>
+            public static readonly int MinSegments = 20, MaxSegments = 128;
 
             /// <summary>Segmente rundum für eine runde Form mit diesem Durchmesser (Vielfaches von 4, damit sie symmetrisch bleibt).</summary>
             public static int SegmentsFor(float diameter)

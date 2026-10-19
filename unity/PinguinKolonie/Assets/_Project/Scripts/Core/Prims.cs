@@ -12,7 +12,9 @@ namespace SFE.Game
     {
         private static Material _lit;
         private static Material _unlit;
-        private static readonly Dictionary<Color, Material> Cache = new Dictionary<Color, Material>();
+        private static readonly Dictionary<(Color, ArtStyle.Surface, int), Material> Cache = new Dictionary<(Color, ArtStyle.Surface, int), Material>();
+        /// <summary>Welche Oberfläche ein Material hat – damit Umfärben (SetColor) Schnee Schnee bleiben lässt.</summary>
+        private static readonly Dictionary<Material, (ArtStyle.Surface, int)> SurfaceOf = new Dictionary<Material, (ArtStyle.Surface, int)>();
 
         private static Material LitBase
         {
@@ -52,14 +54,50 @@ namespace SFE.Game
         /// stufenlos nach Temperatur, ohne Rundung entstanden so rund 100 neue Materialien pro Sekunde,
         /// die der Cache nie freigab (Review zu PR #2). 32 Stufen je Kanal sieht man nicht als Sprung.
         /// </summary>
-        public static Material Mat(Color color)
+        public static Material Mat(Color color) => Mat(color, ArtStyle.Surfaces.ByColor(Quantize(color)), 1);
+
+        /// <summary>
+        /// Material mit physikalischer Oberfläche (ADR-27). <paramref name="tiling"/> = Wiederholungen der Struktur
+        /// über das ganze Teil – aus der Größe in der Welt, damit Schneekörner auf Scholle und Iglu gleich groß sind.
+        /// </summary>
+        public static Material Mat(Color color, ArtStyle.Surface surface, int tiling)
         {
             color = Quantize(color);
-            if (Cache.TryGetValue(color, out var m) && m != null) return m;
+            var key = (color, surface, tiling);
+            if (Cache.TryGetValue(key, out var m) && m != null) return m;
             m = new Material(LitBase) { color = color };
-            ArtStyle.Shading.ApplyTo(m);
-            Cache[color] = m;
+            ArtStyle.Surfaces.ApplyTo(m, surface);
+            if (tiling > 1) m.mainTextureScale = new Vector2(tiling, tiling);
+            Cache[key] = m;
+            SurfaceOf[m] = (surface, tiling);
             return m;
+        }
+
+        private static readonly Dictionary<Texture, Material> TexturedCache = new Dictionary<Texture, Material>();
+
+        /// <summary>Material mit Farbbild statt Einzelfarbe (Pinguinkörper mit gemalten Farbgrenzen, ADR-27).</summary>
+        public static Material Textured(Texture2D albedo)
+        {
+            if (TexturedCache.TryGetValue(albedo, out var m) && m != null) return m;
+            m = new Material(LitBase) { color = Color.white, mainTexture = albedo };
+            ArtStyle.Surfaces.ApplyTo(m, ArtStyle.Surface.Feather);
+            TexturedCache[albedo] = m;
+            return m;
+        }
+
+        /// <summary>Wiederholungen der Struktur für ein Teil dieser Größe (Meter).</summary>
+        public static int TilingFor(ArtStyle.Surface surface, float size) =>
+            Mathf.Max(1, Mathf.RoundToInt(size * ArtStyle.Surfaces.For(surface).TilesPerMeter));
+
+        /// <summary>Oberfläche eines gebauten Teils (und aller Kinder) setzen, Farbe bleibt.</summary>
+        public static void SetSurface(GameObject go, ArtStyle.Surface surface)
+        {
+            foreach (var r in go.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r.GetComponent<TextMesh>() != null) continue; // Schilder behalten ihre Schrift
+                var b = r.bounds.size;
+                r.sharedMaterial = Mat(r.sharedMaterial.color, surface, TilingFor(surface, Mathf.Max(b.x, b.z)));
+            }
         }
 
         private static Color Quantize(Color c)
@@ -89,11 +127,20 @@ namespace SFE.Game
             }
             var mesh = Shapes.ForPrimitive(type, segments);
             if (mesh != null) go.GetComponent<MeshFilter>().sharedMesh = mesh;
-            go.GetComponent<Renderer>().sharedMaterial = Mat(color);
+            var surface = ArtStyle.Surfaces.ByColor(Quantize(color));
+            var ws = go.transform.lossyScale;
+            go.GetComponent<Renderer>().sharedMaterial = Mat(color, surface, TilingFor(surface, Mathf.Max(ws.x, ws.z)));
             return go;
         }
 
-        public static void SetColor(GameObject go, Color color) => go.GetComponent<Renderer>().sharedMaterial = Mat(color);
+        /// <summary>Umfärben – die Oberfläche (Schnee, Eis …) bleibt, nur die Farbe wechselt.</summary>
+        public static void SetColor(GameObject go, Color color)
+        {
+            var r = go.GetComponent<Renderer>();
+            var (surface, tiling) = r.sharedMaterial != null && SurfaceOf.TryGetValue(r.sharedMaterial, out var st)
+                ? st : (ArtStyle.Surfaces.ByColor(Quantize(color)), 1);
+            r.sharedMaterial = Mat(color, surface, tiling);
+        }
 
         /// <summary>Destroy im Spiel, DestroyImmediate im Editor (Stilprobe baut Figuren ohne Play-Modus).</summary>
         public static void Kill(Object o)
@@ -139,8 +186,8 @@ namespace SFE.Game
             var root = new GameObject("Igloo");
             root.transform.SetParent(parent, false);
             root.transform.localScale = Vector3.one * scale;
-            Make(PrimitiveType.Sphere, root.transform, new Vector3(0, 0f, 0), new Vector3(0.80f, 0.62f, 0.80f), Palette.Igloo, "Dome");
-            Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.10f, 0.36f), new Vector3(0.24f, 0.22f, 0.16f), Palette.Igloo, "Entrance");
+            SetSurface(Make(PrimitiveType.Sphere, root.transform, new Vector3(0, 0f, 0), new Vector3(0.80f, 0.62f, 0.80f), Palette.Igloo, "Dome"), ArtStyle.Surface.Snow);
+            SetSurface(Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.10f, 0.36f), new Vector3(0.24f, 0.22f, 0.16f), Palette.Igloo, "Entrance"), ArtStyle.Surface.Snow);
             Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.09f, 0.445f), new Vector3(0.14f, 0.16f, 0.02f), Palette.Door, "Door");
             return root;
         }
@@ -150,10 +197,10 @@ namespace SFE.Game
             var root = new GameObject("Lantern");
             root.transform.SetParent(parent, false);
             root.transform.localScale = Vector3.one * scale;
-            Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.03f, 0), new Vector3(0.30f, 0.06f, 0.30f), Palette.LanternPole, "Base");
-            Make(PrimitiveType.Cylinder, root.transform, new Vector3(0, 0.45f, 0), new Vector3(0.07f, 0.42f, 0.07f), Palette.LanternPole, "Pole");
+            SetSurface(Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.03f, 0), new Vector3(0.30f, 0.06f, 0.30f), Palette.LanternPole, "Base"), ArtStyle.Surface.Metal);
+            SetSurface(Make(PrimitiveType.Cylinder, root.transform, new Vector3(0, 0.45f, 0), new Vector3(0.07f, 0.42f, 0.07f), Palette.LanternPole, "Pole"), ArtStyle.Surface.Metal);
             Make(PrimitiveType.Sphere, root.transform, new Vector3(0, 0.92f, 0), Vector3.one * 0.26f, Palette.LanternGlow, "Lamp");
-            Make(PrimitiveType.Cube, root.transform, new Vector3(0, 1.07f, 0), new Vector3(0.30f, 0.05f, 0.30f), Palette.LanternPole, "Cap");
+            SetSurface(Make(PrimitiveType.Cube, root.transform, new Vector3(0, 1.07f, 0), new Vector3(0.30f, 0.05f, 0.30f), Palette.LanternPole, "Cap"), ArtStyle.Surface.Metal);
             if (withLight)
             {
                 var l = new GameObject("Light").AddComponent<Light>();
@@ -161,8 +208,9 @@ namespace SFE.Game
                 l.transform.localPosition = new Vector3(0, 0.9f, 0);
                 l.type = LightType.Point;
                 l.color = Palette.LanternGlow;
-                l.range = 2.5f * scale;
-                l.intensity = 1.2f;
+                l.range = 3.2f * scale;
+                l.intensity = 2.2f;
+                l.shadows = LightShadows.Soft; // weiche Schatten der Laternen auf dem Schnee (URP: Schatten-Atlas)
             }
             return root;
         }
@@ -172,8 +220,8 @@ namespace SFE.Game
             var root = new GameObject("SnowWall");
             root.transform.SetParent(parent, false);
             root.transform.localScale = Vector3.one * scale;
-            Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.22f, 0), new Vector3(0.92f, 0.44f, 0.92f), Palette.Wall, "Block");
-            Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.46f, 0), new Vector3(0.70f, 0.06f, 0.70f), Palette.Snow, "Top");
+            SetSurface(Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.22f, 0), new Vector3(0.92f, 0.44f, 0.92f), Palette.Wall, "Block"), ArtStyle.Surface.Snow);
+            SetSurface(Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.46f, 0), new Vector3(0.70f, 0.06f, 0.70f), Palette.Snow, "Top"), ArtStyle.Surface.Snow);
             return root;
         }
 
