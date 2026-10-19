@@ -136,13 +136,17 @@ CS_REFERENCES = {
 
 def lint_references(root: Path = SCRIPTS) -> list[str]:
     """Jeder Text, den der Code anfordert, muss es geben – sonst steht im Spiel nur der Schlüssel."""
-    ui = json.loads((DATA / "Content/ui_de.json").read_text(encoding="utf-8"))
-    content = json.loads((DATA / "Content/mg1_content_de.json").read_text(encoding="utf-8"))
-    dialogue = json.loads((DATA / "Dialogue/dialogue_de.json").read_text(encoding="utf-8"))
-    known = {
-        "Ui": set(ui), "Tech": set(ui.get("underTheHood", {})), "Content": set(content),
-        "Say": {n["id"] for n in dialogue["nodes"]},
-    }
+    # Wie GameData.Load: ui_de.json plus ui_<minigame>_de.json, alle Dialogdateien, alle *_content_de.json
+    ui, tech, content, say = set(), set(), set(), set()
+    for file in sorted((DATA / "Content").glob("ui_*.json")):
+        doc = json.loads(file.read_text(encoding="utf-8"))
+        ui |= set(doc)
+        tech |= set(doc.get("underTheHood", {}))
+    for file in sorted((DATA / "Content").glob("*_content_de.json")):
+        content |= set(json.loads(file.read_text(encoding="utf-8")))
+    for file in sorted((DATA / "Dialogue").glob("*.json")):
+        say |= {n["id"] for n in json.loads(file.read_text(encoding="utf-8"))["nodes"]}
+    known = {"Ui": ui, "Tech": tech, "Content": content, "Say": say}
     known["IdleNode"] = known["SayChoice"] = known["Say"]
     problems = [f"ui_de.json: dynamischer Schlüssel '{k}' fehlt" for k in DYNAMIC_UI_KEYS if k not in known["Ui"]]
     for file in sorted(root.rglob("*.cs")):

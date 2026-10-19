@@ -42,12 +42,24 @@ namespace SFE.Game
             };
             d.Materials = SettlementMaterialSet.FromJson(Text("Data/Materials/" + d.Settlement.MaterialsId));
 
-            var dlg = MiniJson.ParseObject(Text("Data/Dialogue/dialogue_de"));
+            // Jedes Minigame bringt eigene Textdateien mit (ui_mg2_de, dialogue_mg2_de …) – so arbeiten mehrere
+            // Pakete nebeneinander, ohne dieselbe Datei zu ändern. Doppelte Schlüssel sind ein Fehler.
+            foreach (var asset in Resources.LoadAll<TextAsset>("Data/Content"))
+                if (asset.name.StartsWith("ui_") && asset.name != "ui_de") MergeUi(d.UiText, MiniJson.ParseObject(asset.text), asset.name);
+            d.LoadDialogue(Text("Data/Dialogue/dialogue_de"));
+            foreach (var asset in Resources.LoadAll<TextAsset>("Data/Dialogue"))
+                if (asset.name != "dialogue_de") d.LoadDialogue(asset.text);
+            return d;
+        }
+
+        private void LoadDialogue(string json)
+        {
+            var dlg = MiniJson.ParseObject(json);
             foreach (var s in dlg.Arr("speakers"))
             {
                 var o = (Dictionary<string, object>)s;
                 ColorUtility.TryParseHtmlString(o.Str("color"), out Color c);
-                d.Speakers[o.Str("id")] = new Speaker { Name = o.Str("name"), Color = c };
+                Speakers[o.Str("id")] = new Speaker { Name = o.Str("name"), Color = c };
             }
             foreach (var n in dlg.Arr("nodes"))
             {
@@ -58,12 +70,38 @@ namespace SFE.Game
                     var lo = (Dictionary<string, object>)l;
                     lines.Add(new DialogueLine { Speaker = lo.Str("speaker"), Text = lo.Str("text") });
                 }
-                d.Dialogue[o.Str("id")] = lines;
+                if (Dialogue.ContainsKey(o.Str("id"))) Debug.LogError("Dialog doppelt: " + o.Str("id"));
+                Dialogue[o.Str("id")] = lines;
             }
-            return d;
+        }
+
+        /// <summary>Oberflächentexte eines Minigames dazunehmen; <c>underTheHood</c> und dessen <c>formulas</c> werden zusammengeführt.</summary>
+        private static void MergeUi(Dictionary<string, object> into, Dictionary<string, object> extra, string source)
+        {
+            foreach (var kv in extra)
+            {
+                if (kv.Value is Dictionary<string, object> sub && into.TryGetValue(kv.Key, out object existing) &&
+                    existing is Dictionary<string, object> target)
+                {
+                    MergeUi(target, sub, source);
+                    continue;
+                }
+                if (into.ContainsKey(kv.Key)) Debug.LogError($"Oberflächentext doppelt ({source}): {kv.Key}");
+                into[kv.Key] = kv.Value;
+            }
         }
 
         public string Content(string key) => Mg1Content.Str(key);
+
+        private readonly Dictionary<string, Dictionary<string, object>> _minigameContent = new Dictionary<string, Dictionary<string, object>>();
+
+        /// <summary>Inhalte eines Minigames aus <c>Data/Content/&lt;id&gt;_content_de.json</c> (Karten, Glossar, Phasen …).</summary>
+        public Dictionary<string, object> MinigameContent(string id)
+        {
+            if (!_minigameContent.TryGetValue(id, out var c))
+                _minigameContent[id] = c = MiniJson.ParseObject(Text("Data/Content/" + id + "_content_de"));
+            return c;
+        }
 
         /// <summary>
         /// Oberflächentext aus <c>ui_de.json</c>. Alle Spieltexte kommen von hier oder aus den Dialogen –

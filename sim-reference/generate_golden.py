@@ -126,5 +126,11 @@ def main() -> None:
     (out / "wave_settlement.json").write_text(json.dumps(doc, indent=1), encoding="utf-8")
     print("wave_settlement: Ende", doc["steps"][-1])
 
+    # Weitere Minigames bringen eigene Erzeuger mit: simref/golden_<name>.py mit generate(golden_dir, data_dir).
+    # So ändern parallele Pakete nicht dieselbe Datei.
+    import importlib
+    for module in sorted((Path(__file__).parent / "simref").glob("golden_*.py")):
+        importlib.import_module(f"simref.{module.stem}").generate(GOLDEN, DATA)
+
 if __name__ == "__main__":
     main()

@@ -19,8 +19,12 @@ namespace SFE.Game
             Play(root, root.Data.TransferCard, root.State.Mg1Snapshot, "transferImageSettlement",
                 SwitchgearPlaceholder(), "transferImageSwitchgear", "transfer_after");
 
+        /// <summary>
+        /// „So macht's Siemens“ für jedes Minigame: links das Bild des Spielers, rechts das Siemens-Beispiel,
+        /// Inhalt aus der Transfer-Karte (<c>Data/Transfer/*.json</c>), danach der Dialog <paramref name="afterNode"/>.
+        /// </summary>
         /// <param name="placeholder">Erzeugtes Symbolbild rechts; wird am Ende freigegeben.</param>
-        private static IEnumerator Play(GameRoot root, Dictionary<string, object> card, Texture leftImage, string leftCaption,
+        public static IEnumerator Play(GameRoot root, Dictionary<string, object> card, Texture leftImage, string leftCaption,
             Texture2D placeholder, string rightCaption, string afterNode)
         {
             var layer = new GameObject("Transfer");

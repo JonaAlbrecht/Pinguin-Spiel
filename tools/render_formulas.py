@@ -42,8 +42,17 @@ DPI = 200
 
 
 def formulas() -> dict[str, str]:
-    doc = json.loads(UI_TEXT.read_text(encoding="utf-8"))
-    return {k: v for k, v in doc["underTheHood"]["formulas"].items() if k != "note"}
+    """Formeln aus ui_de.json und den Texten der Minigames (ui_mg2_de.json …); ein Name darf nur einmal vorkommen."""
+    found: dict[str, str] = {}
+    for file in [UI_TEXT] + sorted(p for p in UI_TEXT.parent.glob("ui_*.json") if p != UI_TEXT):
+        doc = json.loads(file.read_text(encoding="utf-8"))
+        for k, v in doc.get("underTheHood", {}).get("formulas", {}).items():
+            if k == "note":
+                continue
+            if k in found:
+                raise SystemExit(f"Formel {k} doppelt ({file.name})")
+            found[k] = v
+    return found
 
 
 def render(tex: str) -> tuple[int, int, bytes, bytes]:
@@ -104,7 +113,7 @@ def main() -> int:
     for stale in sorted(OUT.glob("*.bytes")) if OUT.exists() else []:
         if stale.stem not in wanted:
             if args.check:
-                problems.append(f"{stale.relative_to(ROOT).as_posix()}: keine Quelle mehr in ui_de.json")
+                problems.append(f"{stale.relative_to(ROOT).as_posix()}: keine Quelle mehr in ui_*.json")
             else:
                 stale.unlink()
                 stale.with_name(stale.name + ".meta").unlink(missing_ok=True)

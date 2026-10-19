@@ -11,7 +11,7 @@ namespace SFE.Game
     ///   Abdunkeln nur mit Deep Blue (<see cref="Shade"/>).
     /// - Neue Farben hier eintragen, nie <c>new Color(…)</c> im übrigen Code – tools/style_lint.py prüft das.
     /// </summary>
-    public static class Palette
+    public static partial class Palette
     {
         /// <summary>Siemens-Farbschema „sie-colors-overview“ V1.4.4 (Stand 2025-02-17), Bildschirmwerte.</summary>
         public static class Siemens

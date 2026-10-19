@@ -85,6 +85,7 @@ namespace SFE.Game
 
         public IEnumerator Play()
         {
+            Hud.SetPhaseTitles(Data.Mg1Content.Arr("phases"));
             _board = SettlementBoard.Create(transform, transform.position, _level, Data.Ui("signWind"), Data.Ui("boardScreen"));
             var side = new Vector3(-2.2f, 0, _level.Height / 2f);
             Stand(Prims.Penguin(transform, "Frieda", Prims.Look.Frieda, 1.3f), side + new Vector3(0, 0, 1.2f));
