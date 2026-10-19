@@ -1,0 +1,59 @@
+{
+  "language": "de",
+  "phases": [
+    { "id": "modelling", "title": "Fabrik bauen" },
+    { "id": "equation", "title": "Welche Regel gilt?" },
+    { "id": "assembly", "title": "Alles hängt zusammen" },
+    { "id": "solution", "title": "Der Computer probiert's aus" },
+    { "id": "randomness", "title": "Die Möwen-Frage" },
+    { "id": "optimization", "title": "Besser machen" },
+    { "id": "transfer", "title": "So macht's Siemens" }
+  ],
+  "cards": [
+    { "id": "kutter", "text": "Wann die Kutter kommen", "correct": true, "feedback": "" },
+    { "id": "speed", "text": "Wie schnell jede Station arbeitet", "correct": true, "feedback": "" },
+    { "id": "regal", "text": "Wie viel ins Kühlregal passt", "correct": true, "feedback": "" },
+    { "id": "ways", "text": "Wege der Kisten durch die Halle", "correct": true, "feedback": "" },
+    { "id": "color", "text": "Farbe der Kisten", "correct": false, "feedback": "Eine rote Kiste wird genauso schnell filetiert wie eine blaue. Das lassen wir weg." },
+    { "id": "music", "text": "Musik in der Halle", "correct": false, "feedback": "Olafs Seemannslieder sind schön – aber die Robo-Robben fahren davon nicht schneller." }
+  ],
+  "cardsMissing": "Da fehlt noch etwas Wichtiges. Was bestimmt noch, ob sich Kisten stapeln?",
+  "ruleQuestion": "An der Kasse kommen jede Minute zwei Leute an. Die Kassiererin schafft nur einen. Was passiert?",
+  "ruleOptions": [
+    { "text": "Die Schlange bleibt gleich lang.", "correct": false, "feedback": "Leider nein: Jede Minute kommt einer mehr dazu, als gehen kann." },
+    { "text": "Die Schlange wird immer länger.", "correct": true, "feedback": "Genau! Wer nicht drankommt, wartet – und die Schlange wächst." },
+    { "text": "Die Leute lösen sich in Luft auf.", "correct": false, "feedback": "Schön wär's. Aber Leute – und Kisten – verschwinden nicht einfach." }
+  ],
+  "stations": {
+    "D": "Anlegestelle",
+    "S": "Sortieren",
+    "F": "Filetieren",
+    "P": "Verpacken",
+    "T": "Verladung",
+    "K": "Kühlregal",
+    "B": "Förderband",
+    "R": "Robo-Robbe"
+  },
+  "hops": [
+    "von der Anlegestelle zum Sortieren",
+    "vom Sortieren zum Filetieren",
+    "vom Filetieren zum Verpacken",
+    "vom Verpacken zur Verladung"
+  ],
+  "lights": {
+    "onTime": "Sushi pünktlich",
+    "fresh": "Kaum verdorben",
+    "robust": "Auch an schlechten Tagen"
+  },
+  "glossary": [
+    { "phase": "modelling", "term": "Modell der Fabrik", "text": "Nur das, was für den Weg des Fischs wichtig ist: Stationen, Lager, Wege, Arbeitstempo." },
+    { "phase": "equation", "term": "Warteschlange", "text": "Was schneller ankommt, als es bearbeitet wird, muss warten – der Stapel wächst." },
+    { "phase": "event", "term": "Ereignis", "text": "Ein Moment, in dem sich etwas ändert: Eine Kiste kommt an oder wird fertig. Dazwischen springt der Computer." },
+    { "phase": "assembly", "term": "Materialfluss", "text": "Der Weg des Fischs von Station zu Station. Staut es sich an einer, merken es alle." },
+    { "phase": "solution", "term": "Engpass", "text": "Die langsamste Stelle einer Fabrik. Sie bestimmt, wie viel insgesamt durchkommt." },
+    { "phase": "randomness", "term": "Zufall", "text": "Mal kommen mehr Kutter, mal fällt eine Maschine aus. Darum rechnet man viele Tage, nicht nur einen." },
+    { "phase": "twin", "term": "Digitaler Zwilling einer Fabrik", "text": "Die Fabrik im Computer. Dort probiert man Umbauten aus, bevor man in echt umbaut." },
+    { "phase": "optimization", "term": "Puffer", "text": "Ein Lager zwischen zwei Stationen, das Schwankungen auffängt – wie das Kühlregal." },
+    { "phase": "transfer", "term": "Fabrikplanung", "text": "Fabriken erst im Computer laufen lassen, Engpässe finden, dann bauen." }
+  ]
+}
