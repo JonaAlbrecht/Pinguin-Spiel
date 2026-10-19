@@ -23,5 +23,9 @@
   <ItemGroup>
     <Reference Include="$(UnityEditorData)\Managed\UnityEngine\UnityEngine*.dll" Private="false" />
     <Reference Include="$(UnityPackageDlls)\UnityEngine.UI.dll" Private="false" />
+    <!-- URP (ADR-27): Laufzeit-Assemblies der Render-Pipeline, ebenfalls fertig aus der Editor-Vorlage -->
+    <Reference Include="$(UnityPackageDlls)\Unity.RenderPipelines.Core.Runtime.dll" Private="false" />
+    <Reference Include="$(UnityPackageDlls)\Unity.RenderPipelines.Core.Runtime.Shared.dll" Private="false" />
+    <Reference Include="$(UnityPackageDlls)\Unity.RenderPipelines.Universal.Runtime.dll" Private="false" />
   </ItemGroup>
 </Project>
