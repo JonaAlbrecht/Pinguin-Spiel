@@ -1,0 +1,304 @@
+{
+ "case": "layout",
+ "tolerance": 1e-09,
+ "layouts": {
+  "olaf": {
+   "tiles": [
+    "D..........T",
+    "D..S.....P.T",
+    "D.....#....T",
+    "D....KF....T",
+    "D.....#....T",
+    "D...RRR....T",
+    "D..........T"
+   ],
+   "cost": 1400,
+   "problems": [],
+   "hops": [
+    {
+     "mode": "robot",
+     "time": 1.2,
+     "distance": 3
+    },
+    {
+     "mode": "robot",
+     "time": 2.0,
+     "distance": 5
+    },
+    {
+     "mode": "robot",
+     "time": 2.0,
+     "distance": 5
+    },
+    {
+     "mode": "robot",
+     "time": 0.8,
+     "distance": 2
+    }
+   ]
+  },
+  "kalle": {
+   "tiles": [
+    "D..........T",
+    "D..S.....P.T",
+    "D.....#....T",
+    "D....KF....T",
+    "D.....#....T",
+    "D.RRRRRR...T",
+    "D..........T"
+   ],
+   "cost": 1700,
+   "problems": [],
+   "hops": [
+    {
+     "mode": "robot",
+     "time": 1.2,
+     "distance": 3
+    },
+    {
+     "mode": "robot",
+     "time": 2.0,
+     "distance": 5
+    },
+    {
+     "mode": "robot",
+     "time": 2.0,
+     "distance": 5
+    },
+    {
+     "mode": "robot",
+     "time": 0.8,
+     "distance": 2
+    }
+   ]
+  },
+  "hint": {
+   "tiles": [
+    "D..........T",
+    "D..........T",
+    "DSFFP.#....T",
+    "D...BBBBBBBT",
+    "D.KK..#....T",
+    "D..........T",
+    "D..........T"
+   ],
+   "cost": 1740,
+   "problems": [],
+   "hops": [
+    {
+     "mode": "direct",
+     "time": 0.5,
+     "distance": 1
+    },
+    {
+     "mode": "direct",
+     "time": 0.5,
+     "distance": 1
+    },
+    {
+     "mode": "direct",
+     "time": 0.5,
+     "distance": 1
+    },
+    {
+     "mode": "belt",
+     "time": 2.4,
+     "distance": 7
+    }
+   ]
+  },
+  "compact": {
+   "tiles": [
+    "D..........T",
+    "D..........T",
+    "DSFP..#....T",
+    "D..BBBBBBBBT",
+    "D.K...#....T",
+    "D..........T",
+    "D..........T"
+   ],
+   "cost": 1260,
+   "problems": [],
+   "hops": [
+    {
+     "mode": "direct",
+     "time": 0.5,
+     "distance": 1
+    },
+    {
+     "mode": "direct",
+     "time": 0.5,
+     "distance": 1
+    },
+    {
+     "mode": "direct",
+     "time": 0.5,
+     "distance": 1
+    },
+    {
+     "mode": "belt",
+     "time": 2.7,
+     "distance": 8
+    }
+   ]
+  },
+  "two_robots": {
+   "tiles": [
+    "D..........T",
+    "D..S.....P.T",
+    "D.....#....T",
+    "D....KFF...T",
+    "D....K#....T",
+    "D...RR.....T",
+    "D..........T"
+   ],
+   "cost": 1800,
+   "problems": [],
+   "hops": [
+    {
+     "mode": "robot",
+     "time": 1.2,
+     "distance": 3
+    },
+    {
+     "mode": "robot",
+     "time": 2.0,
+     "distance": 5
+    },
+    {
+     "mode": "robot",
+     "time": 1.6,
+     "distance": 4
+    },
+    {
+     "mode": "robot",
+     "time": 0.8,
+     "distance": 2
+    }
+   ]
+  },
+  "empty": {
+   "tiles": [
+    "D..........T",
+    "D..........T",
+    "D.....#....T",
+    "D..........T",
+    "D.....#....T",
+    "D..........T",
+    "D..........T"
+   ],
+   "cost": 0,
+   "problems": [
+    [
+     "missing",
+     "S"
+    ],
+    [
+     "missing",
+     "F"
+    ],
+    [
+     "missing",
+     "P"
+    ],
+    [
+     "missing",
+     "K"
+    ]
+   ],
+   "hops": [
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  "no_robots": {
+   "tiles": [
+    "D..........T",
+    "D..S.....P.T",
+    "D.....#....T",
+    "D....KF....T",
+    "D.....#....T",
+    "D..........T",
+    "D..........T"
+   ],
+   "cost": 1100,
+   "problems": [
+    [
+     "noRobot",
+     "0"
+    ],
+    [
+     "noRobot",
+     "1"
+    ],
+    [
+     "noRobot",
+     "2"
+    ],
+    [
+     "noRobot",
+     "3"
+    ]
+   ],
+   "hops": [
+    {
+     "mode": "robot",
+     "time": 1.2,
+     "distance": 3
+    },
+    {
+     "mode": "robot",
+     "time": 2.0,
+     "distance": 5
+    },
+    {
+     "mode": "robot",
+     "time": 2.0,
+     "distance": 5
+    },
+    {
+     "mode": "robot",
+     "time": 0.8,
+     "distance": 2
+    }
+   ]
+  },
+  "belt_detour": {
+   "tiles": [
+    "D..........T",
+    "DSFP.......T",
+    "D..B..#....T",
+    "D..B.......T",
+    "D..BBBBBBBBT",
+    "D.K...#....T",
+    "D..........T"
+   ],
+   "cost": 1300,
+   "problems": [],
+   "hops": [
+    {
+     "mode": "direct",
+     "time": 0.5,
+     "distance": 1
+    },
+    {
+     "mode": "direct",
+     "time": 0.5,
+     "distance": 1
+    },
+    {
+     "mode": "direct",
+     "time": 0.5,
+     "distance": 1
+    },
+    {
+     "mode": "belt",
+     "time": 3.3,
+     "distance": 8
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,61 @@
+{
+  "id": "MG3_Fischfabrik",
+  "note": "Zeiten in Minuten ab Schichtbeginn (6:00). Raster: D Anlegestelle, T Verladung zum Polar-Express, # Säule, . Boden; Bausteine S Sortieren, F Filetieren, P Verpacken, K Kühlregal, B Förderband, R Robo-Robbe. Referenz: sim-reference/simref/process.py, Spec 005.",
+  "grid": { "width": 12, "height": 7 },
+  "shift": { "start": 360, "length": 480 },
+  "kutter": { "meanGap": 20, "boxes": 4, "lastArrival": 400 },
+  "train": { "first": 60, "every": 60, "boxes": 2 },
+  "gulls": { "chance": 0.03 },
+  "stages": [
+    { "id": "sort", "symbol": "S", "service": { "min": 2.0, "mode": 3.0, "max": 5.0 }, "mtbf": 240, "mttr": 10 },
+    { "id": "fillet", "symbol": "F", "service": { "min": 4.0, "mode": 6.0, "max": 10.0 }, "mtbf": 180, "mttr": 20 },
+    { "id": "pack", "symbol": "P", "service": { "min": 2.0, "mode": 3.0, "max": 4.0 }, "mtbf": 300, "mttr": 10 }
+  ],
+  "regal": { "symbol": "K", "capacity": 6 },
+  "transport": { "robotMinutesPerCell": 0.4, "robotParking": 3, "crowdDelay": 2.5, "beltMinutesPerCell": 0.3, "handover": 0.5 },
+  "costs": { "S": 300, "F": 400, "P": 300, "K": 100, "B": 20, "R": 100 },
+  "buildBudget": 1500,
+  "budget": 2400,
+  "limits": { "S": 3, "F": 3, "P": 3, "K": 4, "B": 40, "R": 6 },
+  "goals": { "delivered": 70, "spoiledMax": 1.0 },
+  "replications": 10,
+  "seed": 2026,
+  "rounds": 3,
+  "initialTiles": [
+    "D..........T",
+    "D..........T",
+    "D.....#....T",
+    "D..........T",
+    "D.....#....T",
+    "D..........T",
+    "D..........T"
+  ],
+  "kalleTiles": [
+    "D..........T",
+    "D..S.....P.T",
+    "D.....#....T",
+    "D....KF....T",
+    "D.....#....T",
+    "D.RRRRRR...T",
+    "D..........T"
+  ],
+  "olafTiles": [
+    "D..........T",
+    "D..S.....P.T",
+    "D.....#....T",
+    "D....KF....T",
+    "D.....#....T",
+    "D...RRR....T",
+    "D..........T"
+  ],
+  "hintTiles": [
+    "D..........T",
+    "D..........T",
+    "DSFFP.#....T",
+    "D...BBBBBBBT",
+    "D.KK..#....T",
+    "D..........T",
+    "D..........T"
+  ],
+  "stationLesson": { "seed": 7, "arrivalMean": 6.0, "service": { "min": 3.0, "mode": 5.0, "max": 8.0 }, "events": 12 }
+}

@@ -1,0 +1,90 @@
+{
+ "case": "kalle",
+ "tiles": [
+  "D..........T",
+  "D..S.....P.T",
+  "D.....#....T",
+  "D....KF....T",
+  "D.....#....T",
+  "D.RRRRRR...T",
+  "D..........T"
+ ],
+ "seed": 2026,
+ "replications": 10,
+ "tolerance": 1e-09,
+ "day": {
+  "delivered": 41,
+  "finished": 41,
+  "arrived": 96,
+  "stolen": 2,
+  "spoiled": 28,
+  "leadTime": 121.1797556696,
+  "utilization": [
+   0.5495666818,
+   0.6316184454,
+   0.2575172241
+  ],
+  "maxQueue": [
+   28,
+   6,
+   1
+  ],
+  "endQueue": [
+   13,
+   6,
+   0
+  ],
+  "bottleneck": 1,
+  "events": 708
+ },
+ "days": {
+  "delivered": [
+   41,
+   39,
+   35,
+   41,
+   37,
+   41,
+   29,
+   33,
+   30,
+   38
+  ],
+  "spoiled": [
+   28,
+   7,
+   8,
+   2,
+   11,
+   14,
+   31,
+   11,
+   6,
+   0
+  ],
+  "stolen": [
+   2,
+   6,
+   0,
+   3,
+   3,
+   2,
+   1,
+   2,
+   3,
+   1
+  ],
+  "meanDelivered": 36.4,
+  "sdDelivered": 4.501851471,
+  "halfWidth": 2.6096387928,
+  "lower": 33.7903612072,
+  "meanSpoiled": 11.8,
+  "meanLeadTime": 171.3212973513,
+  "stars": 0,
+  "lights": [
+   0,
+   0,
+   0
+  ]
+ }
+}
