@@ -264,28 +264,15 @@
       "lines": [
         {
           "speaker": "frieda",
-          "text": "Schritt 3: Alles hängt zusammen. Der Computer teilt die Siedlung in kleine Felder."
+          "text": "Schritt 3: Alles hängt zusammen. Der Computer teilt die Siedlung in viele kleine Felder – wie eben, nur viel mehr."
         },
         {
           "speaker": "frieda",
-          "text": "Jedes Feld tauscht Wärme nur mit seinen direkten Nachbarn – wie eben die Laterne und das Iglu."
+          "text": "Jedes Feld tauscht Wärme nur mit seinen direkten Nachbarn. Hier steht eine Laterne, zwei Iglus nah dran, zwei weiter weg."
         },
         {
           "speaker": "frieda",
-          "text": "Zieh vier Wärmefäden: Klick erst auf das Iglu in der Mitte und dann auf einen Nachbarn."
-        }
-      ]
-    },
-    {
-      "id": "phase3_computer",
-      "lines": [
-        {
-          "speaker": "frieda",
-          "text": "Gut gemacht! Und jetzt das Ganze für die ganze Siedlung …"
-        },
-        {
-          "speaker": "zwilli",
-          "text": "Das mach ich! *surr*"
+          "text": "Kommt die Wärme bis ganz außen an? Drück auf „Nächster Schritt“ und schau auf die Farben und die Zahlen."
         }
       ]
     },
@@ -293,12 +280,33 @@
       "id": "phase3_done",
       "lines": [
         {
+          "speaker": "zwilli",
+          "text": "*surr* Fertig! Jeder Schritt war eine Rechnung für alle 576 Felder auf einmal."
+        },
+        {
           "speaker": "frieda",
-          "text": "Über tausend Fäden in zwei Sekunden. Genau dafür braucht man Computer."
+          "text": "Und am Ende ändert sich nichts mehr – der Gleichgewichtspunkt. Eine Laterne allein wärmt nur ihre Nähe."
         },
         {
           "speaker": "zwilli",
-          "text": "N-n-nachbarn … alle verbunden … ich zeig's dir in Farbe!"
+          "text": "N-n-nachbarn – alle verbunden – gleich rechne ich Kalles Siedlung!"
+        }
+      ]
+    },
+    {
+      "id": "phase3_wave",
+      "lines": [
+        {
+          "speaker": "pip",
+          "text": "Das nahe Iglu wird gleich wärmer. Beim fernen tut sich kaum etwas."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Genau. Die Wärme wandert von Feld zu Feld – und auf jedem Feld geht ein Teil an den Wind verloren."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Darum kommt es auf den Abstand an. Drück auf „Bis zum Gleichgewicht“, dann rechnet ZWILLI weiter."
         }
       ]
     },

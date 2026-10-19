@@ -99,9 +99,9 @@ def test_pair_lesson_follows_the_scale_in_step_2():
     """Die Rechentafel (Laterne und Iglu) steht direkt nach der Waage und meldet den Zeitschritt fürs Notizbuch."""
     code = (SCRIPTS / "Minigames/MG1_Huddle/SettlementMinigame.cs").read_text(encoding="utf-8")
     scale = code.index("private IEnumerator PhaseScale()")
-    threads = code.index("private IEnumerator PhaseThreads()")
+    wave = code.index("private IEnumerator PhaseWave()")
     lesson = code.index("PairLessonView.Play(")
-    assert scale < code.index('Hud.Say("phase2_done")', scale) < lesson < code.index('AddGlossary("timestep")') < threads
+    assert scale < code.index('Hud.Say("phase2_done")', scale) < lesson < code.index('AddGlossary("timestep")') < wave
 
 
 def test_level_grids_are_complete():

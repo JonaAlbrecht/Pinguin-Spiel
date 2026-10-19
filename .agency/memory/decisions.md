@@ -121,3 +121,14 @@ demselben Raster, auf dem später simuliert wird – es sah aus, als hätte auch
 Pfütze, ein Foto der Szene steht in Schritt 4 neben der Rechnung. Das Labor-Brett hat Rahmen, Leuchtkante, kühles
 „Rechen-Eis“ und die Beschriftung „ZWILLI – die Siedlung im Computer“. Verworfen: nur das Wärmebild als Unterschied
 (zu schwach) und ein gezeichnetes Symbolbild statt Foto (zeigt nicht Kalles echte Siedlung).
+
+## 2026-10-19 – Wärmewelle statt Wärmefäden, Verschieben, Zoom
+
+**ADR-22 Schritt 3 zeigt die Wärmewelle statt Fäden ziehen zu lassen.** Jona verstand den Fäden-Schritt nicht: vier
+Fäden ziehen, danach passierte nichts. Jetzt sieht man die Wirkung – eine Laterne, Iglus nah und fern, die Wärme
+wandert Schritt für Schritt von Feld zu Feld und wird schwächer (Bezug zur Karte „Abstand“). Modell: Siedlungsmatrix
+mit Speicherglied, implizites Euler (`SettlementWave`, `simref/settlement_wave.py`, Golden `wave_settlement`), mit
+dem echten Wind – Endzustand ist die Rechnung der Siedlung, ein Test prüft das. Mit echtem Wind wird auch das nahe
+Iglu nicht gemütlich; das ist gewollt (eine Laterne allein reicht nicht). Verworfen: Schritt streichen und
+windstille Sonderwerte (zeigt mehr Reichweite, als die Siedlung später hat). Dazu Werkzeug „Verschieben“ und Zoom
+auf den Zeiger (Mausrad, Touchpad, Pinch, + und −; Pfeiltasten schwenken) – beides Wünsche von Jona.

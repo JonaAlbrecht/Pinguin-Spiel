@@ -108,7 +108,7 @@ namespace SFE.Game
 
             yield return PhaseCards();
             yield return PhaseScale();
-            yield return PhaseThreads();
+            yield return PhaseWave();
             yield return PhaseSimulateKalle();
             yield return PhaseWhatIf();
             yield return PhaseBuild();
@@ -327,64 +327,87 @@ namespace SFE.Game
 
         // ---------- Schritt 3: Alles hängt zusammen ----------
 
-        private IEnumerator PhaseThreads()
+        /// <summary>
+        /// Die Wärmewelle (seit 19.10.2026 statt „Wärmefäden ziehen“ – Jona: „Ich verstehe ihn nicht“, die Fäden hatten
+        /// keine sichtbare Wirkung). Eine Laterne, Iglus nah und fern; Zeitschritt für Zeitschritt wandert die Wärme von
+        /// Feld zu Feld und wird schwächer. Erst ein paar Schritte von Hand, dann rechnet ZWILLI bis zum Gleichgewicht.
+        /// Zahlen aus <see cref="SettlementWave"/> (Golden <c>wave_settlement</c>), Endzustand = Rechnung der Siedlung.
+        /// </summary>
+        private IEnumerator PhaseWave()
         {
             Hud.ShowPhases(2);
             SetGlitch(0.65f);
+            var lesson = _level.Wave;
+            if (lesson == null) yield break;
+            var wave = new SettlementWave(lesson, _level, _mats);
             _board.Clear();
-            int cx = _level.Width / 2, cy = _level.Height / 2;
-            int center = cy * _level.Width + cx;
-            var demo = new SettlementGrid(_level.Width, _level.Height);
-            demo[cx, cy] = Cell.Igloo;
-            demo[cx, cy - 1] = Cell.Lantern;
-            demo[cx, cy + 1] = Cell.Igloo;
-            _board.Show(demo);
-            _root.Rig.LookAt(_board.CellCenter(center), 60f, _root.Rig.DistanceToFit(6f));
+            _board.Show(wave.Grid);
+
+            // Temperaturschilder über Laterne und Iglus, Kamera auf die Reihe
+            var marked = new List<int>();
+            for (int i = 0; i < wave.Grid.CellCount; i++)
+                if (wave.Grid[i] == Cell.Lantern || wave.Grid[i] == Cell.Igloo) marked.Add(i);
+            var labels = new List<TextMesh>();
+            var mid = Vector3.zero;
+            foreach (int i in marked)
+            {
+                var label = Prims.Label(_board.transform, "", _board.CellCenter(i) - _board.transform.position + new Vector3(0, 1.4f, 0), 0.03f, Palette.Text);
+                label.fontStyle = FontStyle.Bold;
+                labels.Add(label);
+                mid += _board.CellCenter(i) / marked.Count;
+            }
+            _root.Rig.LookAt(mid + new Vector3(0, 0, -0.5f), 58f, _root.Rig.DistanceToFit(12f));
+
+            var layer = NewUiLayer("Wave");
+            var box = UIKit.Panel(layer, Palette.PanelSoft, "StepBox");
+            UIKit.PlaceFixed(box.rectTransform, new Vector2(0.5f, 0f), new Vector2(0, 200), new Vector2(380, 56));
+            var stepLabel = UIKit.Label(box.transform, "", 26, Palette.TextLight, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UIKit.Fill(stepLabel.rectTransform);
+
+            void Show()
+            {
+                for (int k = 0; k < marked.Count; k++) labels[k].text = Data.Ui("waveTemp", wave.Temperatures[marked[k]]);
+                _board.SetHeat(wave.Temperatures);
+                stepLabel.text = Data.Ui("waveStep", wave.Step);
+            }
+            Show();
             yield return Hud.Say("phase3_intro");
 
-            var neighbours = new HashSet<int> { center - 1, center + 1, center - _level.Width, center + _level.Width };
-            var done = new HashSet<int>();
-            int first = -1;
-            Hud.Toast(string.Format(Data.Content("threadsCount"), 0, 4), 4f);
-            while (done.Count < 4)
+            bool go = false;
+            var next = UIKit.Button(layer, Data.Ui("waveNext"), () => go = true, Palette.Button, 30);
+            UIKit.PlaceFixed((RectTransform)next.transform, new Vector2(0.5f, 0f), new Vector2(0, 100), new Vector2(380, 90));
+            Hud.LockWhileBlocking(next);
+            while (wave.Step < lesson.ManualSteps)
             {
-                if (!Hud.Blocking && _board.CellAtPointer(Cam, out int cell))
-                {
-                    _board.ShowCursor(first >= 0 ? first : cell, Palette.Selected);
-                    if (InputHelper.PointerDown && !InputHelper.PointerOverUI)
-                    {
-                        if (first < 0) { first = cell; Sfx.Play(Sfx.Sound.Click); }
-                        else
-                        {
-                            int a = first, b = cell;
-                            first = -1;
-                            int other = a == center ? b : b == center ? a : -1;
-                            if (other >= 0 && neighbours.Contains(other) && !done.Contains(other))
-                            {
-                                done.Add(other);
-                                _board.AddHandThread(center, other);
-                                Sfx.Play(Sfx.Sound.Plop);
-                                Hud.Toast(string.Format(Data.Content("threadsCount"), done.Count, 4), 3f);
-                            }
-                            else if (a != b) { Sfx.Play(Sfx.Sound.Wrong); Hud.Toast(Data.Content("threadsWrong"), 3.5f); }
-                        }
-                    }
-                }
-                yield return null;
+                go = false;
+                while (!go) yield return null;
+                wave.Advance();
+                Sfx.Play(Sfx.Sound.Plop, 0.5f);
+                Show();
             }
-            _board.ShowCursor(-1, Color.clear);
-            yield return Hud.Say("phase3_computer");
+            yield return Hud.Say("phase3_wave");
 
-            BoardView();
-            yield return new WaitForSeconds(0.8f);
-            var couplings = new List<(int, int)>();
-            SettlementModel.Assemble(demo, _level, _mats, out _, (i, j, k) => couplings.Add((i, j)));
-            yield return _board.DrawAllThreads(couplings, 2f,
-                n => Hud.Toast(string.Format(GameData.German, Data.Content("computerThreads"), n.ToString("N0", GameData.German)), 1f));
-            yield return new WaitForSeconds(0.6f);
+            // Den Rest rechnet ZWILLI – Schritt für Schritt sichtbar, bis sich nichts mehr ändert
+            UIKit.SetButtonLabel(next, Data.Ui("waveRun"));
+            go = false;
+            while (!go) yield return null;
+            next.gameObject.SetActive(false);
+            while (wave.Step < lesson.Steps)
+            {
+                wave.Advance();
+                Show();
+                yield return new WaitForSeconds(0.15f);
+            }
+            Sfx.Play(Sfx.Sound.Ding, 0.6f);
+            int neighbours = 2 * _level.Width * _level.Height - _level.Width - _level.Height;
+            Hud.Toast(string.Format(GameData.German, Data.Content("waveNeighbours"), neighbours.ToString("N0", GameData.German)), 4f);
             AddGlossary("assembly");
             yield return Hud.Say("phase3_done");
-            _board.ClearThreads();
+
+            foreach (var label in labels) Destroy(label.gameObject);
+            Destroy(_ui);
+            _board.SetHeat(null);
+            BoardView();
         }
 
         // ---------- Schritt 4: Der Computer probiert's aus ----------

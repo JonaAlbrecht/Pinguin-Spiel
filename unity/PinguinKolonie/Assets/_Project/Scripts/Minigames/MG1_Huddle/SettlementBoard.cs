@@ -6,7 +6,7 @@ using UnityEngine;
 namespace SFE.Game
 {
     /// <summary>
-    /// 3D-Darstellung des Siedlungsrasters: Eisfläche mit Feldern, Bausteine, Wärmebild, Wärmefäden.
+    /// 3D-Darstellung des Siedlungsrasters: Eisfläche mit Feldern, Bausteine, Wärmebild.
     /// Eine Zelle = 1 Unity-Einheit (im Modell 2 m). Zeile 0 liegt im Norden (+z).
     /// Das Brett ist ZWILLIS Bildschirm (Rahmen, Leuchtkante, Beschriftung): alles darauf ist Rechnung, nichts echt.
     /// Echt passiert nur Kalles Versuch draußen im Hub (<see cref="HubWorld.PlayKalleAttempt"/>).
@@ -22,9 +22,6 @@ namespace SFE.Game
         private readonly Dictionary<int, GameObject> _objects = new Dictionary<int, GameObject>();
         private char[] _shown;
         private GameObject _cursor;
-        private GameObject _threadsGo;
-        private Mesh _threadsMesh;
-        private readonly List<LineRenderer> _handThreads = new List<LineRenderer>();
         private IglooState[] _states;
         private bool _duckPlaced;
 
@@ -364,71 +361,6 @@ namespace SFE.Game
             _gridLines.AddComponent<MeshFilter>().sharedMesh = mesh;
             _gridLines.AddComponent<MeshRenderer>().sharedMaterial = Prims.Mat(Palette.GridLine);
             _gridLines.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-        }
-
-        // ---------- Wärmefäden ----------
-
-        public void AddHandThread(int a, int b)
-        {
-            var go = new GameObject("Thread");
-            go.transform.SetParent(transform, false);
-            var lr = go.AddComponent<LineRenderer>();
-            lr.sharedMaterial = Prims.Unlit;
-            lr.startColor = lr.endColor = Palette.Thread;
-            lr.startWidth = lr.endWidth = 0.09f;
-            lr.positionCount = 12;
-            Vector3 pa = CellCenter(a) + Vector3.up * 0.15f, pb = CellCenter(b) + Vector3.up * 0.15f;
-            for (int k = 0; k < 12; k++)
-            {
-                float t = k / 11f;
-                lr.SetPosition(k, Vector3.Lerp(pa, pb, t) + Vector3.up * Mathf.Sin(t * Mathf.PI) * 0.35f);
-            }
-            _handThreads.Add(lr);
-        }
-
-        public void ClearThreads()
-        {
-            foreach (var lr in _handThreads) if (lr != null) Destroy(lr.gameObject);
-            _handThreads.Clear();
-            if (_threadsGo != null) Destroy(_threadsGo);
-            _threadsGo = null;
-        }
-
-        /// <summary>Zeichnet alle Kopplungen nacheinander ein („der Computer übernimmt“).</summary>
-        public IEnumerator DrawAllThreads(List<(int, int)> couplings, float seconds, System.Action<int> onProgress)
-        {
-            if (_threadsGo != null) Destroy(_threadsGo);
-            _threadsGo = new GameObject("AllThreads");
-            _threadsGo.transform.SetParent(transform, false);
-            _threadsMesh = new Mesh { name = "Threads" };
-            var verts = new Vector3[couplings.Count * 2];
-            var cols = new Color[verts.Length];
-            for (int k = 0; k < couplings.Count; k++)
-            {
-                verts[2 * k] = CellCenter(couplings[k].Item1) - transform.position + Vector3.up * 0.08f;
-                verts[2 * k + 1] = CellCenter(couplings[k].Item2) - transform.position + Vector3.up * 0.08f;
-                cols[2 * k] = cols[2 * k + 1] = Palette.Thread;
-            }
-            _threadsMesh.vertices = verts;
-            _threadsMesh.colors = cols;
-            _threadsMesh.bounds = new Bounds(new Vector3(_w / 2f, 0, _h / 2f), new Vector3(_w + 2, 2, _h + 2));
-            _threadsGo.AddComponent<MeshFilter>().sharedMesh = _threadsMesh;
-            _threadsGo.AddComponent<MeshRenderer>().sharedMaterial = Prims.Unlit;
-
-            int shown = 0;
-            for (float t = 0; shown < couplings.Count; t += Time.deltaTime)
-            {
-                int target = Mathf.Min(couplings.Count, Mathf.CeilToInt(couplings.Count * Mathf.Clamp01(t / seconds)));
-                if (target != shown)
-                {
-                    shown = target;
-                    var idx = new int[shown * 2];
-                    for (int k = 0; k < idx.Length; k++) idx[k] = k;
-                    _threadsMesh.SetIndices(idx, MeshTopology.Lines, 0);
-                    onProgress?.Invoke(shown);
-                }
-                yield return null;
-            }
         }
     }
 
