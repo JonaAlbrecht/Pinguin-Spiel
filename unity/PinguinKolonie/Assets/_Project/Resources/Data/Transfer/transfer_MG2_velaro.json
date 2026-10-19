@@ -1,0 +1,72 @@
+{
+  "id": "transfer_MG2_velaro",
+  "minigame": "MG2_PolarExpress",
+  "siemensBusiness": "Siemens Mobility",
+  "headline": {
+    "de": "Was du gemacht hast, machen Siemens-Ingenieur:innen für Hochgeschwindigkeitszüge"
+  },
+  "body": {
+    "de": "Ein schneller Zug muss sich gegen die Luft stemmen – wie dein Polar-Express gegen den Wind der Tundra. Darum stellt man ihn erst im Computer in den Wind: Man formt die Nase, glättet Übergänge und sieht, wo die Luft wirbelt. Erst dann wird gebaut."
+  },
+  "customerBenefits": [
+    { "de": "Weniger Energie für jede Fahrt" },
+    { "de": "Weniger teure Versuche im Windkanal" },
+    { "de": "Schneller vom Entwurf zum fertigen Zug" }
+  ],
+  "product": "Velaro Novo, aerodynamische Auslegung (Vorschlag – Freigabe offen)",
+  "tableGame": { "de": "Beim Polar-Express" },
+  "tableReal": { "de": "Beim echten Zug" },
+  "translation": [
+    { "game": { "de": "Zugnase mit Ziehpunkten formen" }, "real": { "de": "Form von Kopf und Front im Computer auslegen" } },
+    { "game": { "de": "Wagenübergänge verkleiden" }, "real": { "de": "Übergänge, Dach und Unterboden glätten" } },
+    { "game": { "de": "Rote Wirbel hinter kantigen Stellen" }, "real": { "de": "Wirbel kosten Energie und machen Lärm" } },
+    { "game": { "de": "Spitze Nase gegen Platz für die Fischer" }, "real": { "de": "Windschnittig und trotzdem genug Sitzplätze" } }
+  ],
+  "honesty": {
+    "de": "Ehrlich vereinfacht: ZWILLI rechnet flach und mit zäher Luft. Echte Strömungsrechnungen sind dreidimensional und viel feiner."
+  },
+  "media": {
+    "image": null,
+    "video": null,
+    "source": null,
+    "placeholder": "train_flow_procedural"
+  },
+  "voiceClip": {
+    "file": null,
+    "speaker": null,
+    "approved": false
+  },
+  "takeaway": {
+    "de": "Bevor ein Zug gebaut wird, lässt man im Computer Luft um ihn strömen. So wird er windschnittig, schneller und braucht weniger Energie – ohne teure Tests im Windkanal."
+  },
+  "moreLink": null,
+  "approval": {
+    "department": null,
+    "communications": null,
+    "date": null
+  },
+  "retrieval": [
+    {
+      "question": { "de": "Was macht man, bevor ein neuer Zug gebaut wird?" },
+      "options": [
+        { "text": { "de": "Man lässt im Computer Luft um ihn strömen." }, "correct": true,
+          "feedback": { "de": "Genau! So sieht man, wo er bremst – bevor ein Stück Stahl geschnitten ist." } },
+        { "text": { "de": "Man baut einen großen Motor ein, dann passt das schon." }, "correct": false,
+          "feedback": { "de": "Das war Kalles Plan – sein Schlitten blieb fast stehen." } },
+        { "text": { "de": "Man streicht die Lok in einer schnellen Farbe." }, "correct": false,
+          "feedback": { "de": "Die Farbe merkt der Wind nicht. Auf die Form kommt es an." } }
+      ]
+    },
+    {
+      "question": { "de": "Welcher Bereich von Siemens baut Züge?" },
+      "options": [
+        { "text": { "de": "Smart Infrastructure – Strom verteilen und schützen" }, "correct": false,
+          "feedback": { "de": "Das war der Schaltschrank aus der Siedlung. Hier geht es um Züge." } },
+        { "text": { "de": "Healthineers – Medizintechnik" }, "correct": false,
+          "feedback": { "de": "Nicht ganz. Denk an Tildas Zug über das Packeis." } },
+        { "text": { "de": "Mobility – Züge und Bahnen" }, "correct": true,
+          "feedback": { "de": "Richtig! Das kommt als neue Karte auf deine Siemens-Landkarte." } }
+      ]
+    }
+  ]
+}
