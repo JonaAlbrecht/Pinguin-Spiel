@@ -39,7 +39,7 @@ HEX = re.compile(r"Hex\(0x([0-9A-Fa-f]{6})\)")
 def check_code() -> list[str]:
     problems = []
     for f in sorted(SCRIPTS.rglob("*.cs")):
-        if f.name in ALLOWED_FILES:
+        if f.name in ALLOWED_FILES or (f.name.startswith("Palette.") and f.parent == PALETTE.parent):
             continue
         for n, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
             code = line.split("//", 1)[0] if EXEMPT not in line else ""

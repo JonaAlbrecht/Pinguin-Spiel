@@ -8,7 +8,7 @@ import json
 import random
 from pathlib import Path
 
-from simref import settlement, settlement_pair
+from simref import settlement, settlement_pair, settlement_wave
 from simref.cases import MELT_TWO_PASSES, SINGLE_WALL
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -114,6 +114,23 @@ def main() -> None:
            "steady": [round(float(v), 10) for v in settlement_pair.steady(pair)]}
     (out / "pair_settlement.json").write_text(json.dumps(doc, indent=1), encoding="utf-8")
     print("pair_settlement: Ende", [round(v, 2) for v in temps], "Gleichgewicht", doc["steady"])
+    # Wärmewelle in Schritt 3: erster und letzter Schritt vollständig, dazu Laterne und Iglus in jedem Schritt.
+    wave = settlement_wave.load(DATA / "Levels/MG1_Huddle_Settlement.json")
+    history = settlement_wave.run(wave, level, mats)
+    width = len(wave.tiles[0])
+    marked = [y * width + x for y, r in enumerate(wave.tiles) for x, c in enumerate(r) if c in "IL"]
+    doc = {"case": "wave_settlement", "tolerance": 1e-6, "cells": marked,
+           "steps": [[round(float(h.ravel()[i]), 10) for i in marked] for h in history],
+           "first": [round(float(v), 10) for v in history[0].ravel()],
+           "last": [round(float(v), 10) for v in history[-1].ravel()]}
+    (out / "wave_settlement.json").write_text(json.dumps(doc, indent=1), encoding="utf-8")
+    print("wave_settlement: Ende", doc["steps"][-1])
+
+    # Weitere Minigames bringen eigene Erzeuger mit: simref/golden_<name>.py mit generate(golden_dir, data_dir).
+    # So ändern parallele Pakete nicht dieselbe Datei.
+    import importlib
+    for module in sorted((Path(__file__).parent / "simref").glob("golden_*.py")):
+        importlib.import_module(f"simref.{module.stem}").generate(GOLDEN, DATA)
 
 if __name__ == "__main__":
     main()

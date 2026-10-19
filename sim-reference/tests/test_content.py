@@ -16,7 +16,13 @@ def load(rel):
 
 @pytest.fixture(scope="module")
 def dialogue():
-    return load("Dialogue/dialogue_de.json")
+    """Alle Dialogdateien zusammen, wie GameData.Load sie lädt (dialogue_de.json plus je Minigame eine eigene)."""
+    merged = {"speakers": [], "nodes": []}
+    for file in sorted((DATA / "Dialogue").glob("*.json")):
+        doc = json.loads(file.read_text(encoding="utf-8"))
+        merged["speakers"] += doc.get("speakers", [])
+        merged["nodes"] += doc["nodes"]
+    return merged
 
 
 def test_every_line_has_a_known_speaker(dialogue):
@@ -85,13 +91,23 @@ def test_transfer_screen_follows_the_settlement():
     assert code.index("SettlementMinigame.Create") < code.index("TransferScreen.Play(this)")
 
 
+def test_kalle_builds_outside_before_the_lab():
+    """Kalles Versuch ist echt und läuft draußen im Hub – im Labor gibt es nur ZWILLIS Rechnung (18.10.2026)."""
+    root = (SCRIPTS / "Core/GameRoot.cs").read_text(encoding="utf-8")
+    assert root.index("_hub.PlayKalleAttempt(") < root.index("SettlementMinigame.Create")
+    lab = (SCRIPTS / "Minigames/MG1_Huddle/SettlementMinigame.cs").read_text(encoding="utf-8")
+    assert 'Say("kalle_intro")' not in lab and 'Say("kalle_after")' not in lab
+    hub = (SCRIPTS / "Hub/HubWorld.cs").read_text(encoding="utf-8")
+    assert 'Say("kalle_intro")' in hub and 'Say("kalle_after")' in hub
+
+
 def test_pair_lesson_follows_the_scale_in_step_2():
     """Die Rechentafel (Laterne und Iglu) steht direkt nach der Waage und meldet den Zeitschritt fürs Notizbuch."""
     code = (SCRIPTS / "Minigames/MG1_Huddle/SettlementMinigame.cs").read_text(encoding="utf-8")
     scale = code.index("private IEnumerator PhaseScale()")
-    threads = code.index("private IEnumerator PhaseThreads()")
+    wave = code.index("private IEnumerator PhaseWave()")
     lesson = code.index("PairLessonView.Play(")
-    assert scale < code.index('Hud.Say("phase2_done")', scale) < lesson < code.index('AddGlossary("timestep")') < threads
+    assert scale < code.index('Hud.Say("phase2_done")', scale) < lesson < code.index('AddGlossary("timestep")') < wave
 
 
 def test_level_grids_are_complete():
@@ -127,3 +143,13 @@ def test_ui_placeholders_are_numbered_from_zero():
         nums = sorted({int(n) for n in re.findall(r"\{(\d+)(?::[^}]*)?\}", text)})
         assert nums == list(range(len(nums))), key
         assert text.count("{") == text.count("}"), key
+
+
+def test_flow_runs_all_three_minigames_in_story_order():
+    """Siedlung → Tilda und Polar-Express → Olaf und Fischfabrik, je mit „So macht's Siemens“ (19.10.2026)."""
+    code = (SCRIPTS / "Core/GameRoot.cs").read_text(encoding="utf-8")
+    flow = code[code.index("private IEnumerator Flow()"):code.index("private IEnumerator PlaySettlement()")]
+    assert flow.index("PlaySettlement()") < flow.index('WaitForTalk("tilda")') < flow.index("PlayPolarExpress()") \
+        < flow.index('WaitForTalk("olaf")') < flow.index("PlayFishFactory()") < flow.index("EndScreen(")
+    for call in ("TransferScreen.Play(this)", "PolarExpressTransfer.Play(this)", "FishFactoryTransfer.Play(this)"):
+        assert call in code

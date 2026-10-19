@@ -56,14 +56,7 @@ namespace SFE.Game
             // Phasenleiste oben
             _phaseBar = UIKit.Panel(Root, Palette.PanelSoft, "PhaseBar");
             UIKit.Place(_phaseBar.rectTransform, 0.05f, 1, 0.95f, 1, 0, -70, 0, 10);
-            var phases = data.Mg1Content.Arr("phases");
-            for (int i = 0; i < phases.Count; i++)
-            {
-                var p = (Dictionary<string, object>)phases[i];
-                var t = UIKit.Label(_phaseBar.transform, (i + 1) + "  " + p.Str("title"), 24, Palette.PhaseTodo);
-                UIKit.Place(t.rectTransform, i / (float)phases.Count, 0, (i + 1) / (float)phases.Count, 1, 6, 0, 6, 0);
-                _phaseLabels.Add(t);
-            }
+            SetPhaseTitles(data.Mg1Content.Arr("phases"));
             _phaseBar.gameObject.SetActive(false);
 
             // Sprechblase unten
@@ -319,6 +312,20 @@ namespace SFE.Game
             _toastBox.gameObject.SetActive(true);
             _toastBox.transform.SetAsLastSibling();
             _toastUntil = Time.time + seconds;
+        }
+
+        /// <summary>Titel der Phasenleiste – jedes Minigame setzt beim Start seine eigenen (<c>phases</c> im Inhalt).</summary>
+        public void SetPhaseTitles(List<object> phases)
+        {
+            foreach (var old in _phaseLabels) Object.Destroy(old.gameObject);
+            _phaseLabels.Clear();
+            for (int i = 0; i < phases.Count; i++)
+            {
+                var p = (Dictionary<string, object>)phases[i];
+                var t = UIKit.Label(_phaseBar.transform, (i + 1) + "  " + p.Str("title"), 24, Palette.PhaseTodo);
+                UIKit.Place(t.rectTransform, i / (float)phases.Count, 0, (i + 1) / (float)phases.Count, 1, 6, 0, 6, 0);
+                _phaseLabels.Add(t);
+            }
         }
 
         public void ShowPhases(int activeIndex)

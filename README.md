@@ -24,6 +24,8 @@ Die früher ausgearbeitete Smart City **Pingopolis** ist jetzt eine optionale **
 | [docs/05_Erweiterung_Pingopolis_SmartCity.md](docs/05_Erweiterung_Pingopolis_SmartCity.md) | **Erweiterung:** Smart City Pingopolis – Konzept, Story, 8 weitere Minigames |
 | [docs/06_Open_Questions_Prototype.md](docs/06_Open_Questions_Prototype.md) | Offene Fragen für User- und Tech-Spezifikation des ersten Prototyps |
 | [specs/001-mg1-vertical-slice/spec.md](specs/001-mg1-vertical-slice/spec.md) | **Prototyp v0.1:** Anforderungen mit Prüfart, Annahmen zu den offenen Fragen, bekannte Grenzen |
+| [specs/004-mg2-polar-express/spec.md](specs/004-mg2-polar-express/spec.md) | **MG2 Polar-Express:** Strömungsmodell, Rechentafel, Vereinfachungen, Handprobe |
+| [specs/005-mg3-fischfabrik/spec.md](specs/005-mg3-fischfabrik/spec.md) | **MG3 Fischfabrik:** Ereignis-Simulation, Möwen-Frage, Vereinfachungen, Handprobe |
 | [specs/002-v0.2-lernen-und-leben/spec.md](specs/002-v0.2-lernen-und-leben/spec.md) | **v0.2:** neue Figuren (Theo, Klara, Flocke, sichtbarer ZWILLI), Was-wäre-wenn, Iglu-Waage, Ton, Notizbuch, Prüfschritte |
 | [.agency/](.agency/README.md) | Arbeitsweise (Rollen, Definition of Done, Entscheidungen, Review von v0.1) nach dem Agency Blueprint |
 
@@ -33,7 +35,7 @@ Unity 6 LTS (URP, WebGL) · Blender LTS (FBX) · reiner C#-Simulationskern als U
 
 ## Prototyp v0.1 – Vertical Slice
 
-Titel → Hub „Huddle-Platz“ → MG1 „Die erste Siedlung“ (Schritte 1–5, Rechenschritt-Tafel in Schritt 2) → „So macht's Siemens“ (Entwurf) → Siedlung im Hub.
+Titel → Hub „Huddle-Platz“ (Kalles Versuch draußen) → MG1 „Die erste Siedlung“ → Tilda am Gleis: MG2 „Polar-Express“ → Olaf an der Küste: MG3 „Fischfabrik“ → Abschluss mit Siemens-Landkarte → „So macht's Siemens“ (Entwurf) → Siedlung im Hub.
 
 | Teil | Ordner | Stand |
 |---|---|---|

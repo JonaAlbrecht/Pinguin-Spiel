@@ -1,0 +1,114 @@
+{
+ "case": "lesson",
+ "tolerance": 1e-09,
+ "rows": [
+  {
+   "time": 4.3519465282,
+   "kind": "arrive",
+   "before": 0,
+   "arrived": 1,
+   "finished": 0,
+   "after": 1,
+   "waiting": 0
+  },
+  {
+   "time": 4.8090500386,
+   "kind": "arrive",
+   "before": 1,
+   "arrived": 1,
+   "finished": 0,
+   "after": 2,
+   "waiting": 1
+  },
+  {
+   "time": 8.4520133301,
+   "kind": "arrive",
+   "before": 2,
+   "arrived": 1,
+   "finished": 0,
+   "after": 3,
+   "waiting": 2
+  },
+  {
+   "time": 9.9653165657,
+   "kind": "done",
+   "before": 3,
+   "arrived": 0,
+   "finished": 1,
+   "after": 2,
+   "waiting": 1
+  },
+  {
+   "time": 15.4397559359,
+   "kind": "done",
+   "before": 2,
+   "arrived": 0,
+   "finished": 1,
+   "after": 1,
+   "waiting": 0
+  },
+  {
+   "time": 20.3914289969,
+   "kind": "done",
+   "before": 1,
+   "arrived": 0,
+   "finished": 1,
+   "after": 0,
+   "waiting": 0
+  },
+  {
+   "time": 31.0474711754,
+   "kind": "arrive",
+   "before": 0,
+   "arrived": 1,
+   "finished": 0,
+   "after": 1,
+   "waiting": 0
+  },
+  {
+   "time": 34.3272941047,
+   "kind": "arrive",
+   "before": 1,
+   "arrived": 1,
+   "finished": 0,
+   "after": 2,
+   "waiting": 1
+  },
+  {
+   "time": 35.828302596,
+   "kind": "done",
+   "before": 2,
+   "arrived": 0,
+   "finished": 1,
+   "after": 1,
+   "waiting": 0
+  },
+  {
+   "time": 37.5163209025,
+   "kind": "arrive",
+   "before": 1,
+   "arrived": 1,
+   "finished": 0,
+   "after": 2,
+   "waiting": 1
+  },
+  {
+   "time": 40.5284634516,
+   "kind": "arrive",
+   "before": 2,
+   "arrived": 1,
+   "finished": 0,
+   "after": 3,
+   "waiting": 2
+  },
+  {
+   "time": 42.1280774381,
+   "kind": "done",
+   "before": 3,
+   "arrived": 0,
+   "finished": 1,
+   "after": 2,
+   "waiting": 1
+  }
+ ]
+}

@@ -20,7 +20,7 @@ namespace SFE.Game
     /// </summary>
     public sealed class SettlementMinigame : MonoBehaviour
     {
-        private enum Tool { Igloo, Lantern, Wall, Erase }
+        private enum Tool { Igloo, Lantern, Wall, Move, Erase }
 
         private GameRoot _root;
         private SettlementLevel _level;
@@ -34,6 +34,11 @@ namespace SFE.Game
         private bool _painting;
         private bool _paintRemoves;
         private string[] _beforeStroke;
+        // Werkzeug „Verschieben“: angehobener Baustein und sein Herkunftsfeld
+        private char _carry = Cell.Ice;
+        private int _carryFrom = -1;
+        private bool _carryJustLifted;
+        private bool _moveHintShown;
 
         private GameObject _ui;
         private readonly Dictionary<Tool, Button> _toolButtons = new Dictionary<Tool, Button>();
@@ -80,7 +85,8 @@ namespace SFE.Game
 
         public IEnumerator Play()
         {
-            _board = SettlementBoard.Create(transform, transform.position, _level, Data.Ui("signWind"));
+            Hud.SetPhaseTitles(Data.Mg1Content.Arr("phases"));
+            _board = SettlementBoard.Create(transform, transform.position, _level, Data.Ui("signWind"), Data.Ui("boardScreen"));
             var side = new Vector3(-2.2f, 0, _level.Height / 2f);
             Stand(Prims.Penguin(transform, "Frieda", Prims.Look.Frieda, 1.3f), side + new Vector3(0, 0, 1.2f));
             Stand(Prims.Penguin(transform, "Kalle", Prims.Look.Kalle, 1.3f), side + new Vector3(0, 0, -1.2f));
@@ -95,30 +101,22 @@ namespace SFE.Game
             BoardView(snap: true);
             yield return Hud.FadeIn();
             yield return Hud.Say("mg1_intro");
+            // Näher heran ans Brett: Mausrad, Touchpad, zwei Finger, + und − (Wunsch von Jona, 18.10.2026)
+            _root.Rig.ZoomEnabled = true;
+            Hud.Toast(Data.Ui("zoomHint"), 6f);
 
-            // Kalles Versuch – „in echt“, ohne Wärmebild
-            yield return Hud.Say("kalle_intro");
-            var kalleGrid = SettlementGrid.FromRows(_level.KalleTiles);
-            _board.Show(kalleGrid);
-            yield return new WaitForSeconds(1.2f);
-            var kalleRun = new SettlementSimulation(kalleGrid, _level, _mats);
-            kalleRun.RunToEnd();
-            foreach (var pass in kalleRun.MeltPasses)
-            {
-                _root.State.Puddles += pass.Length;
-                yield return _board.Melt(pass, 1.4f);
-                yield return new WaitForSeconds(0.4f);
-            }
-            yield return Hud.Say("kalle_after");
+            // Kalles Versuch lief schon draußen im Hub (HubWorld.PlayKalleAttempt) – hier ist alles Rechnung.
 
             yield return PhaseCards();
             yield return PhaseScale();
-            yield return PhaseThreads();
+            yield return PhaseWave();
             yield return PhaseSimulateKalle();
             yield return PhaseWhatIf();
             yield return PhaseBuild();
             yield return Hud.FadeOut();
             Hud.ShowPhases(-1);
+            _root.Rig.ZoomEnabled = false;
+            _root.Rig.ResetZoom();
             if (_ui != null) Destroy(_ui);
             Destroy(gameObject);
         }
@@ -330,64 +328,87 @@ namespace SFE.Game
 
         // ---------- Schritt 3: Alles hängt zusammen ----------
 
-        private IEnumerator PhaseThreads()
+        /// <summary>
+        /// Die Wärmewelle (seit 19.10.2026 statt „Wärmefäden ziehen“ – Jona: „Ich verstehe ihn nicht“, die Fäden hatten
+        /// keine sichtbare Wirkung). Eine Laterne, Iglus nah und fern; Zeitschritt für Zeitschritt wandert die Wärme von
+        /// Feld zu Feld und wird schwächer. Erst ein paar Schritte von Hand, dann rechnet ZWILLI bis zum Gleichgewicht.
+        /// Zahlen aus <see cref="SettlementWave"/> (Golden <c>wave_settlement</c>), Endzustand = Rechnung der Siedlung.
+        /// </summary>
+        private IEnumerator PhaseWave()
         {
             Hud.ShowPhases(2);
             SetGlitch(0.65f);
+            var lesson = _level.Wave;
+            if (lesson == null) yield break;
+            var wave = new SettlementWave(lesson, _level, _mats);
             _board.Clear();
-            int cx = _level.Width / 2, cy = _level.Height / 2;
-            int center = cy * _level.Width + cx;
-            var demo = new SettlementGrid(_level.Width, _level.Height);
-            demo[cx, cy] = Cell.Igloo;
-            demo[cx, cy - 1] = Cell.Lantern;
-            demo[cx, cy + 1] = Cell.Igloo;
-            _board.Show(demo);
-            _root.Rig.LookAt(_board.CellCenter(center), 60f, _root.Rig.DistanceToFit(6f));
+            _board.Show(wave.Grid);
+
+            // Temperaturschilder über Laterne und Iglus, Kamera auf die Reihe
+            var marked = new List<int>();
+            for (int i = 0; i < wave.Grid.CellCount; i++)
+                if (wave.Grid[i] == Cell.Lantern || wave.Grid[i] == Cell.Igloo) marked.Add(i);
+            var labels = new List<TextMesh>();
+            var mid = Vector3.zero;
+            foreach (int i in marked)
+            {
+                var label = Prims.Label(_board.transform, "", _board.CellCenter(i) - _board.transform.position + new Vector3(0, 1.4f, 0), 0.03f, Palette.Text);
+                label.fontStyle = FontStyle.Bold;
+                labels.Add(label);
+                mid += _board.CellCenter(i) / marked.Count;
+            }
+            _root.Rig.LookAt(mid + new Vector3(0, 0, -0.5f), 58f, _root.Rig.DistanceToFit(12f));
+
+            var layer = NewUiLayer("Wave");
+            var box = UIKit.Panel(layer, Palette.PanelSoft, "StepBox");
+            UIKit.PlaceFixed(box.rectTransform, new Vector2(0.5f, 0f), new Vector2(0, 200), new Vector2(380, 56));
+            var stepLabel = UIKit.Label(box.transform, "", 26, Palette.TextLight, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UIKit.Fill(stepLabel.rectTransform);
+
+            void Show()
+            {
+                for (int k = 0; k < marked.Count; k++) labels[k].text = Data.Ui("waveTemp", wave.Temperatures[marked[k]]);
+                _board.SetHeat(wave.Temperatures);
+                stepLabel.text = Data.Ui("waveStep", wave.Step);
+            }
+            Show();
             yield return Hud.Say("phase3_intro");
 
-            var neighbours = new HashSet<int> { center - 1, center + 1, center - _level.Width, center + _level.Width };
-            var done = new HashSet<int>();
-            int first = -1;
-            Hud.Toast(string.Format(Data.Content("threadsCount"), 0, 4), 4f);
-            while (done.Count < 4)
+            bool go = false;
+            var next = UIKit.Button(layer, Data.Ui("waveNext"), () => go = true, Palette.Button, 30);
+            UIKit.PlaceFixed((RectTransform)next.transform, new Vector2(0.5f, 0f), new Vector2(0, 100), new Vector2(380, 90));
+            Hud.LockWhileBlocking(next);
+            while (wave.Step < lesson.ManualSteps)
             {
-                if (!Hud.Blocking && _board.CellAtPointer(Cam, out int cell))
-                {
-                    _board.ShowCursor(first >= 0 ? first : cell, Palette.Selected);
-                    if (InputHelper.PointerDown && !InputHelper.PointerOverUI)
-                    {
-                        if (first < 0) { first = cell; Sfx.Play(Sfx.Sound.Click); }
-                        else
-                        {
-                            int a = first, b = cell;
-                            first = -1;
-                            int other = a == center ? b : b == center ? a : -1;
-                            if (other >= 0 && neighbours.Contains(other) && !done.Contains(other))
-                            {
-                                done.Add(other);
-                                _board.AddHandThread(center, other);
-                                Sfx.Play(Sfx.Sound.Plop);
-                                Hud.Toast(string.Format(Data.Content("threadsCount"), done.Count, 4), 3f);
-                            }
-                            else if (a != b) { Sfx.Play(Sfx.Sound.Wrong); Hud.Toast(Data.Content("threadsWrong"), 3.5f); }
-                        }
-                    }
-                }
-                yield return null;
+                go = false;
+                while (!go) yield return null;
+                wave.Advance();
+                Sfx.Play(Sfx.Sound.Plop, 0.5f);
+                Show();
             }
-            _board.ShowCursor(-1, Color.clear);
-            yield return Hud.Say("phase3_computer");
+            yield return Hud.Say("phase3_wave");
 
-            BoardView();
-            yield return new WaitForSeconds(0.8f);
-            var couplings = new List<(int, int)>();
-            SettlementModel.Assemble(demo, _level, _mats, out _, (i, j, k) => couplings.Add((i, j)));
-            yield return _board.DrawAllThreads(couplings, 2f,
-                n => Hud.Toast(string.Format(GameData.German, Data.Content("computerThreads"), n.ToString("N0", GameData.German)), 1f));
-            yield return new WaitForSeconds(0.6f);
+            // Den Rest rechnet ZWILLI – Schritt für Schritt sichtbar, bis sich nichts mehr ändert
+            UIKit.SetButtonLabel(next, Data.Ui("waveRun"));
+            go = false;
+            while (!go) yield return null;
+            next.gameObject.SetActive(false);
+            while (wave.Step < lesson.Steps)
+            {
+                wave.Advance();
+                Show();
+                yield return new WaitForSeconds(0.15f);
+            }
+            Sfx.Play(Sfx.Sound.Ding, 0.6f);
+            int neighbours = 2 * _level.Width * _level.Height - _level.Width - _level.Height;
+            Hud.Toast(string.Format(GameData.German, Data.Content("waveNeighbours"), neighbours.ToString("N0", GameData.German)), 4f);
             AddGlossary("assembly");
             yield return Hud.Say("phase3_done");
-            _board.ClearThreads();
+
+            foreach (var label in labels) Destroy(label.gameObject);
+            Destroy(_ui);
+            _board.SetHeat(null);
+            BoardView();
         }
 
         // ---------- Schritt 4: Der Computer probiert's aus ----------
@@ -410,9 +431,29 @@ namespace SFE.Game
             b.gameObject.SetActive(false);
 
             yield return Animate(kalleGrid, _level);
+            ShowKallePhoto(layer);
             AddGlossary("solution");
             yield return Hud.Say("phase4_done");
             Destroy(_ui);
+        }
+
+        /// <summary>
+        /// Vergleich in Schritt 4: links das Foto von draußen (was wirklich passiert ist), in der Mitte ZWILLIS Rechnung.
+        /// Ohne Foto (z. B. Szene direkt gestartet) bleibt es bei der Rechnung.
+        /// </summary>
+        private void ShowKallePhoto(RectTransform layer)
+        {
+            var photo = _root.State.KallePhoto;
+            if (photo == null) return;
+            var frame = UIKit.Panel(layer, Palette.PanelLight, "KallePhoto");
+            UIKit.PlaceFixed(frame.rectTransform, new Vector2(0f, 0.5f), new Vector2(230, 60), new Vector2(400, 330));
+            var img = new GameObject("Image").AddComponent<RawImage>();
+            UIKit.Rect(img.gameObject, frame.transform);
+            UIKit.Place(img.rectTransform, 0, 0, 1, 1, 12, 12, 12, 70);
+            img.texture = photo;
+            var cap = UIKit.Label(frame.transform, Data.Ui("kallePhotoCaption"), 22, Palette.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UIKit.Place(cap.rectTransform, 0, 1, 1, 1, 10, -62, 10, 6);
+            Sfx.Play(Sfx.Sound.Click, 0.5f);
         }
 
         /// <summary>
@@ -532,17 +573,18 @@ namespace SFE.Game
             var bar = UIKit.Panel(layer, Palette.Panel, "Toolbar");
             UIKit.Place(bar.rectTransform, 0, 0, 1, 0, 0, 0, 0, -130);
             Hud.LockWhileBlocking(bar); // ausgegraut, solange jemand spricht
-            var tools = new[] { Tool.Igloo, Tool.Lantern, Tool.Wall, Tool.Erase };
+            var tools = new[] { Tool.Igloo, Tool.Lantern, Tool.Wall, Tool.Move, Tool.Erase };
             for (int i = 0; i < tools.Length; i++)
             {
                 var tool = tools[i];
                 var b = UIKit.Button(bar.transform, "", () => SelectTool(tool), Palette.ButtonAlt, 26);
-                UIKit.PlaceFixed((RectTransform)b.transform, new Vector2(0, 0.5f), new Vector2(150 + i * 250, 0), new Vector2(230, 96));
+                UIKit.PlaceFixed((RectTransform)b.transform, new Vector2(0, 0.5f), new Vector2(130 + i * 220, 0), new Vector2(205, 96));
                 _toolButtons[tool] = b;
             }
+            UIKit.SetButtonLabel(_toolButtons[Tool.Move], Data.Ui("toolMove"));
             UIKit.SetButtonLabel(_toolButtons[Tool.Erase], Data.Ui("toolErase"));
             var undo = UIKit.Button(bar.transform, Data.Ui("undo"), Undo, Palette.ButtonQuiet, 24);
-            UIKit.PlaceFixed((RectTransform)undo.transform, new Vector2(0, 0.5f), new Vector2(1150, 0), new Vector2(200, 80));
+            UIKit.PlaceFixed((RectTransform)undo.transform, new Vector2(0, 0.5f), new Vector2(1240, 0), new Vector2(180, 80));
             _simulateButton = UIKit.Button(bar.transform, Data.Ui("simulate"), () => StartCoroutine(SimulateRound()), Palette.Button, 34);
             UIKit.PlaceFixed((RectTransform)_simulateButton.transform, new Vector2(1, 0.5f), new Vector2(-190, 0), new Vector2(330, 100));
             _roundLabel = UIKit.Label(bar.transform, "", 26, Palette.TextLight);
@@ -594,7 +636,13 @@ namespace SFE.Game
 
         private void SelectTool(Tool t)
         {
+            PutBack();
             _tool = t;
+            if (t == Tool.Move && !_moveHintShown)
+            {
+                _moveHintShown = true;
+                Hud.Toast(Data.Ui("moveHint"), 4.5f);
+            }
             foreach (var kv in _toolButtons) kv.Value.GetComponent<Image>().color = kv.Key == t ? Palette.Button : Palette.ButtonAlt;
         }
 
@@ -611,6 +659,7 @@ namespace SFE.Game
         {
             if (Hud.Blocking) return;
             bool onBoard = _board.CellAtPointer(Cam, out int cell) && !InputHelper.PointerOverUI;
+            if (_tool == Tool.Move) { HandleMove(onBoard, cell); return; }
             _board.ShowCursor(onBoard ? cell : -1, _tool == Tool.Erase ? Palette.Bad : Palette.Selected);
             if (InputHelper.PointerUp) EndStroke();
             if (!onBoard) return;
@@ -626,6 +675,76 @@ namespace SFE.Game
                 _lastPainted = cell;
                 Apply(cell);
             }
+        }
+
+        /// <summary>
+        /// Werkzeug „Verschieben“ (Wunsch von Jona, 18.10.2026): Baustein antippen hebt ihn an, ein freies Feld antippen
+        /// setzt ihn ab – oder in einem Zug ziehen und loslassen. Das Herkunftsfeld erneut antippen legt ihn zurück.
+        /// Ein Verschieben ist ein Rückgängig-Schritt. Die Grenzen (Anzahl je Baustein) ändern sich dabei nicht.
+        /// </summary>
+        private void HandleMove(bool onBoard, int cell)
+        {
+            _board.ShowCursor(onBoard ? cell : -1, Palette.Selected);
+            if (_carry != Cell.Ice) _board.ShowCarried(_carry, onBoard ? cell : _carryFrom);
+
+            if (InputHelper.PointerDown)
+            {
+                if (_carry == Cell.Ice)
+                {
+                    if (!onBoard || _grid[cell] == Cell.Ice || _grid[cell] == Cell.Water) return;
+                    _beforeStroke = _grid.ToRows();
+                    _carry = _grid[cell];
+                    _carryFrom = cell;
+                    _carryJustLifted = true;
+                    _grid[cell] = Cell.Ice;
+                    _board.Show(_grid);
+                    _board.ShowCarried(_carry, cell);
+                    Sfx.Play(Sfx.Sound.Click, 0.6f);
+                    return;
+                }
+                // Zweites Antippen: absetzen (außerhalb des Bretts: zurücklegen)
+                if (!onBoard) PutBack();
+                else TryDrop(cell);
+            }
+            else if (InputHelper.PointerUp && _carry != Cell.Ice)
+            {
+                // Loslassen nach dem Ziehen setzt ab; Loslassen auf dem Herkunftsfeld heißt „angetippt“ – weitertragen.
+                bool lifted = _carryJustLifted;
+                _carryJustLifted = false;
+                if (lifted && onBoard && cell != _carryFrom) TryDrop(cell);
+            }
+        }
+
+        private void TryDrop(int cell)
+        {
+            if (cell != _carryFrom && _grid[cell] != Cell.Ice)
+            {
+                Sfx.Play(Sfx.Sound.Wrong, 0.4f);
+                Hud.Toast(Data.Ui("moveOccupied"), 2.5f);
+                return;
+            }
+            _grid[cell] = _carry;
+            _carry = Cell.Ice;
+            _carryFrom = -1;
+            _board.ShowCarried(Cell.Ice, -1);
+            _board.Show(_grid);
+            Sfx.Play(Sfx.Sound.Plop, 0.5f);
+            if (_beforeStroke != null && SettlementRounds.Changed(_beforeStroke, _grid.ToRows())) _undo.Push(_beforeStroke);
+            _beforeStroke = null;
+            UpdateToolbar();
+        }
+
+        /// <summary>Angehobenen Baustein zurück auf sein Feld (Werkzeugwechsel, Simulieren, Rückgängig).</summary>
+        private void PutBack()
+        {
+            if (_carry == Cell.Ice) return;
+            _grid[_carryFrom] = _carry;
+            _carry = Cell.Ice;
+            _carryFrom = -1;
+            _carryJustLifted = false;
+            _beforeStroke = null;
+            _board.ShowCarried(Cell.Ice, -1);
+            _board.Show(_grid);
         }
 
         /// <summary>
@@ -664,6 +783,7 @@ namespace SFE.Game
 
         private void Undo()
         {
+            PutBack();
             if (_undo.Count == 0 || !_editing) return;
             _grid = SettlementGrid.FromRows(_undo.Pop());
             _board.Show(_grid);
@@ -674,6 +794,7 @@ namespace SFE.Game
         private void LoadExample()
         {
             if (!_editing) return;
+            PutBack();
             _undo.Push(_grid.ToRows());
             _grid = SettlementGrid.FromRows(_level.HintTiles);
             _board.Show(_grid);
@@ -685,6 +806,7 @@ namespace SFE.Game
         private IEnumerator SimulateRound()
         {
             if (!_editing) yield break;
+            PutBack(); // ein angehobener Baustein gehört zur Planung
             if (_grid.Count(Cell.Igloo) == 0) { Hud.Toast(Data.Ui("needIgloos"), 3f); yield break; }
             _editing = false;
             _simulateButton.interactable = false;

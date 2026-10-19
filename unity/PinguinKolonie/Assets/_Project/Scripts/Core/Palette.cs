@@ -11,7 +11,7 @@ namespace SFE.Game
     ///   Abdunkeln nur mit Deep Blue (<see cref="Shade"/>).
     /// - Neue Farben hier eintragen, nie <c>new Color(…)</c> im übrigen Code – tools/style_lint.py prüft das.
     /// </summary>
-    public static class Palette
+    public static partial class Palette
     {
         /// <summary>Siemens-Farbschema „sie-colors-overview“ V1.4.4 (Stand 2025-02-17), Bildschirmwerte.</summary>
         public static class Siemens
@@ -105,6 +105,11 @@ namespace SFE.Game
         public static readonly Color Desk = Siemens.DarkSand;
         public static readonly Color DeskBase = Siemens.DeepBlue55;
         public static readonly Color Screen = Siemens.BoldBlue;
+        /// <summary>ZWILLIS Bildschirm im Labor: dunkler Rahmen, leuchtende Kante, kühl getöntes „Rechen-Eis“ –
+        /// damit niemand das Raster mit der echten Scholle verwechselt (Kalles Versuch läuft draußen in Weiß).</summary>
+        public static readonly Color ScreenFrame = Siemens.DeepBlue85;
+        public static readonly Color ScreenIce = Tint(Siemens.BoldBlue, 0.14f);
+        public static readonly Color ScreenIceAlt = Tint(Siemens.BoldBlue, 0.24f);
 
         // ---------- Figuren ----------
         public static readonly Color PenguinBlack = Siemens.DeepBlue85;
@@ -134,6 +139,13 @@ namespace SFE.Game
         public static readonly Color ThermometerRed = Siemens.Red;
         public static readonly Color KlaraVisor = Siemens.SoftGreen;
         public static readonly Color Ledger = Siemens.DarkSand;
+        /// <summary>Tilda (MG2 Polar-Express): Lokführerinnen-Mütze in Siemens-Blau, Trillerpfeife.</summary>
+        public static readonly Color TildaCap = Siemens.Blue;
+        public static readonly Color TildaCapPeak = Shade(Siemens.Blue, 0.3f);
+        public static readonly Color TildaWhistle = Siemens.DarkYellow;
+        /// <summary>Olaf (MG3 Fischfabrik): Südwester in Orange, Schürze in Petrol.</summary>
+        public static readonly Color OlafHat = Siemens.Orange;
+        public static readonly Color OlafApron = Siemens.Petrol;
         /// <summary>ZWILLI, der digitale Zwilling: die Siemens-Verlaufsfarben „Bold Dynamic Petrol“.</summary>
         public static readonly Color Hologram = Siemens.BoldBlue;
         public static readonly Color HologramBelly = Siemens.BoldGreen;

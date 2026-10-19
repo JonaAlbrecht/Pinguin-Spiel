@@ -13,9 +13,9 @@
 | # | Minigame | Thema | Siemens-Bezug (Vorschlag*) | Kernbotschaft (1 Satz) | Paket |
 |---|---|---|---|---|---|
 | MG1 | **Huddle** – Die erste Siedlung | Wärme | Schaltschrank: SIMARIS therm, Simcenter 3D | Wer vorher simuliert, weiß, wo es zu warm wird – bevor etwas schmilzt oder kaputtgeht. | **VS** |
-| MG2 | **Schlitten** – Der Polar-Express | Strömung | Siemens Mobility: Velaro Novo | Der Computer stellt einen Zug in den Wind, bevor er gebaut wird. | R1 |
+| MG2 | **Schlitten** – Der Polar-Express | Strömung | Siemens Mobility: Velaro Novo | Der Computer stellt einen Zug in den Wind, bevor er gebaut wird. | R1 – gebaut, Spec 004 |
 | MG2-B | *Bonus:* **Fischfang** – Kühlluft im Schaltschrank | Strömung | Simcenter Flotherm | Der Computer zeigt, wohin die kühle Luft strömt. | optional |
-| MG3 | **Fischfabrik** | Prozesse | Tecnomatix Plant Simulation | Eine Fabrik erst im Computer laufen lassen zeigt Staus, bevor sie gebaut ist. | R1 |
+| MG3 | **Fischfabrik** | Prozesse | Tecnomatix Plant Simulation | Eine Fabrik erst im Computer laufen lassen zeigt Staus, bevor sie gebaut ist. | R1 – gebaut, Spec 005 |
 
 VS = Vertical Slice, R1 = Release 1 (Kernspiel).
 \* Alle Produkt-Zuordnungen sind Vorschläge und **freigabepflichtig** (siehe Dokument 00, Abschnitt 3).
@@ -42,7 +42,7 @@ Pro Minigame ist **eine** Phase der Schwerpunkt (ausführlich spielbar). Die and
 **Storyline:** Früher rückten die Pinguine bei jedem Sturm im Huddle zusammen. Jetzt hat Frieda ein Stromnetz mit Laternen gebaut – und die Kolonie gründet ihre erste Siedlung.
 **Siemens-Bezug:** Schaltschrank des Stromnetzes: thermische Simulation der Komponenten, damit keine Schäden durch Überhitzung entstehen (SIMARIS therm, Simcenter 3D – Vorschlag).
 **Auftrag (Frieda):** „Die Laternen geben Licht und Wärme. Bau mit ihnen eine Siedlung, in der es gemütlich ist – aber nichts schmilzt!“
-**Kalles Versuch:** Laternen direkt zwischen alle Iglus → die Iglus zerlaufen zu Schmelzwasser.
+**Kalles Versuch:** Laternen direkt zwischen alle Iglus → die Iglus zerlaufen zu Schmelzwasser. Das passiert **draußen auf der Scholle, in echt** (kein Raster, kein ZWILLI, Kamera auf Augenhöhe), bevor es ins Labor geht. Im Labor ist das Brett erkennbar ZWILLIS Bildschirm (dunkler Rahmen, Leuchtkante, Beschriftung „ZWILLI – die Siedlung im Computer“). In Schritt 4 steht das Foto von draußen neben der Rechnung.
 
 ### Für Spielende
 
@@ -55,10 +55,13 @@ Die Siedlung ist ein Raster aus Feldern auf dem Eis. Bausteine: **Iglu**, **Indu
    - Nach dem ersten Schritt: Was das Iglu bekommt, gibt die Laterne ab – beim Weitergeben geht keine Wärme verloren, nur an den Wind.
    - Nach 6 Schritten: Jeder Schritt bringt weniger. **Aha:** Irgendwann ändert sich fast nichts mehr – das ist der **Gleichgewichtspunkt**. Den sucht der Computer gleich für die ganze Siedlung (fast 600 Felder auf einmal) – Brücke zu Schritt 3 und Schritt 5.
    - Notizbuch: „Zeitschritt“. Bis 18.10.2026 stand diese Tafel als Zwei-Pinguine-Beispiel im Prolog „Der letzte Huddle“; Prolog und Akku-Transfer sind entfallen.
-3. **Alles hängt zusammen (Schwerpunkt):** Spieler zieht Wärmefäden zwischen benachbarten Feldern – „wie eben Laterne und Iglu: jedes Feld wärmt nur seine Nachbarn“. Dann verbindet der Computer die ganze Siedlung automatisch – hunderte Fäden in Sekunden („Genau dafür braucht man Computer“).
+3. **Alles hängt zusammen (Schwerpunkt) – „Die Wärmewelle“:** Auf dem Brett eine Laterne, zwei Iglus nah dran (2 Felder), zwei weiter weg (4 Felder). Der Spieler klickt dreimal „Nächster Schritt“: Das Wärmebild breitet sich von der Laterne aus, über jedem Iglu steht die Temperatur. Das nahe Iglu wird sofort wärmer, beim fernen tut sich erst später etwas – und weniger. **Aha:** Jedes Feld tauscht Wärme nur mit seinen direkten Nachbarn, trotzdem hängt alles zusammen; auf jedem Feld geht ein Teil an den Wind, darum zählt der Abstand. Dann „Bis zum Gleichgewicht“: ZWILLI rechnet weiter, bis sich nichts mehr ändert, für alle 576 Felder auf einmal (über 1.100 Nachbarschaften je Schritt). Bis 19.10.2026 zog man hier Wärmefäden von Hand – ohne sichtbare Wirkung, darum ersetzt.
+   Im Bauen (Schritt 5) gibt es neben dem Radierer das Werkzeug **„Verschieben“** (antippen, absetzen oder ziehen); im ganzen Minigame lässt sich **zoomen** (Mausrad, Touchpad, zwei Finger, + und −).
 4. **Der Computer probiert's aus:** Ein Wärmebild legt sich über die Siedlung. Blau = zu kalt, grün = gemütlich, rot = schmilzt. Zu warme Iglus sacken sichtbar zusammen – mit Pfütze.
 5. **Besser machen (Schwerpunkt) – „Der Gleichgewichtspunkt“:** 3 Runden. Strom-Budget für Laternen. Iglus, Laternen und Schneewälle verschieben, neu simulieren. Ziel: **möglichst viele Iglus**, die gemütlich sind und nicht schmelzen.
 6. **So macht's Siemens:** Wärmebild der Siedlung neben dem Wärmebild eines echten Schaltschranks.
+
+**Optional, später – zweite Simulationsrunde mit Hügeln (Wunsch von Jona, 18.10.2026):** Die Schneewälle bleiben wie sie sind. In einer zusätzlichen, freiwilligen Runde liegen feste Hügel/Berge im Gelände, die man nicht bebauen und nicht verschieben kann. Wer plant, nutzt ihren Windschatten. Modellidee: Windschatten wächst mit der Höhe (kleiner Hügel ≈ 3 Felder, Berg ≈ 6), Rechnung bleibt linear. Bezug zum Schaltschrank: Gehäuse und Lüftung sind vorgegeben, man ordnet die Bauteile geschickt an. Noch nicht umgesetzt.
 
 **Die Übersetzung im Transfer-Screen:**
 
@@ -76,6 +79,7 @@ Ehrlich vereinfacht: Im Schaltschrank zählt vor allem die Obergrenze („nicht 
 
 ### Technik (nur Entwicklerteam)
 - **Zwei-Felder-Tafel (Schritt 2):** dieselbe Zellbilanz wie die Siedlung, mit Speicherglied: `C·dT_i/dt = q_i + k (T_j − T_i) − h (T_i − T_luft)`, zwei Zellen, implizites Euler (Zeitdiskretisierung). Eigene, lesbare Werte im Level-JSON (`pairLesson`: q_Laterne 11, k 1, h 0,2, C 10, Δt 40, 6 Schritte): Iglu −30 → −5,8 °C, Gleichgewicht −5 °C. Der Endzustand ist genau die stationäre Bilanz unten für diese zwei Zellen (getestet). Referenz `simref/settlement_pair.py`, C# `SettlementPairLesson`, Golden `pair_settlement`.
+- **Wärmewelle (Schritt 3):** Siedlungsmatrix `A, b` mit Speicherglied: `(C/Δt·I + A) T' = C/Δt·T + b`, implizites Euler auf dem ganzen Raster (Level-JSON `wave`: C 4, Δt 10, 3 Schritte von Hand, 20 insgesamt, echter Wind). Endzustand = stationäre Lösung (getestet). Referenz `simref/settlement_wave.py`, C# `SettlementWave`, Golden `wave_settlement`.
 - **Siedlung:** 2D-Finite-Volumen-Gitter 24 × 24 (2 m), stationäre Bilanz je Zelle:
   `0 = q_i − h_i (T_i − T_luft) + Σ_N k_ij (T_j − T_i)` → `A·T = b`, A dünnbesetzt, SPD (5-Punkt-Stern) → Conjugate Gradient.
   - `q_i` > 0 nur in Laternen-Zellen; `h_i` klein hinter Schneewällen (Windschutz), groß auf freier Fläche.

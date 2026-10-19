@@ -88,9 +88,6 @@
     }
   ],
   "scaleWrong": "Hm – bringt das Wärme, oder nimmt es Wärme weg?",
-  "threadsWrong": "Nur direkte Nachbarn: oben, unten, links oder rechts – wie bei der Laterne und dem Iglu.",
-  "threadsCount": "Wärmefäden: {0} von {1}",
-  "computerThreads": "Wärmefäden in der ganzen Siedlung: {0}",
   "glossary": [
     {
       "phase": "timestep",
@@ -163,5 +160,6 @@
     "puddle": "Hier ist ein Iglu geschmolzen. Es war zu warm.",
     "notIgloo": "Tipp auf ein Iglu, um seine Waage zu sehen.",
     "explain": "Beide Seiten sind immer gleich lang: Was reinkommt, geht auch wieder raus. So pendelt sich jedes Iglu ein – nur bei verschiedener Wärme."
-  }
+  },
+  "waveNeighbours": "Nachbarschaften, die ZWILLI in jedem Schritt rechnet: {0}"
 }

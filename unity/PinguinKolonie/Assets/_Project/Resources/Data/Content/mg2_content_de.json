@@ -1,0 +1,47 @@
+{
+  "language": "de",
+  "phases": [
+    { "id": "modelling", "title": "Was ist wichtig?" },
+    { "id": "equation", "title": "Welche Regel gilt?" },
+    { "id": "assembly", "title": "Alles hängt zusammen" },
+    { "id": "solution", "title": "Der Computer probiert's aus" },
+    { "id": "optimization", "title": "Besser machen" },
+    { "id": "transfer", "title": "So macht's Siemens" }
+  ],
+  "cards": [
+    { "id": "nose", "text": "Form der Zugnase", "correct": true, "feedback": "" },
+    { "id": "headwind", "text": "Gegenwind", "correct": true, "feedback": "" },
+    { "id": "transitions", "text": "Übergänge zwischen den Wagen", "correct": true, "feedback": "" },
+    { "id": "color", "text": "Farbe der Lok", "correct": false, "feedback": "Eine rote Lok ist nicht schneller als eine blaue. Die Farbe lassen wir weg." },
+    { "id": "windows", "text": "Anzahl der Fenster", "correct": false, "feedback": "Fenster sind schön für die Aussicht – der Wind merkt davon nichts. Weglassen!" }
+  ],
+  "cardsMissing": "Da fehlt noch etwas Wichtiges. Was bestimmt noch, wie stark der Wind bremst?",
+  "hand": {
+    "question": "Stell dir vor, du hältst die Hand aus dem Autofenster. Wann drückt der Wind stärker?",
+    "options": [
+      { "text": "Hand schräg in den Wind", "angle": 22, "correct": false,
+        "feedback": "Schräg gleitet die Hand durch – die Luft strömt sanft darüber weg. Probier die andere." },
+      { "text": "Hand flach gegen den Wind", "angle": 90, "correct": true,
+        "feedback": "Genau! Flach gegen den Wind muss die ganze Luft auf einmal ausweichen. Das drückt." }
+    ]
+  },
+  "glossary": [
+    { "phase": "modelling", "term": "Luftwiderstand", "text": "Die Kraft, mit der die Luft gegen etwas drückt, das sich durch sie bewegt." },
+    { "phase": "equation", "term": "Erhaltung", "text": "Luft verschwindet nicht: Was ein Kästchen abgibt, bekommt ein anderes." },
+    { "phase": "timestep", "term": "Strömen", "text": "Der Computer gleicht die Luft in jedem Kästchen aus und schiebt sie zum Nachbarn weiter – Schritt für Schritt." },
+    { "phase": "assembly", "term": "Auflösung", "text": "Wie klein die Kästchen sind. Feiner sieht mehr, rechnet aber länger." },
+    { "phase": "solution", "term": "Wirbel", "text": "Luft, die sich hinter kantigen Stellen im Kreis dreht. Wirbel bremsen." },
+    { "phase": "optimization", "term": "Windschnittig", "text": "So geformt, dass die Luft glatt vorbeiströmt und wenig bremst." },
+    { "phase": "transfer", "term": "Windkanal", "text": "Eine große Röhre, in der man Modelle in den Wind stellt. Die Simulation spart viele Versuche darin." }
+  ],
+  "legend": {
+    "fast": "schnelle Luft (hell)",
+    "swirl": "Wirbel (rot)",
+    "open": "offener Übergang (orange)"
+  },
+  "lights": {
+    "time": "Fahrzeit",
+    "seats": "Plätze",
+    "smooth": "Übergänge glatt"
+  }
+}

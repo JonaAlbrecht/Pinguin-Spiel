@@ -23,6 +23,10 @@ namespace SFE.Game
         }
 
         private const float FloeRadius = 14f;
+        /// <summary>Hier baut Kalle seine Siedlung – draußen neben seiner Baustelle, nicht im Labor.</summary>
+        private static readonly Vector3 KallePlot = new Vector3(-8.6f, 0, 1.6f);
+        /// <summary>Feldgröße von Kalles echter Siedlung in Metern (im Modell 2 m, hier passend zu den Figuren).</summary>
+        private const float KalleCell = 0.7f;
         private const float WalkSpeed = 4f;
         /// <summary>Ab diesem Abstand (Meter, flach) lässt sich eine Figur mit E ansprechen.</summary>
         private const float TalkRange = 1.8f;
@@ -64,6 +68,8 @@ namespace SFE.Game
             {
                 float a = (float)(rnd.NextDouble() * Math.PI * 2), r = 9f + (float)rnd.NextDouble() * 4f;
                 float s = 0.6f + (float)rnd.NextDouble() * 1.2f;
+                var at = new Vector3(Mathf.Cos(a) * r, 0, Mathf.Sin(a) * r);
+                if (Vector3.Distance(at, KallePlot) < 2.8f + s) continue; // Platz für Kalles Siedlung
                 Prims.Make(PrimitiveType.Sphere, t, new Vector3(Mathf.Cos(a) * r, 0, Mathf.Sin(a) * r), new Vector3(s * 1.4f, s * 0.7f, s), Palette.Snow, "SnowPile");
             }
 
@@ -98,7 +104,17 @@ namespace SFE.Game
             foreach (var p in new[] { new Vector3(-3.5f, 0, 2f), new Vector3(3.5f, 0, 2.2f), new Vector3(0, 0, 8.2f) })
                 Prims.Lantern(t, 1.2f, true).transform.localPosition = p;
 
-            // Ausblick auf Release 1 (MG2, MG3)
+            // Gleis des Polar-Express: von Tildas Bahnsteig über die Scholle hinaus aufs Meer
+            var track = new GameObject("Track").transform;
+            track.SetParent(t, false);
+            track.localPosition = new Vector3(11.8f, 0, -1f);
+            track.localRotation = Quaternion.Euler(0, 20f, 0);
+            for (int side = -1; side <= 1; side += 2)
+                Prims.Make(PrimitiveType.Cube, track, new Vector3(side * 0.45f, 0.06f, 0), new Vector3(0.08f, 0.08f, 9f), Palette.LanternPole, "Rail");
+            for (int i = 0; i < 12; i++)
+                Prims.Make(PrimitiveType.Cube, track, new Vector3(0, 0.02f, -4.2f + i * 0.75f), new Vector3(1.3f, 0.04f, 0.22f), Palette.Wood, "Sleeper");
+
+            // Wegweiser zu Gleis und Küste (MG2, MG3)
             var future = new GameObject("FutureSign").transform;
             future.SetParent(t, false);
             future.localPosition = new Vector3(12f, 0, 3f);
@@ -116,6 +132,11 @@ namespace SFE.Game
             AddNpc("theo", Prims.Look.Theo, new Vector3(8.6f, 0, 2.2f), 250f);
             AddNpc("klara", Prims.Look.Klara, new Vector3(-3.4f, 0, -4.6f), 30f);
             AddNpc("flocke", Prims.Look.Flocke, new Vector3(1.6f, 0, 6.4f), 190f);
+            // Release 1: Tilda am Gleis (MG2), Olaf an der Küste (MG3) – erscheinen erst, wenn sie dran sind
+            AddNpc("tilda", Prims.Look.Tilda, new Vector3(10.6f, 0, 1.2f), 250f);
+            AddNpc("olaf", Prims.Look.Olaf, new Vector3(6.6f, 0, -9.8f), 330f);
+            ShowNpc("tilda", false);
+            ShowNpc("olaf", false);
             foreach (var p in new[] { new Vector3(-0.6f, 0, 4.4f), new Vector3(0.1f, 0, 3.6f), new Vector3(0.8f, 0, 4.6f) })
             {
                 var extra = Prims.Penguin(t, "Colony", Prims.Look.Plain, 1.3f);
@@ -266,6 +287,9 @@ namespace SFE.Game
 
         public void SetIdleNode(string npcId, string node) => _npcs[npcId].IdleNode = node;
 
+        /// <summary>Figur ein- oder ausblenden (Tilda und Olaf kommen erst dazu, wenn ihr Minigame dran ist).</summary>
+        public void ShowNpc(string npcId, bool visible) => _npcs[npcId].Go.SetActive(visible);
+
         private void Update()
         {
             if (!_active) return;
@@ -305,6 +329,7 @@ namespace SFE.Game
         {
             foreach (var n in _npcs.Values)
             {
+                if (!n.Go.activeSelf) continue; // ausgeblendete Figuren (Tilda, Olaf vor ihrem Auftritt)
                 var c = n.Go.transform.position;
                 var d = new Vector3(p.x - c.x, 0, p.z - c.z);
                 if (d.magnitude < NpcRadius && d.sqrMagnitude > 1e-6f) p = new Vector3(c.x, p.y, c.z) + d.normalized * NpcRadius;
@@ -328,6 +353,7 @@ namespace SFE.Game
             {
                 foreach (var n in _npcs.Values)
                 {
+                    if (!n.Go.activeSelf) continue;
                     var c = n.Go.transform.position;
                     float d = Vector2.Distance(new Vector2(c.x, c.z), new Vector2(Pip.position.x, Pip.position.z));
                     if (d < best) { best = d; nearest = n; }
@@ -362,6 +388,7 @@ namespace SFE.Game
                 _pendingNpc = null;
                 foreach (var n in _npcs.Values)
                 {
+                    if (!n.Go.activeSelf) continue;
                     var flat = n.Go.transform.position;
                     if (Vector2.Distance(new Vector2(flat.x, flat.z), new Vector2(p.x, p.z)) < 1.2f) _pendingNpc = n;
                 }
@@ -406,6 +433,115 @@ namespace SFE.Game
                     Talk(npc);
                 }
             }
+        }
+
+        /// <summary>
+        /// Kalles Versuch – in echt, draußen auf der Scholle: kein Raster, kein ZWILLI, Kamera auf Augenhöhe.
+        /// Erst danach geht es ins Labor, wo dieselbe Siedlung nur noch auf ZWILLIS Bildschirm erscheint (Schritt 4).
+        /// Was schmilzt, bestimmt dasselbe Modell wie im Labor – die „Wirklichkeit“ des Spiels.
+        /// Am Ende ein Foto für den Vergleich in Schritt 4 (<see cref="GameState.KallePhoto"/>).
+        /// </summary>
+        public IEnumerator PlayKalleAttempt(SettlementLevel level, SettlementMaterialSet mats, GameState state)
+        {
+            _active = false;
+            _pendingNpc = null;
+            _talkPrompt.gameObject.SetActive(false);
+            _clickMarker.gameObject.SetActive(false);
+            Pip.Find("Body").localRotation = Quaternion.identity;
+
+            var grid = SettlementGrid.FromRows(level.KalleTiles);
+            int minX = grid.Width, maxX = -1, minY = grid.Height, maxY = -1;
+            for (int y = 0; y < grid.Height; y++)
+                for (int x = 0; x < grid.Width; x++)
+                    if (grid[x, y] != Cell.Ice)
+                    { minX = Mathf.Min(minX, x); maxX = Mathf.Max(maxX, x); minY = Mathf.Min(minY, y); maxY = Mathf.Max(maxY, y); }
+            var site = new GameObject("KalleSettlement").transform;
+            site.SetParent(transform, false);
+            site.localPosition = KallePlot;
+            Vector3 At(int x, int y) => new Vector3((x - (minX + maxX) / 2f) * KalleCell, 0, -(y - (minY + maxY) / 2f) * KalleCell);
+
+            var kalle = _npcs["kalle"].Go.transform;
+            kalle.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(site.position - kalle.position, Vector3.up).normalized, Vector3.up);
+            _root.Rig.LookAt(site.position + new Vector3(0.6f, 0.5f, 0), 24f, 8.5f, 0f);
+            yield return _root.Hud.Say("kalle_intro");
+
+            // Kalle baut – Stück für Stück, ohne zu rechnen
+            var built = new Dictionary<int, GameObject>();
+            for (int y = minY; y <= maxY; y++)
+            {
+                for (int x = minX; x <= maxX; x++)
+                {
+                    GameObject go = null;
+                    if (grid[x, y] == Cell.Igloo) go = Prims.Igloo(site, KalleCell * 1.3f);
+                    else if (grid[x, y] == Cell.Lantern) go = Prims.Lantern(site, KalleCell * 1.3f, true);
+                    if (go == null) continue;
+                    go.transform.localPosition = At(x, y);
+                    built[y * grid.Width + x] = go;
+                    Sfx.Play(Sfx.Sound.Plop, 0.5f);
+                    yield return new WaitForSeconds(0.12f);
+                }
+            }
+            yield return new WaitForSeconds(1.4f);
+
+            var sim = new SettlementSimulation(grid, level, mats);
+            sim.RunToEnd();
+            int firstPuddle = -1;
+            foreach (var pass in sim.MeltPasses)
+            {
+                state.Puddles += pass.Length;
+                for (float t = 0; t < 1.4f; t += Time.deltaTime)
+                {
+                    float k = 1f - t / 1.4f;
+                    foreach (int i in pass)
+                        built[i].transform.localScale = new Vector3(1f + 0.25f * (1 - k), Mathf.Max(0.05f, k), 1f + 0.25f * (1 - k)) * KalleCell * 1.3f;
+                    yield return null;
+                }
+                if (pass.Length > 0) Sfx.Play(Sfx.Sound.Splash);
+                foreach (int i in pass)
+                {
+                    var puddle = Prims.Puddle(site, KalleCell * 1.3f);
+                    puddle.transform.localPosition = built[i].transform.localPosition;
+                    Destroy(built[i]);
+                    built[i] = puddle;
+                    if (firstPuddle < 0) firstPuddle = i;
+                }
+                yield return new WaitForSeconds(0.4f);
+            }
+
+            // Flocke kommt angewatschelt und planscht in der ersten Pfütze (sie fragt gleich „warum?“)
+            if (firstPuddle >= 0)
+            {
+                var flocke = _npcs["flocke"].Go.transform;
+                flocke.position = built[firstPuddle].transform.position + new Vector3(-0.25f, 0, -0.9f);
+                flocke.rotation = Quaternion.LookRotation(Vector3.back, Vector3.up);
+            }
+            yield return new WaitForSeconds(0.8f);
+            state.KallePhoto = Photo();
+            yield return _root.Hud.Say("kalle_after");
+
+            _root.Rig.Follow(_pip.transform, 50f, 24f);
+            _target = Pip.position;
+            _active = true;
+        }
+
+        /// <summary>Foto der aktuellen Ansicht ohne Oberfläche (das HUD liegt als Overlay darüber und kommt nicht mit).</summary>
+        private Texture2D Photo()
+        {
+            const int w = 640, h = 400;
+            var cam = _root.Rig.Cam;
+            var rt = RenderTexture.GetTemporary(w, h, 24);
+            var prevTarget = cam.targetTexture;
+            var prevActive = RenderTexture.active;
+            cam.targetTexture = rt;
+            cam.Render();
+            cam.targetTexture = prevTarget;
+            RenderTexture.active = rt;
+            var tex = new Texture2D(w, h, TextureFormat.RGB24, false) { filterMode = FilterMode.Bilinear };
+            tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
+            tex.Apply();
+            RenderTexture.active = prevActive;
+            RenderTexture.ReleaseTemporary(rt);
+            return tex;
         }
 
         /// <summary>

@@ -1,0 +1,90 @@
+{
+ "case": "hint",
+ "tiles": [
+  "D..........T",
+  "D..........T",
+  "DSFFP.#....T",
+  "D...BBBBBBBT",
+  "D.KK..#....T",
+  "D..........T",
+  "D..........T"
+ ],
+ "seed": 2026,
+ "replications": 10,
+ "tolerance": 1e-09,
+ "day": {
+  "delivered": 73,
+  "finished": 73,
+  "arrived": 96,
+  "stolen": 2,
+  "spoiled": 0,
+  "leadTime": 53.6730958283,
+  "utilization": [
+   0.5811842224,
+   0.545873189,
+   0.4584086113
+  ],
+  "maxQueue": [
+   38,
+   10,
+   1
+  ],
+  "endQueue": [
+   9,
+   6,
+   0
+  ],
+  "bottleneck": 0,
+  "events": 592
+ },
+ "days": {
+  "delivered": [
+   73,
+   113,
+   94,
+   87,
+   112,
+   92,
+   105,
+   112,
+   87,
+   61
+  ],
+  "spoiled": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "stolen": [
+   2,
+   6,
+   0,
+   3,
+   3,
+   2,
+   1,
+   2,
+   3,
+   1
+  ],
+  "meanDelivered": 93.6,
+  "sdDelivered": 17.5131696478,
+  "halfWidth": 10.1520557024,
+  "lower": 83.4479442976,
+  "meanSpoiled": 0.1,
+  "meanLeadTime": 46.7441752874,
+  "stars": 3,
+  "lights": [
+   2,
+   2,
+   2
+  ]
+ }
+}

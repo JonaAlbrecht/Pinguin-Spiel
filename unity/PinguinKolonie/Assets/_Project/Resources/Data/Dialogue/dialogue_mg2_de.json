@@ -1,0 +1,125 @@
+{
+  "language": "de",
+  "speakers": [
+    { "id": "tilda", "name": "Tilda Takt", "color": "#805CFF" }
+  ],
+  "nodes": [
+    { "id": "mg2_kalle_intro", "lines": [
+      { "speaker": "tilda", "text": "Die Fischer warten an der Küste. Mein Zug soll sie hinbringen – aber gegen den Wind der Tundra kommt er nicht an." },
+      { "speaker": "kalle", "text": "Kein Problem! Ich hab einen riesigen Schlitten mit Motor gebaut. Vorne schön flach – da passt viel rein!" },
+      { "speaker": "pip", "text": "Und der Gegenwind?" },
+      { "speaker": "kalle", "text": "Ach was. Viel Motor hilft viel! Achtung, er fährt los!" }
+    ]},
+    { "id": "mg2_kalle_after", "lines": [
+      { "speaker": "kalle", "text": "Er fährt … ein bisschen. Na ja. Fast." },
+      { "speaker": "tilda", "text": "Bei dem Tempo sind die Fischer alt und grau, bevor wir ankommen." },
+      { "speaker": "frieda", "text": "Die flache Front stemmt sich gegen den Wind wie eine Wand. Stellen wir den Zug lieber erst im Computer in den Wind." },
+      { "speaker": "pip", "text": "Wie in einem Windkanal?" },
+      { "speaker": "frieda", "text": "Genau – nur ohne Kanal. Ab ins Labor, ZWILLI wartet schon." }
+    ]},
+    { "id": "mg2_intro", "lines": [
+      { "speaker": "zwilli", "text": "W-willkommen im Windkanal! Ich bin der Zwilling eures Zuges – nur im Computer." },
+      { "speaker": "tilda", "text": "Pip, du bist jetzt Chefingenieur:in. Mach meinen Zug windschnittig – aber alle Fischer müssen reinpassen!" }
+    ]},
+    { "id": "mg2_phase1_intro", "lines": [
+      { "speaker": "frieda", "text": "Erst überlegen: Was entscheidet, wie stark der Wind den Zug bremst? Wähl die wichtigen Karten." }
+    ]},
+    { "id": "mg2_phase1_done", "lines": [
+      { "speaker": "frieda", "text": "Genau: die Nase, der Gegenwind und die Übergänge zwischen den Wagen. Farbe und Fenster lassen wir weg." },
+      { "speaker": "zwilli", "text": "Weglassen spart Rechnen. So entsteht ein Modell!" }
+    ]},
+    { "id": "mg2_phase2_intro", "lines": [
+      { "speaker": "frieda", "text": "Welche Regel gilt für Luft? Fangen wir mit etwas an, das du kennst." }
+    ]},
+    { "id": "mg2_phase2_done", "lines": [
+      { "speaker": "frieda", "text": "Flach gegen den Wind drückt es stark, schräg gleitet die Hand durch. Genauso beim Zug." },
+      { "speaker": "frieda", "text": "Und das Wichtigste: Luft verschwindet nicht. Sie muss um den Zug herum." }
+    ]},
+    { "id": "mg2_lesson_intro", "lines": [
+      { "speaker": "frieda", "text": "Wie rechnet ZWILLI das? Wir schauen uns fünf Kästchen Luft an, in einer Reihe, links und rechts eine Wand." },
+      { "speaker": "frieda", "text": "Ins erste Kästchen kommt ein Windstoß: mehr Luft, und sie will nach rechts. Das zeigen die blauen Pfeile." },
+      { "speaker": "frieda", "text": "Jeder Schritt hat zwei Teile: erst ausgleichen, dann weiterschieben. Drück auf „Nächster Schritt“." }
+    ]},
+    { "id": "mg2_lesson_conservation", "lines": [
+      { "speaker": "frieda", "text": "Schau auf die Summe: Was ein Kästchen weiterschiebt, kommt beim Nachbarn an. Luft geht nicht verloren." },
+      { "speaker": "zwilli", "text": "Ich z-zähle mit. Immer gleich viel!" }
+    ]},
+    { "id": "mg2_lesson_done", "lines": [
+      { "speaker": "pip", "text": "Der Windstoß wandert nach rechts, prallt an der Wand ab und wird immer flacher." },
+      { "speaker": "frieda", "text": "Und am Ende ist die Luft fast überall gleich verteilt. In jedem Schritt gilt dieselbe Regel." },
+      { "speaker": "frieda", "text": "Genau das macht ZWILLI gleich um den ganzen Zug – mit über zehntausend Kästchen auf einmal." }
+    ]},
+    { "id": "mg2_phase3_intro", "lines": [
+      { "speaker": "frieda", "text": "Wie klein sollen die Kästchen sein? Kleinere Kästchen sehen mehr – aber ZWILLI rechnet länger." },
+      { "speaker": "zwilli", "text": "Ich rechne zwei Nasen: Kalles flache Kiste und Tildas runde Nase. Such dir aus, wie fein." }
+    ]},
+    { "id": "mg2_phase3_grob", "lines": [
+      { "speaker": "pip", "text": "Grob geht schnell. Aber beide Nasen kommen gleich raus?" },
+      { "speaker": "frieda", "text": "Schau auf die Nase: Bei großen Kästchen wird die runde Nase zur Treppe – genau wie Kalles Kiste." }
+    ]},
+    { "id": "mg2_phase3_mittel", "lines": [
+      { "speaker": "frieda", "text": "Mittel sieht schon einen Unterschied zwischen den Nasen. Fein wäre noch genauer." }
+    ]},
+    { "id": "mg2_phase3_fein", "lines": [
+      { "speaker": "frieda", "text": "Fein sieht die runde Nase. Dafür rechnet ZWILLI etwa achtmal so viel wie bei grob." }
+    ]},
+    { "id": "mg2_phase3_done", "lines": [
+      { "speaker": "frieda", "text": "An der Zugnase lohnt sich Genauigkeit. Darum rechnen wir den Zug ab jetzt fein." },
+      { "speaker": "zwilli", "text": "Wie genau oder wie schnell – das entscheidet man bei jeder Simulation neu." }
+    ]},
+    { "id": "mg2_phase4_intro", "lines": [
+      { "speaker": "frieda", "text": "Jetzt stellen wir Kalles Schlitten in ZWILLIS Windkanal. Drück auf „Simulieren“." }
+    ]},
+    { "id": "mg2_phase4_done", "lines": [
+      { "speaker": "frieda", "text": "Siehst du die roten Stellen? Dort dreht sich die Luft im Kreis – Wirbel. Sie bremsen den Zug." },
+      { "speaker": "kalle", "text": "Genau wie draußen! Nur ohne kalte Füße." },
+      { "speaker": "frieda", "text": "Dasselbe Ergebnis wie in echt – und ZWILLI brauchte dafür keinen einzigen echten Schlitten." }
+    ]},
+    { "id": "mg2_explain", "lines": [
+      { "speaker": "zwilli", "text": "Was ich gerechnet habe? In jedem Schritt ausgleichen und weiterschieben – wie bei den fünf Kästchen." },
+      { "speaker": "zwilli", "text": "Nur für alle Kästchen auf einmal, zweitausend Schritte lang. Am Ende weiß ich, wie stark die Luft gegen den Zug drückt." },
+      { "speaker": "frieda", "text": "Ehrlich gesagt: Das ist stark vereinfacht. Echte Simulationen bei Siemens sind viel genauer." }
+    ]},
+    { "id": "mg2_phase5_intro", "lines": [
+      { "speaker": "tilda", "text": "Jetzt du, Pip! Zieh an den gelben Punkten, um die Nase zu formen. Unten kannst du die Übergänge verkleiden." },
+      { "speaker": "tilda", "text": "Aber denk an die Fischer: Alle brauchen einen Platz. Eine lange Spitze kostet Platz." },
+      { "speaker": "frieda", "text": "Du hast drei Versuche. Im Computer kostet Ausprobieren nichts." }
+    ]},
+    { "id": "mg2_phase5_success", "lines": [
+      { "speaker": "tilda", "text": "Pünktlich an der Küste, und alle passen rein! So kann ich fahren." },
+      { "speaker": "frieda", "text": "Schaffst du noch die Bestzeit? Schau, wo es noch rot wirbelt." }
+    ]},
+    { "id": "mg2_phase5_three_stars", "lines": [
+      { "speaker": "tilda", "text": "Bestzeit! Und alle Fischer haben einen Platz. Das ist ein echter Polar-Express!" },
+      { "speaker": "zwilli", "text": "Windschnittig. Das Wort merke ich mir." }
+    ]},
+    { "id": "mg2_phase5_one_star", "lines": [
+      { "speaker": "tilda", "text": "Schnell ist er! Aber die halbe Kolonne steht noch am Bahnsteig. Mach die Nase etwas kürzer." }
+    ]},
+    { "id": "mg2_phase5_hint_cover", "lines": [
+      { "speaker": "frieda", "text": "Siehst du die orangen Buckel auf dem Dach? Dahinter wirbelt es. Verkleide die Übergänge unten in der Leiste." }
+    ]},
+    { "id": "mg2_phase5_hint_nose", "lines": [
+      { "speaker": "frieda", "text": "Noch zu langsam. Zieh die Spitze der Nase nach unten und die Nase etwas länger – wie die schräge Hand." }
+    ]},
+    { "id": "mg2_phase5_solution", "lines": [
+      { "speaker": "frieda", "text": "Das ist knifflig. Unten rechts gibt es jetzt einen Beispiel-Zug. Schau ihn dir an und rechne ihn nach." }
+    ]},
+    { "id": "mg2_phase5_done", "lines": [
+      { "speaker": "tilda", "text": "Das ist mein Zug! Komm, wir schauen ihn uns draußen an." },
+      { "speaker": "frieda", "text": "Und kein einziger Probezug musste dafür in den Schnee." }
+    ]},
+    { "id": "mg2_train_departs", "lines": [
+      { "speaker": "tilda", "text": "Alle einsteigen! Nächster Halt: das Eismeer." }
+    ]},
+    { "id": "mg2_train_gone", "lines": [
+      { "speaker": "kalle", "text": "Der ist ja schneller als mein Schlitten … Vielleicht rechne ich nächstes Mal vorher." },
+      { "speaker": "frieda", "text": "Ich hab da eine Idee, wo du das zeigen kannst, Pip. Komm mit!" }
+    ]},
+    { "id": "mg2_transfer_after", "lines": [
+      { "speaker": "frieda", "text": "Siemens Mobility macht das mit echten Zügen: erst im Computer in den Wind stellen, dann bauen." },
+      { "speaker": "zwilli", "text": "Moment … die Luft drängelt sich um den Zug wie die Wärme zwischen den Iglus! Das Muster kenne ich!" },
+      { "speaker": "frieda", "text": "Genau. Wer Simulation einmal verstanden hat, erkennt sie überall." }
+    ]}
+  ]
+}

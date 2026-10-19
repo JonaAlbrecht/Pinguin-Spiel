@@ -59,6 +59,50 @@ namespace SFE.Game
             }
         }
 
+        /// <summary>
+        /// Zoom in Rastschritten, positiv = näher heran: Mausrad, Touchpad (zwei Finger streichen oder spreizen –
+        /// Windows meldet beides als Scrollen), Zwei-Finger-Pinch auf Touchscreens, Tasten + und −.
+        /// </summary>
+        public static float ZoomDelta
+        {
+            get
+            {
+                float steps = 0f;
+#if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
+                if (Mouse.current != null) steps += Mouse.current.scroll.ReadValue().y / 120f;
+                var k = Keyboard.current;
+                if (k != null)
+                {
+                    if (k.equalsKey.isPressed || k.numpadPlusKey.isPressed) steps += 4f * Time.unscaledDeltaTime;
+                    if (k.minusKey.isPressed || k.numpadMinusKey.isPressed) steps -= 4f * Time.unscaledDeltaTime;
+                }
+                var ts = Touchscreen.current;
+                if (ts != null)
+                {
+                    var t0 = ts.touches[0];
+                    var t1 = ts.touches[1];
+                    if (t0.press.isPressed && t1.press.isPressed)
+                    {
+                        Vector2 p0 = t0.position.ReadValue(), p1 = t1.position.ReadValue();
+                        Vector2 d0 = t0.delta.ReadValue(), d1 = t1.delta.ReadValue();
+                        steps += (Vector2.Distance(p0, p1) - Vector2.Distance(p0 - d0, p1 - d1)) / 80f;
+                    }
+                }
+#else
+                steps += Input.mouseScrollDelta.y;
+                if (Input.GetKey(KeyCode.Equals) || Input.GetKey(KeyCode.Plus) || Input.GetKey(KeyCode.KeypadPlus)) steps += 4f * Time.unscaledDeltaTime;
+                if (Input.GetKey(KeyCode.Minus) || Input.GetKey(KeyCode.KeypadMinus)) steps -= 4f * Time.unscaledDeltaTime;
+                if (Input.touchCount == 2)
+                {
+                    Touch a = Input.GetTouch(0), b = Input.GetTouch(1);
+                    steps += (Vector2.Distance(a.position, b.position) -
+                              Vector2.Distance(a.position - a.deltaPosition, b.position - b.deltaPosition)) / 80f;
+                }
+#endif
+                return steps;
+            }
+        }
+
         public static Vector2 PointerPosition
         {
             get

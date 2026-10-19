@@ -1,0 +1,106 @@
+{
+  "id": "transfer_MG3_factory",
+  "minigame": "MG3_FishFactory",
+  "siemensBusiness": "Digital Industries (Fabrikautomatisierung und Software)",
+  "headline": {
+    "de": "Was du gemacht hast, macht Siemens für Fabriken auf der ganzen Welt"
+  },
+  "body": {
+    "de": "Bevor eine Fertigungslinie gebaut oder umgebaut wird, läuft sie als Digitaler Zwilling im Computer. Dort sieht man, wo sich Teile stapeln, welche Maschine der Engpass ist und wie viel ein Puffer bringt – an guten und an schlechten Tagen. Umgebaut wird erst, wenn der Plan im Computer trägt."
+  },
+  "customerBenefits": [
+    { "de": "Engpässe finden, bevor die Halle steht" },
+    { "de": "Teure Umbauten und Stillstand vermeiden" },
+    { "de": "Liefertermine verlässlich planen" }
+  ],
+  "product": "Tecnomatix Plant Simulation (Vorschlag – Freigabe offen)",
+  "tableGame": {
+    "de": "In Olafs Fabrik"
+  },
+  "tableReal": {
+    "de": "In einer echten Fabrik"
+  },
+  "translation": [
+    {
+      "game": { "de": "Kutter und Zug liefern Fisch" },
+      "real": { "de": "Zulieferer liefern Teile – mal früher, mal später" }
+    },
+    {
+      "game": { "de": "Sortieren, Filetieren, Verpacken" },
+      "real": { "de": "Maschinen und Arbeitsplätze einer Linie" }
+    },
+    {
+      "game": { "de": "Kistenstapel vor der Filetier-Station" },
+      "real": { "de": "Teile warten vor dem Engpass" }
+    },
+    {
+      "game": { "de": "Robo-Robben und Förderbänder" },
+      "real": { "de": "Fahrerlose Transportwagen und Bänder" }
+    }
+  ],
+  "honesty": {
+    "de": "Ehrlich vereinfacht: Echte Fabriken haben viel mehr Stationen, Schichten und Wege. Das Prinzip ist dasselbe."
+  },
+  "media": {
+    "image": null,
+    "video": null,
+    "source": null,
+    "placeholder": "factory_line_procedural"
+  },
+  "voiceClip": {
+    "file": null,
+    "speaker": null,
+    "approved": false
+  },
+  "takeaway": {
+    "de": "Bevor eine Fabrik gebaut oder umgebaut wird, lässt man sie im Computer laufen. So findet man Engpässe früh und spart teure Umbauten."
+  },
+  "moreLink": null,
+  "approval": {
+    "department": null,
+    "communications": null,
+    "date": null
+  },
+  "retrieval": [
+    {
+      "question": { "de": "Warum lässt man eine Fabrik viele Tage im Computer laufen statt nur einen?" },
+      "options": [
+        {
+          "text": { "de": "Weil jeder Tag anders ist – erst viele Tage zeigen, ob der Plan trägt." },
+          "correct": true,
+          "feedback": { "de": "Genau! Ein einzelner Tag kann Glück oder Pech gewesen sein." }
+        },
+        {
+          "text": { "de": "Weil der Computer beim ersten Mal noch übt." },
+          "correct": false,
+          "feedback": { "de": "Der Computer rechnet jeden Tag gleich gut. Es ist der Zufall, der schwankt." }
+        },
+        {
+          "text": { "de": "Damit die Möwen sich an die Fabrik gewöhnen." },
+          "correct": false,
+          "feedback": { "de": "Die Möwen gewöhnen sich nie daran. Aber der Gedanke ist nett." }
+        }
+      ]
+    },
+    {
+      "question": { "de": "Welcher Siemens-Bereich hilft, Fabriken im Computer zu planen?" },
+      "options": [
+        {
+          "text": { "de": "Smart Infrastructure – Strom verteilen und schützen" },
+          "correct": false,
+          "feedback": { "de": "Das war der Schaltschrank mit den Laternen. Hier geht es um Fabriken." }
+        },
+        {
+          "text": { "de": "Mobility – Züge und Bahnen" },
+          "correct": false,
+          "feedback": { "de": "Der Polar-Express bringt nur den Nachschub. Gesucht ist die Fabrik." }
+        },
+        {
+          "text": { "de": "Digital Industries – Fabrikautomatisierung und Software" },
+          "correct": true,
+          "feedback": { "de": "Richtig! Das kommt als neue Karte auf deine Siemens-Landkarte." }
+        }
+      ]
+    }
+  ]
+}

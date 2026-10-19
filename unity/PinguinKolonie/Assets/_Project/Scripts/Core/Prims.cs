@@ -126,7 +126,7 @@ namespace SFE.Game
 
         // ---------- Figuren ----------
 
-        public enum Look { Plain, Pip, Frieda, Kalle, Grete, Theo, Klara, Flocke }
+        public enum Look { Plain, Pip, Frieda, Kalle, Grete, Theo, Klara, Flocke, Tilda, Olaf }
 
         /// <summary>Ein Pinguin nach den Stilregeln, ca. 0,76 m hoch (Größe 1).</summary>
         public static GameObject Penguin(Transform parent, string name, Look look = Look.Plain, float size = 1f) =>

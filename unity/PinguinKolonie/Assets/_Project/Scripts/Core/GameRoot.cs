@@ -5,8 +5,9 @@ namespace SFE.Game
 {
     /// <summary>
     /// Einstiegspunkt des Vertical Slice. Baut die ganze Welt per Code (keine Prefabs, keine Szenen-YAML)
-    /// und führt durch den Ablauf: Titel → Hub → MG1 „Die erste Siedlung“ (Schritte 1–5) → „So macht's Siemens“
-    /// → Hub mit Siedlung → Abschluss.
+    /// und führt durch den Ablauf: Titel → Hub mit Kalles Versuch draußen → MG1 „Die erste Siedlung“ → „So macht's Siemens“
+    /// → Hub → Tilda am Gleis: MG2 „Polar-Express“ → Transfer → Hub → Olaf an der Küste: MG3 „Fischfabrik“ → Transfer
+    /// → Abschluss mit Siemens-Landkarte; danach lässt sich jedes Minigame wiederholen.
     /// In eine leere Szene legen oder über das Menü „Pinguin-Spiel → Prototyp-Szene erstellen“ anlegen.
     /// </summary>
     public sealed class GameRoot : MonoBehaviour
@@ -18,6 +19,8 @@ namespace SFE.Game
 
         private HubWorld _hub;
         private static readonly Vector3 MinigameOrigin = new Vector3(200f, 0f, 0f);
+        /// <summary>MG3 baut seine Halle 60 m südlich des Labors – eigener Ursprung, damit nichts mit MG1/MG2 überlappt.</summary>
+        private static readonly Vector3 FactoryOrigin = new Vector3(400f, 0f, 0f);
 
         private void Awake()
         {
@@ -59,34 +62,102 @@ namespace SFE.Game
             _hub.SetIdleNode("flocke", "hub_flocke");
             yield return _hub.WaitForTalk("frieda");
 
+            // Kalle kommt Frieda zuvor – draußen, in echt (kein Raster, kein ZWILLI). Danach geht es ins Labor.
+            yield return _hub.PlayKalleAttempt(Data.Settlement, Data.Materials, State);
+
+            yield return PlaySettlement();
+            yield return Hud.Say("hub_after_grete");
+
+            // Tilda wartet am Gleis: Der Polar-Express soll die Siedlung mit der Küste verbinden.
+            _hub.ShowNpc("tilda", true);
+            yield return Hud.Say("hub_to_tilda");
+            yield return _hub.WaitForTalk("tilda");
+            yield return PlayPolarExpress();
+
+            // Olaf an der Küste: Der Zug bringt Fischer, jetzt staut sich der Fisch.
+            _hub.ShowNpc("olaf", true);
+            yield return Hud.Say("hub_to_olaf");
+            yield return _hub.WaitForTalk("olaf");
+            yield return PlayFishFactory();
+            yield return Hud.Say("hub_all_done");
+
             while (true)
             {
-                yield return Hud.FadeOut();
-                _hub.Exit();
-                yield return SettlementMinigame.Create(this, MinigameOrigin).Play();
-                State.Mg1Done = true;
-
-                Hud.ShowPhases(5);
-                yield return TransferScreen.Play(this);
-                Hud.ShowPhases(-1);
-                State.MapCards = Mathf.Max(State.MapCards, 1);
-                State.Takeaway = GameData.Loc(Data.TransferCard["takeaway"]);
-
-                _hub.Enter();
-                _hub.ShowSettlement(State.Mg1BestLayout, State.Mg1BestResult, State.Mg1BestFinalRows);
-                _hub.SetIdleNode("grete", "hub_after_grete");
-                _hub.SetIdleNode("kalle", "hub_after_kalle");
-                yield return Hud.FadeIn();
-                yield return Hud.Say("hub_after_grete");
-
-                bool replay = false;
+                int replay = 0;
                 yield return EndScreen(r => replay = r);
-                if (!replay) break;
-                yield return _hub.WaitForTalk("frieda");
-                yield return Hud.Say("hub_after_frieda");
+                if (replay == 0) break;
+                if (replay == 1)
+                {
+                    yield return _hub.WaitForTalk("frieda");
+                    yield return Hud.Say("hub_after_frieda");
+                    yield return PlaySettlement();
+                }
+                else if (replay == 2)
+                {
+                    yield return _hub.WaitForTalk("tilda");
+                    yield return PlayPolarExpress();
+                }
+                else
+                {
+                    yield return _hub.WaitForTalk("olaf");
+                    yield return PlayFishFactory();
+                }
             }
             Hud.Toast(Data.Ui("hubThanks"), 6f);
         }
+
+        private IEnumerator PlaySettlement()
+        {
+            yield return Hud.FadeOut();
+            _hub.Exit();
+            yield return SettlementMinigame.Create(this, MinigameOrigin).Play();
+            State.Mg1Done = true;
+
+            Hud.ShowPhases(5);
+            yield return TransferScreen.Play(this);
+            Hud.ShowPhases(-1);
+            UpdateMapCards();
+            State.Takeaway = GameData.Loc(Data.TransferCard["takeaway"]);
+
+            _hub.Enter();
+            _hub.ShowSettlement(State.Mg1BestLayout, State.Mg1BestResult, State.Mg1BestFinalRows);
+            _hub.SetIdleNode("grete", "hub_after_grete");
+            _hub.SetIdleNode("kalle", "hub_after_kalle");
+            yield return Hud.FadeIn();
+        }
+
+        private IEnumerator PlayPolarExpress()
+        {
+            yield return Hud.FadeOut();
+            _hub.Exit();
+            yield return PolarExpressMinigame.Create(this, MinigameOrigin).Play(); // mit Kalles Schlitten draußen
+            Hud.ShowPhases(5);
+            yield return PolarExpressTransfer.Play(this);
+            Hud.ShowPhases(-1);
+            UpdateMapCards();
+            State.Takeaway = PolarExpressTransfer.Takeaway();
+
+            _hub.Enter();
+            _hub.SetIdleNode("tilda", "hub_tilda_after");
+            yield return Hud.FadeIn();
+        }
+
+        private IEnumerator PlayFishFactory()
+        {
+            yield return Hud.FadeOut();
+            _hub.Exit();
+            yield return FishFactoryMinigame.Create(this, FactoryOrigin).Play(); // mit Kalles Versuch in der Halle
+            yield return FishFactoryTransfer.Play(this);                         // setzt Phasenleiste und Takeaway selbst
+            UpdateMapCards();
+
+            _hub.Enter();
+            _hub.SetIdleNode("olaf", "mg3_hub_olaf");
+            yield return Hud.FadeIn();
+        }
+
+        /// <summary>Je fertigem Minigame eine Karte der Siemens-Landkarte (Schaltschrank, Mobility, Fabrik).</summary>
+        private void UpdateMapCards() =>
+            State.MapCards = (State.Mg1Done ? 1 : 0) + (Mg2Progress.Of(State).Done ? 1 : 0) + (FishFactoryState.Done ? 1 : 0);
 
         private IEnumerator TitleScreen()
         {
@@ -110,39 +181,45 @@ namespace SFE.Game
             Destroy(layer);
         }
 
-        private IEnumerator EndScreen(System.Action<bool> result)
+        /// <summary>Abschluss: Landkarte, Sterne je Minigame, neue Wörter. <paramref name="result"/>: 0 = fertig, 1–3 = Minigame wiederholen.</summary>
+        private IEnumerator EndScreen(System.Action<int> result)
         {
             var layer = new GameObject("End");
             var rt = UIKit.Rect(layer, Hud.Root);
             UIKit.Fill(rt);
             rt.SetSiblingIndex(0);
             var panel = UIKit.Panel(rt, Palette.PanelLight, "Panel");
-            UIKit.PlaceFixed(panel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, 40), new Vector2(1200, 760));
+            UIKit.PlaceFixed(panel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, 40), new Vector2(1200, 800));
             var title = UIKit.Label(panel.transform, Data.Ui("endTitle", State.MapCards, GameState.MapCardsTotal), 40, Palette.Text,
                 TextAnchor.MiddleCenter, FontStyle.Bold);
             UIKit.Place(title.rectTransform, 0, 1, 1, 1, 20, -90, 20, 20);
 
             var card = UIKit.Panel(panel.transform, Palette.Card, "Card");
-            UIKit.Place(card.rectTransform, 0, 1, 1, 1, 40, -330, 40, 110);
-            var c = Data.TransferCard;
+            UIKit.Place(card.rectTransform, 0, 1, 1, 1, 40, -350, 40, 110);
             var cardText = UIKit.Label(card.transform,
-                Data.Ui("endCard", Data.Ui("transferBusiness"), c["siemensBusiness"], GameData.Loc(c["takeaway"]), Mathf.Max(0, State.Mg1BestStars)),
+                Data.Ui("endSummary", Mathf.Max(0, State.Mg1BestStars), Mathf.Max(0, Mg2Progress.Of(State).BestStars),
+                    Mathf.Max(0, FishFactoryState.BestStars), State.Takeaway ?? ""),
                 28, Palette.Text, TextAnchor.MiddleLeft);
             UIKit.Place(cardText.rectTransform, 0, 0, 1, 1, 30, 10, 30, 10);
 
-            var gloss = UIKit.Label(panel.transform, Data.Ui("endGlossary") + "\n" + string.Join("\n", State.Glossary), 24, Palette.Text,
+            var gloss = UIKit.Label(panel.transform, Data.Ui("endGlossary") + "\n" + string.Join("\n", State.Glossary), 22, Palette.Text,
                 TextAnchor.UpperLeft);
-            UIKit.Place(gloss.rectTransform, 0, 0, 1, 1, 40, 150, 40, 360);
+            UIKit.Place(gloss.rectTransform, 0, 0, 1, 1, 40, 250, 40, 370);
 
-            bool? answer = null;
-            var again = UIKit.Button(panel.transform, Data.Ui("endReplay"), () => answer = true, Palette.ButtonAlt, 28);
-            UIKit.PlaceFixed((RectTransform)again.transform, new Vector2(0.5f, 0), new Vector2(-220, 75), new Vector2(380, 90));
-            var done = UIKit.Button(panel.transform, Data.Ui("endDone"), () => answer = false, Palette.Button, 28);
-            UIKit.PlaceFixed((RectTransform)done.transform, new Vector2(0.5f, 0), new Vector2(220, 75), new Vector2(380, 90));
+            int? answer = null;
+            string[] replayKeys = { "endReplayMg1", "endReplayMg2", "endReplayMg3" };
+            for (int i = 0; i < 3; i++)
+            {
+                int choice = i + 1;
+                var again = UIKit.Button(panel.transform, Data.Ui(replayKeys[i]), () => answer = choice, Palette.ButtonAlt, 24);
+                UIKit.PlaceFixed((RectTransform)again.transform, new Vector2(0.5f, 0), new Vector2(-370 + i * 370, 175), new Vector2(340, 80));
+            }
+            var done = UIKit.Button(panel.transform, Data.Ui("endDone"), () => answer = 0, Palette.Button, 28);
+            UIKit.PlaceFixed((RectTransform)done.transform, new Vector2(0.5f, 0), new Vector2(0, 70), new Vector2(420, 90));
             while (answer == null) yield return null;
             Destroy(layer);
-            if (answer == true) Hud.Toast(Data.Ui("hubReplayHint"), 4f);
-            result(answer == true);
+            if (answer > 0) Hud.Toast(Data.Ui("hubReplayHint" + answer), 4f);
+            result(answer.Value);
         }
     }
 }

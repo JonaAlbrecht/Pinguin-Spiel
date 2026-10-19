@@ -1,0 +1,24 @@
+{
+  "id": "MG2_PolarExpress",
+  "note": "Längen in Fein-Einheiten (1 = ein Kästchen bei 160 × 64), Strömung in Gitter-Einheiten. Fahrzeit in Spiel-Stunden. Modell: sim-reference/simref/flow.py und flow_train.py, Begründung der Werte: specs/004-mg2-polar-express/spec.md.",
+  "channel": { "length": 160, "height": 64 },
+  "resolutions": [
+    { "id": "grob", "scale": 0.5 },
+    { "id": "mittel", "scale": 0.75 },
+    { "id": "fein", "scale": 1.0 }
+  ],
+  "playResolution": "fein",
+  "flow": { "u": 0.1, "reynolds": 20, "steps": 2000, "averageSteps": 500, "ramp": 400 },
+  "train": { "start": 20, "length": 88, "height": 12, "noseMax": 24, "tipMin": 2,
+             "transitions": [27, 57], "transitionWidth": 4, "transitionHeight": 16 },
+  "seats": { "headroom": 0.8, "columnsPerRow": 4, "seatsPerRow": 4, "passengers": 64 },
+  "travel": { "traction": 1.0, "rolling": 0.1, "headwind": 0.5, "dragScale": 0.675, "distance": 0.486, "minSpeed": 0.01 },
+  "goals": { "targetTime": 5.5, "bestTime": 4.3 },
+  "rounds": 3,
+  "shapes": {
+    "kalle": { "nose": [[20, 12], [21, 12], [22, 12], [23, 12]], "covered": [false, false] },
+    "start": { "nose": [[20, 8], [20, 12], [22, 12], [26, 12]], "covered": [false, false] },
+    "hint": { "nose": [[20, 3], [24, 9], [28, 12], [32, 12]], "covered": [true, true] }
+  },
+  "lesson": { "air": [1.6, 1.0, 1.0, 1.0, 1.0], "push": [0.25, 0.0, 0.0, 0.0, 0.0], "tau": 1.0, "steps": 6, "runSteps": 40 }
+}
