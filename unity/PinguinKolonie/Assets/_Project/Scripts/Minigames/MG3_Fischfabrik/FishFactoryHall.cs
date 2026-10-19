@@ -28,7 +28,7 @@ namespace SFE.Game
             // Figuren vor der Halle (Süden), Blick hinein
             var front = origin + new Vector3(0, 0, -1.3f);
             // Halb zur Kamera gedreht: man sieht Gesichter und trotzdem, dass alle in die Halle schauen
-            Figure(root, scene.transform, "olaf", Prims.Look.Plain, front + new Vector3(2.2f, 0, 0), 200f);
+            Figure(root, scene.transform, "olaf", Prims.Look.Olaf, front + new Vector3(2.2f, 0, 0), 200f);
             Figure(root, scene.transform, "kalle", Prims.Look.Kalle, front + new Vector3(4.0f, 0, -0.2f), 170f);
             Figure(root, scene.transform, "pip", Prims.Look.Pip, front + new Vector3(6.0f, 0, -0.1f), 190f);
             Figure(root, scene.transform, "frieda", Prims.Look.Frieda, front + new Vector3(7.6f, 0, -0.3f), 160f);

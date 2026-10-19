@@ -139,6 +139,13 @@ namespace SFE.Game
         public static readonly Color ThermometerRed = Siemens.Red;
         public static readonly Color KlaraVisor = Siemens.SoftGreen;
         public static readonly Color Ledger = Siemens.DarkSand;
+        /// <summary>Tilda (MG2 Polar-Express): Lokführerinnen-Mütze in Siemens-Blau, Trillerpfeife.</summary>
+        public static readonly Color TildaCap = Siemens.Blue;
+        public static readonly Color TildaCapPeak = Shade(Siemens.Blue, 0.3f);
+        public static readonly Color TildaWhistle = Siemens.DarkYellow;
+        /// <summary>Olaf (MG3 Fischfabrik): Südwester in Orange, Schürze in Petrol.</summary>
+        public static readonly Color OlafHat = Siemens.Orange;
+        public static readonly Color OlafApron = Siemens.Petrol;
         /// <summary>ZWILLI, der digitale Zwilling: die Siemens-Verlaufsfarben „Bold Dynamic Petrol“.</summary>
         public static readonly Color Hologram = Siemens.BoldBlue;
         public static readonly Color HologramBelly = Siemens.BoldGreen;

@@ -261,6 +261,25 @@ namespace SFE.Game
                     Held("Ledger", PrimitiveType.Cube, 0.40f, -62f, new Vector3(0.05f, 0.20f, 0.15f), Palette.Ledger);
                     break;
                 }
+                case Prims.Look.Tilda:
+                {
+                    // Lokführerin des Polar-Express: flache Mütze mit Schirm, Trillerpfeife in der Flosse
+                    Shell("Cap", 0.88f, 1.0f, -180f, 180f, 1.10f, Palette.TildaCap);
+                    var peak = Surface(0.90f, 0f, out var n);
+                    Prims.Make(PrimitiveType.Cube, _body, peak + n * 0.05f, new Vector3(0.18f, 0.014f, 0.09f), Palette.TildaCapPeak, "Peak");
+                    Held("Whistle", PrimitiveType.Cylinder, 0.42f, 60f, new Vector3(0.035f, 0.05f, 0.035f), Palette.TildaWhistle);
+                    break;
+                }
+                case Prims.Look.Olaf:
+                {
+                    // Fischer: Südwester mit breiter Krempe, Schürze vor dem Bauch
+                    Shell("Hat", 0.86f, 1.0f, -180f, 180f, 1.12f, Palette.OlafHat);
+                    var rim = _outline.At(0.86f);
+                    Prims.Make(PrimitiveType.Cylinder, _body, new Vector3(0, 0.86f * _h, rim.z * _h),
+                        new Vector3(rim.y * 2.9f * _h, 0.008f, rim.y * 2.9f * _h * s.Depth), Palette.OlafHat, "HatBrim");
+                    Shell("Apron", 0.12f, 0.62f, -50f, 50f, 1.05f, Palette.OlafApron);
+                    break;
+                }
             }
         }
 

@@ -89,7 +89,7 @@ namespace SFE.Game
             var side = new Vector3(-6.4f, 0, _level.Height / 2f);
             Prims.Make(PrimitiveType.Cube, transform, side + new Vector3(0, -0.06f, -0.4f), new Vector3(2.2f, 0.12f, 10.5f), Palette.LabFloor, "TeamFloor");
             FishFactoryHall.Figure(_root, transform, "frieda", Prims.Look.Frieda, transform.position + side + new Vector3(0, 0, 1.4f), 90);
-            FishFactoryHall.Figure(_root, transform, "olaf", Prims.Look.Plain, transform.position + side + new Vector3(0, 0, -0.6f), 90);
+            FishFactoryHall.Figure(_root, transform, "olaf", Prims.Look.Olaf, transform.position + side + new Vector3(0, 0, -0.6f), 90);
             FishFactoryHall.Figure(_root, transform, "kalle", Prims.Look.Kalle, transform.position + side + new Vector3(0, 0, -2.4f), 90);
             FishFactoryHall.Figure(_root, transform, "klara", Prims.Look.Klara, transform.position + side + new Vector3(0, 0, -4.2f), 90);
             var zw = Hologram.Create(transform, 1.2f);
