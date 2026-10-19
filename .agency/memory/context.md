@@ -8,6 +8,7 @@
 | C#-Kern | 52 Tests grün; Mutationen Kaskade / Windtabelle / Budget / beste Runde / Klaras Lob werden rot |
 | Unity-Schicht | kompiliert gegen Unity 6000.4.10f1 (alt + neu Input, Editor); **nie im Editor gespielt** |
 | Texte | alle in JSON, Lint inkl. C#-Literale und Schlüssel-Verweise |
+| Grafik (19.10.) | URP, realistischer Look (ADR-27), abgestimmt mit ADR-28; nur per Stilprobe im Batchmode geprüft, kein WebGL-Build, keine Messung |
 
 Nächste Schritte: Spieltest nach Spec 002 Abschnitt 4 · `.meta`-Dateien nach dem ersten Import committen ·
 offene Fragen (45 s vs. 60 s, Igluwärme) mit dem Team klären · Freigabe der Siemens-Inhalte.

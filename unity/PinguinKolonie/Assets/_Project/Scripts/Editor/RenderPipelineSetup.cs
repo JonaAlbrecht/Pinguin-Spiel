@@ -78,8 +78,54 @@ namespace SFE.Game.EditorTools
                 if (shader != null) AssetDatabase.CreateAsset(new Material(shader), SkyPath);
                 else Debug.LogWarning("Shader Skybox/Procedural fehlt – Himmel bleibt einfarbig.");
             }
+            EnsureVariantMaterials(urp);
             AssetDatabase.SaveAssets();
             Debug.Log("Render-Pipeline eingerichtet: " + AssetPath);
+        }
+
+        private const string VariantDir = "Assets/_Project/Resources/Materials/Varianten";
+
+        /// <summary>
+        /// Je Oberfläche ein Material-Asset in Resources. Die Spielmaterialien entstehen erst zur Laufzeit und schalten
+        /// Shader-Schalter ein (_NORMALMAP, _EMISSION, _DETAIL_MULX2). Unity baut in einen Build nur die Varianten,
+        /// die ein Material im Build benutzt – ohne diese Assets fehlten im WebGL- und Windows-Build Schneestruktur,
+        /// Wellen und Laternenleuchten, obwohl im Editor alles stimmt (ADR-28). Die Strukturbilder liegen als Asset
+        /// daneben, damit URP die Schalter beim Prüfen eines Materials nicht wieder ausschaltet.
+        /// </summary>
+        private static void EnsureVariantMaterials(UniversalRenderPipelineAsset urp)
+        {
+            var shader = urp.defaultShader;
+            if (shader == null) { Debug.LogWarning("URP-Standardshader fehlt – Varianten-Materialien nicht angelegt."); return; }
+            Directory.CreateDirectory(VariantDir);
+            AssetDatabase.Refresh();
+            foreach (SurfaceTextures.Kind kind in System.Enum.GetValues(typeof(SurfaceTextures.Kind)))
+            {
+                string path = $"{VariantDir}/Normal_{kind}.asset";
+                if (AssetDatabase.LoadAssetAtPath<Texture2D>(path) == null)
+                    AssetDatabase.CreateAsset(Object.Instantiate(SurfaceTextures.Get(kind)), path);
+            }
+            foreach (ArtStyle.Surface surface in System.Enum.GetValues(typeof(ArtStyle.Surface)))
+            {
+                string path = $"{VariantDir}/Lit_{surface}.mat";
+                var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+                if (m == null)
+                {
+                    m = new Material(shader);
+                    AssetDatabase.CreateAsset(m, path);
+                }
+                m.shader = shader;
+                m.color = Palette.Snow;
+                ArtStyle.Surfaces.ApplyTo(m, surface);
+                // Laufzeit-Strukturbilder durch die gespeicherten ersetzen (ein Asset darf nur auf Assets zeigen).
+                var spec = ArtStyle.Surfaces.For(surface);
+                if (spec.Normal.HasValue)
+                {
+                    var tex = AssetDatabase.LoadAssetAtPath<Texture2D>($"{VariantDir}/Normal_{spec.Normal.Value}.asset");
+                    if (m.HasProperty("_BumpMap")) m.SetTexture("_BumpMap", tex);
+                    if (spec.DetailTiling > 0f && m.HasProperty("_DetailNormalMap")) m.SetTexture("_DetailNormalMap", tex);
+                }
+                EditorUtility.SetDirty(m);
+            }
         }
 
         /// <summary>Einrichten und gleich die Stilprobe rendern (ein Batchmode-Lauf für beides).</summary>

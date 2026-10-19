@@ -172,3 +172,19 @@ bleiben stilisierte Pinguine aus Drehprofilen – „fotorealistisch“ ginge nu
 (Blender, Federn, Fell-Shader). Verworfen: HDRP (kein WebGL), Post Processing Stack v2 in der eingebauten Pipeline
 (veraltet), Umgebungslicht per `DynamicGI.UpdateEnvironment` und Reflexionssonde (asynchron – erstes Bild zufällig
 getönt).
+
+## 2026-10-19 – Grafik-Abstimmung nach Audit
+
+**ADR-28 Realistischer Look abgestimmt und Fehler aus ADR-27 behoben.** Grundlage: `GRAPHICS_AUDIT.md` (2. Fassung)
+und Stilproben vor/nach. Behoben, was ADR-27 verdeckte: (1) `Surfaces.ByColor` verglich die auf 1/32 gerundete Farbe mit
+der ungerundeten Palettenfarbe und traf nie – Meer, Eis, Wasser und Laternenglas blieben „Default“ (kein Wellenbild,
+kein Leuchten); jetzt werden beide Seiten gerundet. (2) Kugel, Zylinder und Kapsel trugen seit ADR-27 die Dreh-UV des
+Pinguinkörpers (Winkel × Höhe) – auf flachen Deckeln strahlenförmige Streifen; jetzt Box-Projektion plus Tangenten.
+(3) Die Shader-Schalter der Laufzeit-Materialien (_NORMALMAP, _EMISSION, _DETAIL_MULX2) wären im Build entfernt
+worden; `RenderPipelineSetup` legt je Oberfläche ein Material in `Resources/Materials/Varianten` an. Abgestimmt:
+Bloom-Schwelle 2,6 statt 1,05 (sonst blühte jeder Sonnenschnee), Laternenglas Emission 10, Belichtung −0,35,
+Schattenstärke 1, Dunst nach Kameraabstand (über dem Spielbrett kein Schleier mehr), bewegtes Wasser mit zweiter
+Wellenlage. „Sparsam“ behält die Nachbearbeitung (ohne Tonemapping fraß Schnee aus) und spart Bloom, SSAO,
+Laternen-Schatten, 4096er-Schattenkarte, SMAA → FXAA. Laternen-Schatten nur für die zwei Laternen am Blickpunkt.
+Verworfen: SSAO-Downsample und MSAA-oder-SMAA ohne Messung auf dem Referenzgerät; Tonemapping-Wechsel (ACES vs.
+Neutral, Datenfarben im Wärmebild) und Reflexionssonden – offen für Jona bzw. einen Spieltest.

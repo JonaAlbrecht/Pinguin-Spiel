@@ -22,6 +22,7 @@ dass keine Farbe an der Palette vorbeigeht.
    | `pinguin.png` | einen Pinguin von vorn, schräg, von der Seite und von hinten |
    | `siedlung.png` | Scholle im Meer mit Iglu, Laterne, Schneewall, Pfütze und Figuren – stimmen Größen und Farben zueinander? |
    | `spielansicht.png` | dieselbe Szene so groß wie im Hub (50°, 24 m) – was hier verschwindet, lohnt kein Detail |
+   | `siedlung_sparsam.png` | die Siedlung in der Stufe „Sparsam“ – muss gleich aussehen, nur ohne Bloom, Umgebungsverdeckung und Laternen-Schatten |
    | `oberflaeche.png` | Titel, Knöpfe, Fenster, Sprechernamen, Ampeln, Wärmeskala, Siemens-Primärfarben – beschriftet mit den Namen in `Palette.cs` |
 
 ## 1. Farben (`Palette.cs`)
@@ -62,11 +63,17 @@ Vorher: matte Facetten im Diorama-Look (ADR-16) – zurück mit `Flat = true` un
 | **Weiche Rundungen** | `Flat = false` | Realistische Formen; Segmentzahlen (Abschnitt 3) hoch genug, dass man keine Kanten sieht. |
 | **Physikalische Oberflächen** | `Surfaces`: Schnee, Eis, Wasser, Gefieder, Metall, Glanz, Licht | Glanz, Metall, Struktur (prozedurale Normal-Map aus `SurfaceTextures`) und Leuchten je Oberfläche. Eis, Meer, Wasser und Laternenlicht erkennt `Prims` an der Farbe; Schnee, Metall und Augen setzt der Bau mit `Prims.SetSurface`. |
 | **Gemalte Farbgrenzen** | Pinguinkörper als Farbbild (`PenguinFigure.TorsoTexture`) | Bauch, Kopf und Maske mit weicher Kante statt Stufen aus Dreiecken („Verpixelung“). |
-| **Tiefe Polarsonne** | `SunIntensity = 2.1`, `SunAngles` 32° | Lange Schatten, Streiflicht auf Schnee; Verhältnisse wie draußen (linearer Farbraum, HDR). |
+| **Tiefe Polarsonne** | `SunIntensity = 2.1`, `SunAngles` 32°, `ShadowStrength = 1` | Lange Schatten, Streiflicht auf Schnee; Verhältnisse wie draußen (linearer Farbraum, HDR). Schatten hellt nur das Himmelslicht auf. |
 | **Himmelslicht dreifarbig** | `Palette.AmbientSky/Horizon/Ground` | Bläulich von oben, hell vom Schnee zurückgeworfen – ab dem ersten Bild, ohne Hintergrundrechnung. |
 | **Himmel und Spiegelungen** | prozeduraler Himmel (`Resources/Materials/Sky.mat`), Cubemap per `RenderToCubemap` | Wasser, Eis und Augen spiegeln den Himmel. |
-| **Nachbearbeitung** | `Atmosphere`: ACES-Tonemapping, Bloom, Farbkorrektur, Vignette, Dunst, SSAO | Filmischer Look; Laternen leuchten über die Bloom-Schwelle, Umgebungsverdeckung dunkelt Fugen und Kontaktflächen ab. |
-| **Kantenglättung** | 4× MSAA + SMAA (hoch), 2× + 0,8–0,9 Auflösung (sparsam) | `RenderQuality` ändert eine Laufzeitkopie des Pipeline-Assets. |
+| **Nachbearbeitung** | `Atmosphere`: ACES-Tonemapping, Bloom, Farbkorrektur, Vignette, SSAO | Filmischer Look; Umgebungsverdeckung dunkelt Fugen und Kontaktflächen ab. |
+| **Belichtung** | `PostExposure = -0.35` | Sonnenschnee (≈ 1,5 im HDR-Puffer) behält Zeichnung, statt zu weißen Scheiben auszufressen (ADR-28). |
+| **Nur Lichtquellen blühen** | `BloomThreshold = 2.6`, Laternenglas `Emission = 10` | Schwelle über Sonnenschnee, unter Laternenglas. Bei 1,05 blühte jede besonnte Schneefläche (ADR-28). |
+| **Dunst nach Kameraabstand** | `FogAtFocus = 0.15` (Dichte = Wert / Abstand zum Blickpunkt) | Am Blickpunkt immer ≈ 2 % Dunst, am Horizont deutlich mehr – auch über dem Spielbrett aus 70 m kein Schleier (ADR-28). |
+| **Bewegtes Wasser** | `Surfaces.Water.Flow = 0.35` m/s, zweite Wellenlage `DetailTiling = 2.3` | Zwei gegeneinander laufende Wellenmuster; `RenderLook.Tick` verschiebt sie jedes Bild. |
+| **Laternen-Schatten** | `Shading.LanternShadows = 2` | Nur die zwei Laternen am Blickpunkt werfen Schatten (je sechs Schattenbilder pro Bild); „Sparsam“: keine. |
+| **Kantenglättung** | 4× MSAA + SMAA (hoch), 2× MSAA + FXAA + 0,8–0,9 Auflösung (sparsam) | `RenderQuality` ändert eine Laufzeitkopie des Pipeline-Assets. Die Nachbearbeitung bleibt in beiden Stufen an – ohne Tonemapping frisst Schnee aus. |
+| **Neue Shader-Schalter** | Varianten-Materialien in `Resources/Materials/Varianten` | Wer in `Surfaces.ApplyTo` einen neuen Schalter (Keyword) setzt, führt danach „Render-Pipeline einrichten (URP)“ aus – sonst fehlt die Variante im Build (ADR-28). |
 
 ## 3. Detailgrad (`ArtStyle.Detail`)
 
