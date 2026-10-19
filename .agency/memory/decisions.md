@@ -132,3 +132,27 @@ dem echten Wind – Endzustand ist die Rechnung der Siedlung, ein Test prüft da
 Iglu nicht gemütlich; das ist gewollt (eine Laterne allein reicht nicht). Verworfen: Schritt streichen und
 windstille Sonderwerte (zeigt mehr Reichweite, als die Siedlung später hat). Dazu Werkzeug „Verschieben“ und Zoom
 auf den Zeiger (Mausrad, Touchpad, Pinch, + und −; Pfeiltasten schwenken) – beides Wünsche von Jona.
+
+## 2026-10-19 – MG2 Polar-Express und MG3 Fischfabrik (Pakete aus zwei Unteragenten)
+
+**ADR-23 Jedes Minigame nach dem Muster aus MG1, in eigenen Dateien.** Wunsch von Jona: Rechentafel von Hand (echte
+Zahlen aus demselben Modell), Versuchsaufbau (Kalles Versuch in echt, dann Bauen auf ZWILLIS Bildschirm),
+Erklärung der Simulation, Siemens-Transfer. Damit zwei Pakete parallel bauen konnten, lädt das Spiel je Minigame
+eigene Text-, Dialog-, Inhalts- und Farbdateien (`ui_mg2_de.json`, `dialogue_mg3_de.json`, `Palette.Mg2.cs` …),
+Golden-Erzeuger `simref/golden_*.py`; den Ablauf (GameRoot, Hub, Landkarte) verbindet der Integrator. Der Zustand
+der Pakete liegt vorerst in `Mg2Progress` und `FishFactoryState` statt in `GameState`.
+
+**ADR-24 MG2 rechnet Lattice-Boltzmann D2Q9 bei Reynolds-Zahl 20.** Nur so gibt es Widerstand und Wirbel.
+Ausströmen mit festem Druck und sanftem Anlauf (Kopie der Nachbarspalte ließ den Druck driften, 27 % zu langsam).
+Wagenübergänge als Wulst auf dem Dach – eine Lücke wirkt bei Re 20 nicht. Strömen über eine Quelltabelle, gleich in
+Python und C#. Verworfen: Potentialströmung (kein Widerstand), höhere Reynolds-Zahl (instabil in grob), Navier-Stokes
+mit Druckkorrektur (zu aufwendig für die Tafel). Details: specs/004.
+
+**ADR-25 MG3 als Ereignis-Simulation mit PCG32-Strömen je Zweck.** Gleiche Zufallszahlen in Python und C#, Runden
+vergleichbar. Robo-Robben-Gedränge als feste Zusatzzeit statt Wegreservierung (viel Code, Verklemmungen, schwer zu
+erklären). Die Rechentafel nutzt dieselbe Simulation mit einer Station. Die Möwen-Frage ist eine eigene Phase
+(7 Schritte in der Leiste). Verworfen: `System.Random`/`random`. Details: specs/005.
+
+**ADR-26 Spielablauf über drei Minigames.** Siedlung → Hub → Tilda am Gleis (MG2) → Hub → Olaf an der Küste (MG3) →
+Abschluss mit drei Karten; danach lässt sich jedes Minigame wiederholen. Tilda und Olaf erscheinen im Hub erst, wenn
+sie dran sind, und haben eigene Looks. Der Zugtakt von MG3 kommt (noch) nicht aus dem MG2-Ergebnis.

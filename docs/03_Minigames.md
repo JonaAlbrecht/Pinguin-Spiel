@@ -12,9 +12,9 @@
 | # | Minigame | Thema | Siemens-Bezug (Vorschlag*) | Kernbotschaft (1 Satz) | Paket |
 |---|---|---|---|---|---|
 | MG1 | **Huddle** – Die erste Siedlung | Wärme | Schaltschrank: SIMARIS therm, Simcenter 3D | Wer vorher simuliert, weiß, wo es zu warm wird – bevor etwas schmilzt oder kaputtgeht. | **VS** |
-| MG2 | **Schlitten** – Der Polar-Express | Strömung | Siemens Mobility: Velaro Novo | Der Computer stellt einen Zug in den Wind, bevor er gebaut wird. | R1 |
+| MG2 | **Schlitten** – Der Polar-Express | Strömung | Siemens Mobility: Velaro Novo | Der Computer stellt einen Zug in den Wind, bevor er gebaut wird. | R1 – gebaut, Spec 004 |
 | MG2-B | *Bonus:* **Fischfang** – Kühlluft im Schaltschrank | Strömung | Simcenter Flotherm | Der Computer zeigt, wohin die kühle Luft strömt. | optional |
-| MG3 | **Fischfabrik** | Prozesse | Tecnomatix Plant Simulation | Eine Fabrik erst im Computer laufen lassen zeigt Staus, bevor sie gebaut ist. | R1 |
+| MG3 | **Fischfabrik** | Prozesse | Tecnomatix Plant Simulation | Eine Fabrik erst im Computer laufen lassen zeigt Staus, bevor sie gebaut ist. | R1 – gebaut, Spec 005 |
 
 VS = Vertical Slice, R1 = Release 1 (Kernspiel).
 \* Alle Produkt-Zuordnungen sind Vorschläge und **freigabepflichtig** (siehe Dokument 00, Abschnitt 3).

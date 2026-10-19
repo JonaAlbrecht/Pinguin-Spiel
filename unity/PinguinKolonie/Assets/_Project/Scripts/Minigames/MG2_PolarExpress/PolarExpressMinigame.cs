@@ -130,7 +130,7 @@ namespace SFE.Game
                     label.fontStyle = FontStyle.Bold;
                 }
             }
-            Stand(Prims.Penguin(t, "Tilda", Prims.Look.Plain, 1.2f), 2.0f, "tilda");
+            Stand(Prims.Penguin(t, "Tilda", Prims.Look.Tilda, 1.2f), 2.0f, "tilda");
             Stand(Prims.Penguin(t, "Frieda", Prims.Look.Frieda, 1.2f), 4.0f, null);
             Stand(Prims.Penguin(t, "Kalle", Prims.Look.Kalle, 1.2f), 6.0f, null);
             var zw = Hologram.Create(t, 1.1f);

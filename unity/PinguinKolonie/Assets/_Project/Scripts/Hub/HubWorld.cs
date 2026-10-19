@@ -104,7 +104,17 @@ namespace SFE.Game
             foreach (var p in new[] { new Vector3(-3.5f, 0, 2f), new Vector3(3.5f, 0, 2.2f), new Vector3(0, 0, 8.2f) })
                 Prims.Lantern(t, 1.2f, true).transform.localPosition = p;
 
-            // Ausblick auf Release 1 (MG2, MG3)
+            // Gleis des Polar-Express: von Tildas Bahnsteig über die Scholle hinaus aufs Meer
+            var track = new GameObject("Track").transform;
+            track.SetParent(t, false);
+            track.localPosition = new Vector3(11.8f, 0, -1f);
+            track.localRotation = Quaternion.Euler(0, 20f, 0);
+            for (int side = -1; side <= 1; side += 2)
+                Prims.Make(PrimitiveType.Cube, track, new Vector3(side * 0.45f, 0.06f, 0), new Vector3(0.08f, 0.08f, 9f), Palette.LanternPole, "Rail");
+            for (int i = 0; i < 12; i++)
+                Prims.Make(PrimitiveType.Cube, track, new Vector3(0, 0.02f, -4.2f + i * 0.75f), new Vector3(1.3f, 0.04f, 0.22f), Palette.Wood, "Sleeper");
+
+            // Wegweiser zu Gleis und Küste (MG2, MG3)
             var future = new GameObject("FutureSign").transform;
             future.SetParent(t, false);
             future.localPosition = new Vector3(12f, 0, 3f);
@@ -122,6 +132,11 @@ namespace SFE.Game
             AddNpc("theo", Prims.Look.Theo, new Vector3(8.6f, 0, 2.2f), 250f);
             AddNpc("klara", Prims.Look.Klara, new Vector3(-3.4f, 0, -4.6f), 30f);
             AddNpc("flocke", Prims.Look.Flocke, new Vector3(1.6f, 0, 6.4f), 190f);
+            // Release 1: Tilda am Gleis (MG2), Olaf an der Küste (MG3) – erscheinen erst, wenn sie dran sind
+            AddNpc("tilda", Prims.Look.Tilda, new Vector3(10.6f, 0, 1.2f), 250f);
+            AddNpc("olaf", Prims.Look.Olaf, new Vector3(6.6f, 0, -9.8f), 330f);
+            ShowNpc("tilda", false);
+            ShowNpc("olaf", false);
             foreach (var p in new[] { new Vector3(-0.6f, 0, 4.4f), new Vector3(0.1f, 0, 3.6f), new Vector3(0.8f, 0, 4.6f) })
             {
                 var extra = Prims.Penguin(t, "Colony", Prims.Look.Plain, 1.3f);
@@ -272,6 +287,9 @@ namespace SFE.Game
 
         public void SetIdleNode(string npcId, string node) => _npcs[npcId].IdleNode = node;
 
+        /// <summary>Figur ein- oder ausblenden (Tilda und Olaf kommen erst dazu, wenn ihr Minigame dran ist).</summary>
+        public void ShowNpc(string npcId, bool visible) => _npcs[npcId].Go.SetActive(visible);
+
         private void Update()
         {
             if (!_active) return;
@@ -311,6 +329,7 @@ namespace SFE.Game
         {
             foreach (var n in _npcs.Values)
             {
+                if (!n.Go.activeSelf) continue; // ausgeblendete Figuren (Tilda, Olaf vor ihrem Auftritt)
                 var c = n.Go.transform.position;
                 var d = new Vector3(p.x - c.x, 0, p.z - c.z);
                 if (d.magnitude < NpcRadius && d.sqrMagnitude > 1e-6f) p = new Vector3(c.x, p.y, c.z) + d.normalized * NpcRadius;
@@ -334,6 +353,7 @@ namespace SFE.Game
             {
                 foreach (var n in _npcs.Values)
                 {
+                    if (!n.Go.activeSelf) continue;
                     var c = n.Go.transform.position;
                     float d = Vector2.Distance(new Vector2(c.x, c.z), new Vector2(Pip.position.x, Pip.position.z));
                     if (d < best) { best = d; nearest = n; }
@@ -368,6 +388,7 @@ namespace SFE.Game
                 _pendingNpc = null;
                 foreach (var n in _npcs.Values)
                 {
+                    if (!n.Go.activeSelf) continue;
                     var flat = n.Go.transform.position;
                     if (Vector2.Distance(new Vector2(flat.x, flat.z), new Vector2(p.x, p.z)) < 1.2f) _pendingNpc = n;
                 }

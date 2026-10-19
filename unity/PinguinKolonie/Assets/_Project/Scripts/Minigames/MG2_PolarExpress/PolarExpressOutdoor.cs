@@ -97,7 +97,7 @@ namespace SFE.Game
         {
             var sled = BuildSled();
             sled.localPosition = new Vector3(3f, 0, 0);
-            Stand("Tilda", Prims.Look.Plain, new Vector3(-1.5f, 0, -2.2f), 160f, "tilda");
+            Stand("Tilda", Prims.Look.Tilda, new Vector3(-1.5f, 0, -2.2f), 160f, "tilda");
             var kalle = Stand("Kalle", Prims.Look.Kalle, new Vector3(4.5f, 0, -2.4f), 200f, null);
             Stand("Pip", Prims.Look.Pip, new Vector3(0.5f, 0, -2.8f), 180f, null);
             _root.Rig.LookAt(transform.position + new Vector3(1.2f, 0.8f, 0), 12f, 12f, 0f, snap: true);
@@ -155,7 +155,7 @@ namespace SFE.Game
             sled.localPosition = new Vector3(8f, 0, 3.2f);
             var train = BuildTrain(shape, level);
             train.localPosition = new Vector3(4f, 0, 0);
-            Stand("Tilda", Prims.Look.Plain, new Vector3(-2f, 0, -2.4f), 160f, "tilda");
+            Stand("Tilda", Prims.Look.Tilda, new Vector3(-2f, 0, -2.4f), 160f, "tilda");
             Stand("Kalle", Prims.Look.Kalle, new Vector3(6f, 0, 2.0f), 200f, null);
             Stand("Pip", Prims.Look.Pip, new Vector3(0f, 0, -2.8f), 180f, null);
             _root.Rig.LookAt(transform.position + new Vector3(1f, 0.8f, 0), 12f, 13f, 0f, snap: true);

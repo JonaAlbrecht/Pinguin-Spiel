@@ -122,7 +122,8 @@ def lint_csharp(root: Path = SCRIPTS) -> list[str]:
 
 
 # Schlüssel, die der Code zusammensetzt (z. B. "stars" + Anzahl) und die die Suche darum nicht findet.
-DYNAMIC_UI_KEYS = ["stars0", "stars1", "stars2", "stars3", "klaraBetter", "klaraCheaper", "klaraWorse", "klaraSame"]
+DYNAMIC_UI_KEYS = ["stars0", "stars1", "stars2", "stars3", "klaraBetter", "klaraCheaper", "klaraWorse", "klaraSame",
+                   "hubReplayHint1", "hubReplayHint2", "hubReplayHint3"]
 CS_REFERENCES = {
     # Nur vollständige Schlüssel: Auf das schließende Anführungszeichen folgt ',' oder ')' – nicht '+'.
     "Ui": re.compile(r"\bUi\(\s*\"(\w+)\"\s*[,)]"),

@@ -607,6 +607,54 @@
           "text": "Schau mal in dein Notizbuch. Da stehen alle meine Pfützen drin."
         }
       ]
+    },
+    {
+      "id": "hub_to_tilda",
+      "lines": [
+        {
+          "speaker": "frieda",
+          "text": "Die Siedlung steht! Jetzt fehlt noch der Weg zum Meer, zu den Fischen."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Tilda wartet drüben am Gleis mit ihrem Polar-Express. Geh zu ihr, Pip."
+        }
+      ]
+    },
+    {
+      "id": "hub_tilda_after",
+      "lines": [
+        {
+          "speaker": "tilda",
+          "text": "Der Polar-Express fährt! Und kaum Gegenwind spürt man vorne."
+        }
+      ]
+    },
+    {
+      "id": "hub_to_olaf",
+      "lines": [
+        {
+          "speaker": "tilda",
+          "text": "Der Zug bringt jetzt jeden Tag Fischer an die Küste. Aber dort gibt es Ärger."
+        },
+        {
+          "speaker": "tilda",
+          "text": "Olaf winkt schon unten an der Küste. Schau mal, was er braucht."
+        }
+      ]
+    },
+    {
+      "id": "hub_all_done",
+      "lines": [
+        {
+          "speaker": "grete",
+          "text": "Siedlung, Zug und Fischfabrik. Und alles erst im Computer ausprobiert."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Genau das macht Siemens jeden Tag – für Schaltschränke, Züge und Fabriken."
+        }
+      ]
     }
   ]
 }

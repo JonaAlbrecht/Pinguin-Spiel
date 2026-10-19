@@ -16,7 +16,13 @@ def load(rel):
 
 @pytest.fixture(scope="module")
 def dialogue():
-    return load("Dialogue/dialogue_de.json")
+    """Alle Dialogdateien zusammen, wie GameData.Load sie lädt (dialogue_de.json plus je Minigame eine eigene)."""
+    merged = {"speakers": [], "nodes": []}
+    for file in sorted((DATA / "Dialogue").glob("*.json")):
+        doc = json.loads(file.read_text(encoding="utf-8"))
+        merged["speakers"] += doc.get("speakers", [])
+        merged["nodes"] += doc["nodes"]
+    return merged
 
 
 def test_every_line_has_a_known_speaker(dialogue):
@@ -137,3 +143,13 @@ def test_ui_placeholders_are_numbered_from_zero():
         nums = sorted({int(n) for n in re.findall(r"\{(\d+)(?::[^}]*)?\}", text)})
         assert nums == list(range(len(nums))), key
         assert text.count("{") == text.count("}"), key
+
+
+def test_flow_runs_all_three_minigames_in_story_order():
+    """Siedlung → Tilda und Polar-Express → Olaf und Fischfabrik, je mit „So macht's Siemens“ (19.10.2026)."""
+    code = (SCRIPTS / "Core/GameRoot.cs").read_text(encoding="utf-8")
+    flow = code[code.index("private IEnumerator Flow()"):code.index("private IEnumerator PlaySettlement()")]
+    assert flow.index("PlaySettlement()") < flow.index('WaitForTalk("tilda")') < flow.index("PlayPolarExpress()") \
+        < flow.index('WaitForTalk("olaf")') < flow.index("PlayFishFactory()") < flow.index("EndScreen(")
+    for call in ("TransferScreen.Play(this)", "PolarExpressTransfer.Play(this)", "FishFactoryTransfer.Play(this)"):
+        assert call in code
