@@ -44,39 +44,45 @@ Wichtige Zuordnungen:
 | Hauptknopf, Labordach, ZWILLIs Name | Petrol |
 | Titelbild, dunkle Fenster, Schrift | Deep Blue |
 | helle Fenster, Bauch, Schnee, Iglu | Light Sand |
-| Pinguin-Rücken | Deep Blue 85 % (reines Deep Blue zeigt keine Facetten mehr) |
+| Pinguin-Rücken | Deep Blue 85 % (reines Deep Blue zeigt keine Form mehr) |
 | Eis, Himmel | Soft Blue bzw. Blue, mit Light Sand aufgehellt |
 | Meer, kalt im Wärmebild | Dark Blue |
 | ZWILLI (digitaler Zwilling) | Bold Blue + Bold Green – die Verlaufsfarben *Bold Dynamic Petrol* |
 | Wärmeskala | Dark Blue → Soft Blue · Soft Yellow → Dark Yellow · Dark Orange → Red (abgedunkelt) |
 | Ampeln | Green / Dark Yellow / Red |
 
-## 2. Schattierung (`ArtStyle.Shading`)
+## 2. Schattierung, Oberflächen, Licht (`ArtStyle.Shading`, `Surfaces`, `Atmosphere`)
+
+Seit 19.10.2026 **realistisch** (ADR-27, Wunsch von Jona: „ultra realistisch“). Render-Pipeline ist URP
+(`Assets/_Project/Settings/URP`, angelegt über „Pinguin-Spiel → Render-Pipeline einrichten (URP)“).
+Vorher: matte Facetten im Diorama-Look (ADR-16) – zurück mit `Flat = true` und alten Detailwerten.
 
 | Regel | Wert | Warum |
 |---|---|---|
-| **Facetten statt weicher Rundung** | `Flat = true` | Jede Fläche hat einen Farbton. Kugeln, Würfel und Figuren sprechen dieselbe Formensprache; wenige Segmente wirken gewollt. |
-| **Matt** | `Smoothness = 0.12` | Schnee und Federn glänzen nicht. Unitys Vorgabe 0,5 sah nach Plastik aus. |
-| **Farbtreue** | `SunIntensity = 0.85`, `Ambient` ≈ 0,5 | Flächen von oben erscheinen etwa in ihrer Palettenfarbe. Bei 1,1 + 0,7 wurde Dark Blue zu Knallblau, und Eis und Iglu verschwammen zu Weiß. |
-| **Eine Sonne, kühles Umgebungslicht** | `SunColor`, `SunAngles`, `Ambient` | Warmes Licht von vorn oben (aus Kamerasicht), kühle Schattenseite. |
-| **Weiche Schatten** | `ShadowStrength = 0.65` | Freundlicher Diorama-Look statt harter Kontraste. |
-| **Kein Metall, keine Texturen** | – | Farbe kommt nur aus der Palette; die Formen tragen das Bild. |
+| **Weiche Rundungen** | `Flat = false` | Realistische Formen; Segmentzahlen (Abschnitt 3) hoch genug, dass man keine Kanten sieht. |
+| **Physikalische Oberflächen** | `Surfaces`: Schnee, Eis, Wasser, Gefieder, Metall, Glanz, Licht | Glanz, Metall, Struktur (prozedurale Normal-Map aus `SurfaceTextures`) und Leuchten je Oberfläche. Eis, Meer, Wasser und Laternenlicht erkennt `Prims` an der Farbe; Schnee, Metall und Augen setzt der Bau mit `Prims.SetSurface`. |
+| **Gemalte Farbgrenzen** | Pinguinkörper als Farbbild (`PenguinFigure.TorsoTexture`) | Bauch, Kopf und Maske mit weicher Kante statt Stufen aus Dreiecken („Verpixelung“). |
+| **Tiefe Polarsonne** | `SunIntensity = 2.1`, `SunAngles` 32° | Lange Schatten, Streiflicht auf Schnee; Verhältnisse wie draußen (linearer Farbraum, HDR). |
+| **Himmelslicht dreifarbig** | `Palette.AmbientSky/Horizon/Ground` | Bläulich von oben, hell vom Schnee zurückgeworfen – ab dem ersten Bild, ohne Hintergrundrechnung. |
+| **Himmel und Spiegelungen** | prozeduraler Himmel (`Resources/Materials/Sky.mat`), Cubemap per `RenderToCubemap` | Wasser, Eis und Augen spiegeln den Himmel. |
+| **Nachbearbeitung** | `Atmosphere`: ACES-Tonemapping, Bloom, Farbkorrektur, Vignette, Dunst, SSAO | Filmischer Look; Laternen leuchten über die Bloom-Schwelle, Umgebungsverdeckung dunkelt Fugen und Kontaktflächen ab. |
+| **Kantenglättung** | 4× MSAA + SMAA (hoch), 2× + 0,8–0,9 Auflösung (sparsam) | `RenderQuality` ändert eine Laufzeitkopie des Pipeline-Assets. |
 
 ## 3. Detailgrad (`ArtStyle.Detail`)
 
-Regel: **Facetten sollen auf dem Bildschirm etwa gleich groß wirken.**
+Regel: **Rundungen sollen auf dem Bildschirm glatt wirken.**
 
 | Für | Wert | Wie |
 |---|---|---|
-| Bauten und Gegenstände (`Prims.Make`) | `FacetLength = 0.3` m | Die Segmentzahl ergibt sich aus dem Umfang in der Welt (`SegmentsFor`), zwischen `MinSegments` 8 und `MaxSegments` 48. Eine Eisscholle von 9 m wird so kein Zwölfeck und eine Laternenkugel kein Kristall. |
-| Figurenkörper und eng anliegende Kleidung | `FigureSegments` / `FigureRings` = 16 / 14 | feste Stufe, damit Kleidung und Körper zusammenpassen |
-| mittlere Teile der Figuren (Flossen, Brille) | `Segments` = 12 | |
-| Kleinteile unter einer Handbreit (Augen, Schnabel, Schopf) | `SmallSegments` = 8 | |
+| Bauten und Gegenstände (`Prims.Make`) | `FacetLength = 0.08` m | Die Segmentzahl ergibt sich aus dem Umfang in der Welt (`SegmentsFor`), zwischen `MinSegments` 20 und `MaxSegments` 128. |
+| Figurenkörper und eng anliegende Kleidung | `FigureSegments` / `FigureRings` = 48 / 40 | feste Stufe, damit Kleidung und Körper zusammenpassen |
+| mittlere Teile der Figuren (Flossen, Brille) | `Segments` = 32 | |
+| Kleinteile unter einer Handbreit (Augen, Schnabel, Schopf) | `SmallSegments` = 20 | |
 
 - `FacetLength = 0` schaltet die Bauten zurück auf Unitys glatte Standardformen (zum Vergleich).
 - Ein Detail muss in `spielansicht.png` noch erkennbar sein, sonst lieber weglassen oder vergrößern.
   Figuren unterscheiden sich vor allem über **Silhouette und eine Signalfarbe** (Helm, Schal, Kappe), nicht über Kleinkram.
-- Neue runde Formen immer über `Prims.Make` oder `Shapes` bauen; keine eigenen Segmentzahlen in den Code schreiben.
+- Neue runde Formen immer über `Prims.Make` oder `Shapes` bauen; keine eigenen Segmentzahlen oder Glanzwerte in den Code schreiben.
 
 ## 4. Proportionen (`ArtStyle.Proportion`)
 
@@ -94,5 +100,5 @@ Regel: **Facetten sollen auf dem Bildschirm etwa gleich groß wirken.**
 
 ## Für Blender-Assets später (docs/04 Abschnitt 6)
 
-Dieselben Regeln gelten für importierte Modelle: *Shade Flat*, Facettengröße nach der Tabelle oben, Maße relativ
-zur Pinguinhöhe, Farben nur aus `Palette.Siemens` (Palette-Atlas), kein Glanz.
+Dieselben Regeln gelten für importierte Modelle: *Shade Smooth*, Oberflächen nach `ArtStyle.Surfaces`, Maße relativ
+zur Pinguinhöhe, Farben nur aus `Palette.Siemens` (Palette-Atlas).

@@ -70,7 +70,8 @@ namespace SFE.Game
                 float s = 0.6f + (float)rnd.NextDouble() * 1.2f;
                 var at = new Vector3(Mathf.Cos(a) * r, 0, Mathf.Sin(a) * r);
                 if (Vector3.Distance(at, KallePlot) < 2.8f + s) continue; // Platz für Kalles Siedlung
-                Prims.Make(PrimitiveType.Sphere, t, new Vector3(Mathf.Cos(a) * r, 0, Mathf.Sin(a) * r), new Vector3(s * 1.4f, s * 0.7f, s), Palette.Snow, "SnowPile");
+                Prims.SetSurface(Prims.Make(PrimitiveType.Sphere, t, new Vector3(Mathf.Cos(a) * r, 0, Mathf.Sin(a) * r), new Vector3(s * 1.4f, s * 0.7f, s),
+                    Palette.Snow, "SnowPile"), ArtStyle.Surface.Snow);
             }
 
             // Schild mit Siemens-Geschäft (docs/00 Abschnitt 4, Berührungspunkt 1)

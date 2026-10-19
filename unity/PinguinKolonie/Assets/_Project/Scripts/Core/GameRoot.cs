@@ -27,7 +27,9 @@ namespace SFE.Game
             Application.targetFrameRate = 60;
             Data = GameData.Load();
             Rig = CameraRig.Create();
-            RenderQuality.Apply(Rig.Cam, CreateLight());
+            var sun = CreateLight();
+            RenderQuality.Apply(Rig.Cam, sun);
+            RenderLook.Apply(Rig.Cam, sun); // realistischer Himmel, Licht, Nachbearbeitung (ADR-27)
             Sfx.Init(Rig.gameObject);
             if (UnityEngine.EventSystems.EventSystem.current == null) InputHelper.CreateEventSystem();
             Hud = new Hud(Data, this);

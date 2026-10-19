@@ -30,6 +30,9 @@ namespace SFE.Game.EditorTools
             SceneManager.SetActiveScene(scene);
             string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Stilprobe"));
             Directory.CreateDirectory(dir);
+            // Sonst rendert das erste Bild mit Platzhalter-Shadern (grau), solange Unity Varianten im Hintergrund baut.
+            bool async = ShaderUtil.allowAsyncCompilation;
+            ShaderUtil.allowAsyncCompilation = false;
             try
             {
                 var world = new GameObject("Stilprobe").transform;
@@ -43,6 +46,7 @@ namespace SFE.Game.EditorTools
                 cam.backgroundColor = Palette.Sky;
                 cam.fieldOfView = 30f;
                 cam.allowMSAA = true;
+                RenderLook.Apply(cam, sun); // derselbe Look wie im Spiel (ADR-27)
 
                 var lineup = Group(world, "Figuren");
                 Ground(lineup);
@@ -72,8 +76,8 @@ namespace SFE.Game.EditorTools
                 for (int i = 0; i < 5; i++)
                 {
                     float a = 2.2f + i * 0.45f, s = 0.4f + 0.12f * (i % 3);
-                    Prims.Make(PrimitiveType.Sphere, village, new Vector3(Mathf.Cos(a) * 3.8f, 0, Mathf.Sin(a) * 3.8f),
-                        new Vector3(s * 1.4f, s * 0.7f, s), Palette.Snow, "SnowPile");
+                    Prims.SetSurface(Prims.Make(PrimitiveType.Sphere, village, new Vector3(Mathf.Cos(a) * 3.8f, 0, Mathf.Sin(a) * 3.8f),
+                        new Vector3(s * 1.4f, s * 0.7f, s), Palette.Snow, "SnowPile"), ArtStyle.Surface.Snow);
                 }
                 Prims.Igloo(village, 1.6f).transform.localPosition = new Vector3(-1.6f, 0, 0);
                 Prims.Lantern(village, 1.2f, false).transform.localPosition = new Vector3(-0.2f, 0, 0.4f);
@@ -91,6 +95,7 @@ namespace SFE.Game.EditorTools
             }
             finally
             {
+                ShaderUtil.allowAsyncCompilation = async;
                 if (additive)
                 {
                     EditorSceneManager.CloseScene(scene, true);
@@ -214,6 +219,7 @@ namespace SFE.Game.EditorTools
             var rt = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { antiAliasing = 8 };
             cam.targetTexture = rt;
             Canvas.ForceUpdateCanvases();
+            cam.Render(); // Aufwärmen: Schatten-Kaskaden und Nachbearbeitung stehen erst ab dem zweiten Bild
             cam.Render();
             var old = RenderTexture.active;
             RenderTexture.active = rt;

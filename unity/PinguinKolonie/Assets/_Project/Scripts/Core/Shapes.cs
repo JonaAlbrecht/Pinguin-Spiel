@@ -124,15 +124,18 @@ namespace SFE.Game
             int steps = Mathf.Max(1, Mathf.CeilToInt(segments * range / 360f - 0.001f));
             int cols = steps + 1;
             var grid = new Vector3[rings.Count * cols];
+            // UV: u = Winkel über den Bereich, v = Höhe (Anteil der Körperhöhe) – für gemalte Farbgrenzen (TorsoTexture)
+            var uv = new Vector2[grid.Length];
             for (int i = 0; i < rings.Count; i++)
                 for (int j = 0; j < cols; j++)
                 {
                     float a = (a0 + range * j / steps) * Mathf.Deg2Rad;
                     float r = rings[i].y * grow;
                     grid[i * cols + j] = new Vector3(Mathf.Sin(a) * r, rings[i].x, rings[i].z + Mathf.Cos(a) * r * depth);
+                    uv[i * cols + j] = new Vector2(j / (float)steps, rings[i].x);
                 }
 
-            var b = new Builder(submeshes, ArtStyle.Shading.Flat, grid);
+            var b = new Builder(submeshes, ArtStyle.Shading.Flat, grid, uv);
             for (int i = 0; i < rings.Count - 1; i++)
             {
                 float zc = 0.5f * (rings[i].z + rings[i + 1].z);
@@ -194,15 +197,22 @@ namespace SFE.Game
             private readonly List<int>[] _tris;
             private readonly bool _flat;
             private readonly Vector3[] _grid;
+            private readonly Vector2[] _gridUv;
             private readonly List<Vector3> _verts = new List<Vector3>();
+            private readonly List<Vector2> _uvs = new List<Vector2>();
 
-            public Builder(int submeshes, bool flat, Vector3[] grid)
+            public Builder(int submeshes, bool flat, Vector3[] grid, Vector2[] uv = null)
             {
                 _tris = new List<int>[Mathf.Max(1, submeshes)];
                 for (int i = 0; i < _tris.Length; i++) _tris[i] = new List<int>();
                 _flat = flat;
                 _grid = grid;
-                if (!flat) _verts.AddRange(grid);
+                _gridUv = uv;
+                if (!flat)
+                {
+                    _verts.AddRange(grid);
+                    if (uv != null) _uvs.AddRange(uv);
+                }
             }
 
             public void Tri(int a, int b, int c, int sub)
@@ -214,6 +224,7 @@ namespace SFE.Game
                 {
                     int k = _verts.Count;
                     _verts.Add(pa); _verts.Add(pb); _verts.Add(pc);
+                    if (_gridUv != null) { _uvs.Add(_gridUv[a]); _uvs.Add(_gridUv[b]); _uvs.Add(_gridUv[c]); }
                     list.Add(k); list.Add(k + 1); list.Add(k + 2);
                 }
                 else
@@ -227,6 +238,7 @@ namespace SFE.Game
                 var m = new Mesh();
                 if (_verts.Count > 65000) m.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
                 m.SetVertices(_verts);
+                if (_uvs.Count == _verts.Count) m.SetUVs(0, _uvs);
                 m.subMeshCount = _tris.Length;
                 for (int i = 0; i < _tris.Length; i++) m.SetTriangles(_tris[i], i);
                 m.RecalculateNormals();
