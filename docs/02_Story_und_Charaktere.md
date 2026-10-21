@@ -30,12 +30,12 @@ Die Orte liegen auf dem Weg vom Inland zur Küste. Jeder Ort trägt ein Schild m
 **Zweites Motiv:** *Vom Huddle zur Siedlung – die Naturgesetze bleiben dieselben.*
 
 ### Auftakt im Hub (~1 Min.)
-Ein Sturm zieht auf. **Oma Grete** erinnert sich: Früher ist die Kolonie bei jedem Sturm im Huddle zusammengerückt. Frieda hat ein Stromnetz mit Laternen gebaut: „Ab jetzt bauen wir Iglus. Pip, komm zu meinem Labor!“
+Ein Sturm zieht auf. **Oma Grete** erinnert sich: Früher ist die Kolonie bei jedem Sturm im Huddle zusammengerückt und hat sich gegenseitig gewärmt – heute gibt es dafür Iglus und Strom. Frieda: Die Kolonie wächst, für die neuen Familien entsteht eine ganze Siedlung mit Iglus und Laternen. Die Frage des ersten Akts stellt sie gleich selbst: „Zu weit weg, und es wird kalt. Zu nah, und das Iglu schmilzt. Pip, komm zu mir – das müssen wir gut planen!“ (Review vom 21.10.2026)
 *Bis 18.10.2026 stand hier der spielbare Prolog „Der letzte Huddle“. Er ist entfallen; sein erster Schritt – die Rechentafel Zeitschritt für Zeitschritt – steht jetzt als „Zwei Felder: Laterne und Iglu“ in MG1 Schritt 2 (docs/03).*
 
 ### Akt 1 – Die erste Siedlung (MG1 Huddle, ~10 Min.)
 Frieda braucht helfende Flossen für ihr Simulationslabor – und nimmt Pip, obwohl Pip „noch nie etwas mit Technik zu tun hatte“. Frieda: „Perfekt. Dann erklären wir es so, dass es jeder versteht.“ Pip bekommt das **ZWILLI-Tablet**.
-**Kalles Versuch:** Bauunternehmer **Kalle Klotz** stellt so viele Laternen wie möglich direkt zwischen die Iglus: „Viel hilft viel – wird schon halten!“ Die Iglus werden zu warm und zerlaufen zu Schmelzwasser.
+**Kalles Versuch:** Bauunternehmer **Kalle Klotz** stellt so viele Laternen wie möglich direkt zwischen die Iglus: „Viel hilft viel – wird schon halten!“ Die Iglus werden zu warm und zerlaufen zu Schmelzwasser. Auf Flockes Frage, warum, antwortet Frieda: „Zu viele Laternen, zu dicht am Iglu – so viel Wärme hält kein Schnee aus.“ Erst danach geht es ins Labor.
 **Mission:** Die Siedlung planen. Abwärme und Licht der Laternen nutzen, damit die Kolonie warm bleibt – aber jeder Grad zu viel verwandelt ein Iglu in Schmelzwasser. Pip sucht den Gleichgewichtspunkt zwischen Komfort und Schmelzpunkt und bringt **möglichst viele Iglus** unter.
 **So macht's Siemens:** Frieda öffnet ein „Fenster in die Menschenwelt“: Im Schaltschrank eines Stromnetzes werden Bauteile warm. Ingenieur:innen simulieren vorher, wie warm es wird – damit nichts überhitzt.
 

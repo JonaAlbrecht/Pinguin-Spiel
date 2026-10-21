@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.Rendering;
+using UniversalRenderPipelineAsset = UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset;
 
 namespace SFE.Game
 {
@@ -7,7 +9,10 @@ namespace SFE.Game
     /// Die Qualitätsstufen in ProjectSettings legt Unity selbst an: im Editor „Ultra“ mit nur 2× Kantenglättung,
     /// im WebGL-Build „High“ ganz ohne – und nur 2 bis 4 Lichter pro Pixel bei bis zu 13 Laternen.
     /// Hier stehen die Werte, die dieses Spiel braucht, unabhängig von der gewählten Stufe.
-    /// Gilt für die eingebaute Render-Pipeline; unter URP regelt das Pipeline-Asset dasselbe (dort wirkungslos, aber harmlos).
+    /// Seit ADR-27 läuft das Spiel in URP: Kantenglättung, Auflösung und Schatten kommen aus <see cref="ApplyUrp"/>,
+    /// Nachbearbeitung, Umgebungsverdeckung und Laternen-Schatten aus <see cref="RenderLook.SetupCamera"/>. Die
+    /// QualitySettings-Werte gelten nur noch für die eingebaute Pipeline (Rückfall) – außer Anisotropie und Mip-Grenze,
+    /// die auch URP liest.
     /// </summary>
     public static class RenderQuality
     {
@@ -47,12 +52,40 @@ namespace SFE.Game
             QualitySettings.globalTextureMipmapLimit = 0;
 
             cam.allowMSAA = true;
+            ApplyUrp(high, web);
+            RenderLook.SetupCamera(cam);
             if (sun != null)
             {
                 sun.shadowResolution = high ? UnityEngine.Rendering.LightShadowResolution.VeryHigh : UnityEngine.Rendering.LightShadowResolution.Medium;
                 sun.shadowBias = 0.03f;
-                sun.shadowNormalBias = 0.3f;     // keine Streifen („Shadow Acne“) auf den runden Formen
+                // keine Streifen („Shadow Acne“) auf den runden Formen. Nur eingebaute Pipeline: URP nimmt die Werte
+                // aus dem Pipeline-Asset, solange das Licht „Use Pipeline Settings“ hat (Standard).
+                sun.shadowNormalBias = 0.3f;
             }
+        }
+
+        private static UniversalRenderPipelineAsset _runtimeUrp;
+
+        /// <summary>
+        /// Unter URP stehen Kantenglättung, Auflösung und Schatten im Pipeline-Asset. Geändert wird eine Laufzeitkopie –
+        /// sonst schriebe jede Einstellung im Editor das Asset auf die Platte zurück.
+        /// </summary>
+        private static void ApplyUrp(bool high, bool web)
+        {
+            if (!(GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset current)) return;
+            if (_runtimeUrp == null || current != _runtimeUrp)
+            {
+                _runtimeUrp = Object.Instantiate(current);
+                _runtimeUrp.name = current.name + " (Laufzeit)";
+                QualitySettings.renderPipeline = _runtimeUrp;
+            }
+            _runtimeUrp.msaaSampleCount = high ? 4 : 2;
+            // WebGL auf schwachen Laptops: etwas unter voller Auflösung rechnen, SMAA glättet den Rest.
+            _runtimeUrp.renderScale = high ? 1f : web ? 0.8f : 0.9f;
+            _runtimeUrp.shadowDistance = high ? 90f : 60f;
+            _runtimeUrp.shadowCascadeCount = high ? 4 : 2;
+            // Eine 4096er-Schattenkarte mit vier Kaskaden ist für schwache Laptops der größte Einzelposten (Audit B-02).
+            _runtimeUrp.mainLightShadowmapResolution = high ? 4096 : 2048;
         }
     }
 }

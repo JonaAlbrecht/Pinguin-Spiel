@@ -22,6 +22,10 @@ dass keine Farbe an der Palette vorbeigeht.
    | `pinguin.png` | einen Pinguin von vorn, schräg, von der Seite und von hinten |
    | `siedlung.png` | Scholle im Meer mit Iglu, Laterne, Schneewall, Pfütze und Figuren – stimmen Größen und Farben zueinander? |
    | `spielansicht.png` | dieselbe Szene so groß wie im Hub (50°, 24 m) – was hier verschwindet, lohnt kein Detail |
+   | `siedlung_sparsam.png` | die Siedlung in der Stufe „Sparsam“ – muss gleich aussehen, nur ohne Bloom, Umgebungsverdeckung und Laternen-Schatten |
+   | `kalle_siedlung.png` | Kalles Versuch draußen im Hub: dasselbe Raster, dieselben Bausteine und dieselbe Kamera wie in `HubWorld.PlayKalleAttempt` – stehen Laternen und Iglus einzeln? |
+   | `laterne.png` | Laterne und Iglu nah von der Seite |
+   | `laterne_brett.png` | dieselben Bausteine so wie auf dem Spielbrett in der Rechentafel (50°, 6,5 m, Feldabstand 1 m) – Laterne von oben erkennbar? |
    | `oberflaeche.png` | Titel, Knöpfe, Fenster, Sprechernamen, Ampeln, Wärmeskala, Siemens-Primärfarben – beschriftet mit den Namen in `Palette.cs` |
 
 ## 1. Farben (`Palette.cs`)
@@ -44,39 +48,57 @@ Wichtige Zuordnungen:
 | Hauptknopf, Labordach, ZWILLIs Name | Petrol |
 | Titelbild, dunkle Fenster, Schrift | Deep Blue |
 | helle Fenster, Bauch, Schnee, Iglu | Light Sand |
-| Pinguin-Rücken | Deep Blue 85 % (reines Deep Blue zeigt keine Facetten mehr) |
+| Pinguin-Rücken | Deep Blue 85 % (reines Deep Blue zeigt keine Form mehr) |
 | Eis, Himmel | Soft Blue bzw. Blue, mit Light Sand aufgehellt |
 | Meer, kalt im Wärmebild | Dark Blue |
 | ZWILLI (digitaler Zwilling) | Bold Blue + Bold Green – die Verlaufsfarben *Bold Dynamic Petrol* |
 | Wärmeskala | Dark Blue → Soft Blue · Soft Yellow → Dark Yellow · Dark Orange → Red (abgedunkelt) |
 | Ampeln | Green / Dark Yellow / Red |
 
-## 2. Schattierung (`ArtStyle.Shading`)
+## 2. Schattierung, Oberflächen, Licht (`ArtStyle.Shading`, `Surfaces`, `Atmosphere`)
+
+Seit 19.10.2026 **realistisch** (ADR-27, Wunsch von Jona: „ultra realistisch“). Render-Pipeline ist URP
+(`Assets/_Project/Settings/URP`, angelegt über „Pinguin-Spiel → Render-Pipeline einrichten (URP)“).
+Vorher: matte Facetten im Diorama-Look (ADR-16) – zurück mit `Flat = true` und alten Detailwerten.
 
 | Regel | Wert | Warum |
 |---|---|---|
-| **Facetten statt weicher Rundung** | `Flat = true` | Jede Fläche hat einen Farbton. Kugeln, Würfel und Figuren sprechen dieselbe Formensprache; wenige Segmente wirken gewollt. |
-| **Matt** | `Smoothness = 0.12` | Schnee und Federn glänzen nicht. Unitys Vorgabe 0,5 sah nach Plastik aus. |
-| **Farbtreue** | `SunIntensity = 0.85`, `Ambient` ≈ 0,5 | Flächen von oben erscheinen etwa in ihrer Palettenfarbe. Bei 1,1 + 0,7 wurde Dark Blue zu Knallblau, und Eis und Iglu verschwammen zu Weiß. |
-| **Eine Sonne, kühles Umgebungslicht** | `SunColor`, `SunAngles`, `Ambient` | Warmes Licht von vorn oben (aus Kamerasicht), kühle Schattenseite. |
-| **Weiche Schatten** | `ShadowStrength = 0.65` | Freundlicher Diorama-Look statt harter Kontraste. |
-| **Kein Metall, keine Texturen** | – | Farbe kommt nur aus der Palette; die Formen tragen das Bild. |
+| **Weiche Rundungen** | `Flat = false` | Realistische Formen; Segmentzahlen (Abschnitt 3) hoch genug, dass man keine Kanten sieht. |
+| **Physikalische Oberflächen** | `Surfaces`: Schnee, Eis, Wasser, Gefieder, Metall, Glanz, Licht | Glanz, Metall, Struktur (prozedurale Normal-Map aus `SurfaceTextures`) und Leuchten je Oberfläche. Eis, Meer, Wasser und Laternenlicht erkennt `Prims` an der Farbe; Schnee, Metall und Augen setzt der Bau mit `Prims.SetSurface`. |
+| **Gemalte Farbgrenzen** | Pinguinkörper als Farbbild (`PenguinFigure.TorsoTexture`) | Bauch, Kopf und Maske mit weicher Kante statt Stufen aus Dreiecken („Verpixelung“). |
+| **Tiefe Polarsonne** | `SunIntensity = 2.1`, `SunAngles` 32°, `ShadowStrength = 1` | Lange Schatten, Streiflicht auf Schnee; Verhältnisse wie draußen (linearer Farbraum, HDR). Schatten hellt nur das Himmelslicht auf. |
+| **Himmelslicht dreifarbig** | `Palette.AmbientSky/Horizon/Ground` | Bläulich von oben, hell vom Schnee zurückgeworfen – ab dem ersten Bild, ohne Hintergrundrechnung. |
+| **Himmel und Spiegelungen** | prozeduraler Himmel (`Resources/Materials/Sky.mat`), Cubemap per `RenderToCubemap` | Wasser, Eis und Augen spiegeln den Himmel. |
+| **Nachbearbeitung** | `Atmosphere`: ACES-Tonemapping, Bloom, Farbkorrektur, Vignette, SSAO | Filmischer Look; Umgebungsverdeckung dunkelt Fugen und Kontaktflächen ab. |
+| **Belichtung** | `PostExposure = -0.35` | Sonnenschnee (≈ 1,5 im HDR-Puffer) behält Zeichnung, statt zu weißen Scheiben auszufressen (ADR-28). |
+| **Nur Lichtquellen blühen** | `BloomThreshold = 2.6`, Laternenglas `Emission = 10` | Schwelle über Sonnenschnee, unter Laternenglas. Bei 1,05 blühte jede besonnte Schneefläche (ADR-28). |
+| **Dunst nach Kameraabstand** | `FogAtFocus = 0.15` (Dichte = Wert / Abstand zum Blickpunkt) | Am Blickpunkt immer ≈ 2 % Dunst, am Horizont deutlich mehr – auch über dem Spielbrett aus 70 m kein Schleier (ADR-28). |
+| **Bewegtes Wasser** | `Surfaces.Water.Flow = 0.35` m/s, zweite Wellenlage `DetailTiling = 2.3` | Zwei gegeneinander laufende Wellenmuster; `RenderLook.Tick` verschiebt sie jedes Bild. |
+| **Laternenlicht am Tag** | `Shading.LanternIntensity = 0.6` (× Größe²), `LanternRange = 2.2` m (× Größe) | Nur ein warmer Schein. Bei 2,2 war der Schnee unter der Laterne heller als in der Sonne, Iglus daneben fraßen gelb-weiß aus (ADR-29). |
+| **Kein Licht-Symbol im Editor** | `Editor/LightIcons.cs` blendet Unitys Glühbirnen-Gizmo für Lichtquellen aus | Mit „Gizmos“ in der Game-Ansicht verdeckte es jede Laterne. Im fertigen Spiel gab es das Symbol nie (ADR-29). |
+| **Laternen-Schatten** | `Shading.LanternShadows = 2` | Nur die zwei Laternen am Blickpunkt werfen Schatten (je sechs Schattenbilder pro Bild); „Sparsam“: keine. |
+| **Kantenglättung** | 4× MSAA + SMAA (hoch), 2× MSAA + FXAA + 0,8–0,9 Auflösung (sparsam) | `RenderQuality` ändert eine Laufzeitkopie des Pipeline-Assets. Die Nachbearbeitung bleibt in beiden Stufen an – ohne Tonemapping frisst Schnee aus. |
+| **Neue Shader-Schalter** | Varianten-Materialien in `Resources/Materials/Varianten` | Wer in `Surfaces.ApplyTo` einen neuen Schalter (Keyword) setzt, führt danach „Render-Pipeline einrichten (URP)“ aus – sonst fehlt die Variante im Build (ADR-28). |
 
 ## 3. Detailgrad (`ArtStyle.Detail`)
 
-Regel: **Facetten sollen auf dem Bildschirm etwa gleich groß wirken.**
+Regel: **Rundungen sollen auf dem Bildschirm glatt wirken.**
 
 | Für | Wert | Wie |
 |---|---|---|
-| Bauten und Gegenstände (`Prims.Make`) | `FacetLength = 0.3` m | Die Segmentzahl ergibt sich aus dem Umfang in der Welt (`SegmentsFor`), zwischen `MinSegments` 8 und `MaxSegments` 48. Eine Eisscholle von 9 m wird so kein Zwölfeck und eine Laternenkugel kein Kristall. |
-| Figurenkörper und eng anliegende Kleidung | `FigureSegments` / `FigureRings` = 16 / 14 | feste Stufe, damit Kleidung und Körper zusammenpassen |
-| mittlere Teile der Figuren (Flossen, Brille) | `Segments` = 12 | |
-| Kleinteile unter einer Handbreit (Augen, Schnabel, Schopf) | `SmallSegments` = 8 | |
+| Bauten und Gegenstände (`Prims.Make`) | `FacetLength = 0.08` m | Die Segmentzahl ergibt sich aus dem Umfang in der Welt (`SegmentsFor`), zwischen `MinSegments` 20 und `MaxSegments` 128. |
+| Figurenkörper und eng anliegende Kleidung | `FigureSegments` / `FigureRings` = 48 / 40 | feste Stufe, damit Kleidung und Körper zusammenpassen |
+| mittlere Teile der Figuren (Flossen, Brille) | `Segments` = 32 | |
+| Kleinteile unter einer Handbreit (Augen, Schnabel, Schopf) | `SmallSegments` = 20 | |
 
 - `FacetLength = 0` schaltet die Bauten zurück auf Unitys glatte Standardformen (zum Vergleich).
 - Ein Detail muss in `spielansicht.png` noch erkennbar sein, sonst lieber weglassen oder vergrößern.
   Figuren unterscheiden sich vor allem über **Silhouette und eine Signalfarbe** (Helm, Schal, Kappe), nicht über Kleinkram.
-- Neue runde Formen immer über `Prims.Make` oder `Shapes` bauen; keine eigenen Segmentzahlen in den Code schreiben.
+- Neue runde Formen immer über `Prims.Make` oder `Shapes` bauen; keine eigenen Segmentzahlen oder Glanzwerte in den Code schreiben.
+- **Helles auf Hellem braucht Form, nicht Farbe.** Iglu (Light Sand) auf Eis: Fugen zwischen den Schneeblöcken in
+  `Palette.IglooJoint` und ein dunkler Eingang nach Süden (zur Kamera, weg vom Nordwestwind) – die Kuppelfarbe bleibt
+  frei für die Zustände in MG1 (kalt, gemütlich, schmilzt). Laterne: gusseiserner Mast und Dach als Drehprofil
+  (`Shapes.Revolve`), leuchtender Glaskasten, das Dach kaum breiter als das Glas, damit man das Licht auch von oben sieht.
 
 ## 4. Proportionen (`ArtStyle.Proportion`)
 
@@ -94,5 +116,5 @@ Regel: **Facetten sollen auf dem Bildschirm etwa gleich groß wirken.**
 
 ## Für Blender-Assets später (docs/04 Abschnitt 6)
 
-Dieselben Regeln gelten für importierte Modelle: *Shade Flat*, Facettengröße nach der Tabelle oben, Maße relativ
-zur Pinguinhöhe, Farben nur aus `Palette.Siemens` (Palette-Atlas), kein Glanz.
+Dieselben Regeln gelten für importierte Modelle: *Shade Smooth*, Oberflächen nach `ArtStyle.Surfaces`, Maße relativ
+zur Pinguinhöhe, Farben nur aus `Palette.Siemens` (Palette-Atlas).

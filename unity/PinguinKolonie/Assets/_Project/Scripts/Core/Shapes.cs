@@ -47,17 +47,17 @@ namespace SFE.Game
                 float p = Mathf.PI * i / n;
                 rings[i] = new Vector3(-0.5f * Mathf.Cos(p), 0.5f * Mathf.Sin(p), 0f);
             }
-            return Revolve(rings, segments);
+            return BoxUv(Revolve(rings, segments));
         });
 
         /// <summary>Zylinder mit Radius 0,5 und Höhe 2 um den Ursprung (wie Unitys Zylinder).</summary>
         public static Mesh Cylinder(int segments) => Cached("cylinder" + segments, () =>
             // Doppelte Ringe an den Kanten trennen Deckel und Mantel, damit weiche Schattierung die Kante nicht verwischt.
-            Revolve(new[]
+            BoxUv(Revolve(new[]
             {
                 new Vector3(-1f, 0f, 0f), new Vector3(-1f, 0.5f, 0f), new Vector3(-1f, 0.5f, 0f),
                 new Vector3(1f, 0.5f, 0f), new Vector3(1f, 0.5f, 0f), new Vector3(1f, 0f, 0f),
-            }, segments));
+            }, segments)));
 
         /// <summary>Kapsel mit Radius 0,5 und Höhe 2 um den Ursprung (wie Unitys Kapsel).</summary>
         public static Mesh Capsule(int segments) => Cached("capsule" + segments, () =>
@@ -74,8 +74,31 @@ namespace SFE.Game
                 float p = 0.5f * Mathf.PI * i / h;
                 rings.Add(new Vector3(0.5f + 0.5f * Mathf.Sin(p), 0.5f * Mathf.Cos(p), 0f));
             }
-            return Revolve(rings, segments);
+            return BoxUv(Revolve(rings, segments));
         });
+
+        /// <summary>
+        /// Ersatzformen für Unitys Grundkörper tragen Struktur (Schnee, Eis, Wellen): UV als Projektion entlang der
+        /// Achse, auf die die Fläche am meisten zeigt. Die Dreh-UV aus <see cref="Revolve"/> (Winkel × Höhe, für die
+        /// gemalten Pinguinkörper) ist auf einem flachen Deckel konstant in der Höhe – Meer, Scholle und Pfützen zeigten
+        /// darum strahlenförmige Streifen (ADR-28). 0…1 überspannt den Durchmesser, passend zu <see cref="Prims.TilingFor"/>.
+        /// </summary>
+        private static Mesh BoxUv(Mesh m)
+        {
+            var v = m.vertices;
+            var n = m.normals;
+            var uv = new Vector2[v.Length];
+            for (int i = 0; i < v.Length; i++)
+            {
+                var a = new Vector3(Mathf.Abs(n[i].x), Mathf.Abs(n[i].y), Mathf.Abs(n[i].z));
+                uv[i] = a.y >= a.x && a.y >= a.z ? new Vector2(v[i].x, v[i].z)
+                    : a.x >= a.z ? new Vector2(v[i].z, v[i].y) : new Vector2(v[i].x, v[i].y);
+                uv[i] += new Vector2(0.5f, 0.5f);
+            }
+            m.uv = uv;
+            m.RecalculateTangents();
+            return m;
+        }
 
         /// <summary>Leicht gewölbter Kegel entlang +Y, Grundfläche Durchmesser 1 bei 0, Spitze bei 1 (Schnabel).</summary>
         public static Mesh Cone(int segments) => Cached("cone" + segments, () =>
@@ -124,15 +147,18 @@ namespace SFE.Game
             int steps = Mathf.Max(1, Mathf.CeilToInt(segments * range / 360f - 0.001f));
             int cols = steps + 1;
             var grid = new Vector3[rings.Count * cols];
+            // UV: u = Winkel über den Bereich, v = Höhe (Anteil der Körperhöhe) – für gemalte Farbgrenzen (TorsoTexture)
+            var uv = new Vector2[grid.Length];
             for (int i = 0; i < rings.Count; i++)
                 for (int j = 0; j < cols; j++)
                 {
                     float a = (a0 + range * j / steps) * Mathf.Deg2Rad;
                     float r = rings[i].y * grow;
                     grid[i * cols + j] = new Vector3(Mathf.Sin(a) * r, rings[i].x, rings[i].z + Mathf.Cos(a) * r * depth);
+                    uv[i * cols + j] = new Vector2(j / (float)steps, rings[i].x);
                 }
 
-            var b = new Builder(submeshes, ArtStyle.Shading.Flat, grid);
+            var b = new Builder(submeshes, ArtStyle.Shading.Flat, grid, uv);
             for (int i = 0; i < rings.Count - 1; i++)
             {
                 float zc = 0.5f * (rings[i].z + rings[i + 1].z);
@@ -194,15 +220,22 @@ namespace SFE.Game
             private readonly List<int>[] _tris;
             private readonly bool _flat;
             private readonly Vector3[] _grid;
+            private readonly Vector2[] _gridUv;
             private readonly List<Vector3> _verts = new List<Vector3>();
+            private readonly List<Vector2> _uvs = new List<Vector2>();
 
-            public Builder(int submeshes, bool flat, Vector3[] grid)
+            public Builder(int submeshes, bool flat, Vector3[] grid, Vector2[] uv = null)
             {
                 _tris = new List<int>[Mathf.Max(1, submeshes)];
                 for (int i = 0; i < _tris.Length; i++) _tris[i] = new List<int>();
                 _flat = flat;
                 _grid = grid;
-                if (!flat) _verts.AddRange(grid);
+                _gridUv = uv;
+                if (!flat)
+                {
+                    _verts.AddRange(grid);
+                    if (uv != null) _uvs.AddRange(uv);
+                }
             }
 
             public void Tri(int a, int b, int c, int sub)
@@ -214,6 +247,7 @@ namespace SFE.Game
                 {
                     int k = _verts.Count;
                     _verts.Add(pa); _verts.Add(pb); _verts.Add(pc);
+                    if (_gridUv != null) { _uvs.Add(_gridUv[a]); _uvs.Add(_gridUv[b]); _uvs.Add(_gridUv[c]); }
                     list.Add(k); list.Add(k + 1); list.Add(k + 2);
                 }
                 else
@@ -227,9 +261,12 @@ namespace SFE.Game
                 var m = new Mesh();
                 if (_verts.Count > 65000) m.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
                 m.SetVertices(_verts);
+                if (_uvs.Count == _verts.Count) m.SetUVs(0, _uvs);
                 m.subMeshCount = _tris.Length;
                 for (int i = 0; i < _tris.Length; i++) m.SetTriangles(_tris[i], i);
                 m.RecalculateNormals();
+                // Normal-Maps brauchen Tangenten, sonst kippt die Struktur je nach Blickrichtung (URP Lit).
+                if (_uvs.Count == _verts.Count) m.RecalculateTangents();
                 m.RecalculateBounds();
                 return m;
             }

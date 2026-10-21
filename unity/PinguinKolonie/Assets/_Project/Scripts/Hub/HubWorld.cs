@@ -24,9 +24,18 @@ namespace SFE.Game
 
         private const float FloeRadius = 14f;
         /// <summary>Hier baut Kalle seine Siedlung – draußen neben seiner Baustelle, nicht im Labor.</summary>
-        private static readonly Vector3 KallePlot = new Vector3(-8.6f, 0, 1.6f);
+        public static readonly Vector3 KallePlot = new Vector3(-8.6f, 0, 1.6f);
         /// <summary>Feldgröße von Kalles echter Siedlung in Metern (im Modell 2 m, hier passend zu den Figuren).</summary>
-        private const float KalleCell = 0.7f;
+        /// <remarks>
+        /// 0,7 m mit Bausteinen der Größe 0,91 ließ zwischen Laterne und Iglu kaum eine Handbreit – die Laternen wirkten
+        /// wie ein Pulk (Spieltest 21.10.2026). Das Raster selbst (Leveldaten) bleibt; nur die Darstellung wird luftiger.
+        /// </remarks>
+        public const float KalleCell = 0.9f;
+        /// <summary>Größe von Iglu, Laterne und Pfütze in Kalles Siedlung (unabhängig vom Feldabstand).</summary>
+        public const float KallePiece = 0.9f;
+        /// <summary>Kamera während Kalles Versuch: Blickpunkt (relativ zur Siedlung), Höhenwinkel, Abstand.</summary>
+        public static readonly Vector3 KalleViewOffset = new Vector3(0.6f, 0.5f, 0);
+        public const float KalleViewPitch = 24f, KalleViewDistance = 10f;
         private const float WalkSpeed = 4f;
         /// <summary>Ab diesem Abstand (Meter, flach) lässt sich eine Figur mit E ansprechen.</summary>
         private const float TalkRange = 1.8f;
@@ -69,8 +78,9 @@ namespace SFE.Game
                 float a = (float)(rnd.NextDouble() * Math.PI * 2), r = 9f + (float)rnd.NextDouble() * 4f;
                 float s = 0.6f + (float)rnd.NextDouble() * 1.2f;
                 var at = new Vector3(Mathf.Cos(a) * r, 0, Mathf.Sin(a) * r);
-                if (Vector3.Distance(at, KallePlot) < 2.8f + s) continue; // Platz für Kalles Siedlung
-                Prims.Make(PrimitiveType.Sphere, t, new Vector3(Mathf.Cos(a) * r, 0, Mathf.Sin(a) * r), new Vector3(s * 1.4f, s * 0.7f, s), Palette.Snow, "SnowPile");
+                if (Vector3.Distance(at, KallePlot) < 3.4f + s) continue; // Platz für Kalles Siedlung
+                Prims.SetSurface(Prims.Make(PrimitiveType.Sphere, t, new Vector3(Mathf.Cos(a) * r, 0, Mathf.Sin(a) * r), new Vector3(s * 1.4f, s * 0.7f, s),
+                    Palette.Snow, "SnowPile"), ArtStyle.Surface.Snow);
             }
 
             // Schild mit Siemens-Geschäft (docs/00 Abschnitt 4, Berührungspunkt 1)
@@ -450,19 +460,14 @@ namespace SFE.Game
             Pip.Find("Body").localRotation = Quaternion.identity;
 
             var grid = SettlementGrid.FromRows(level.KalleTiles);
-            int minX = grid.Width, maxX = -1, minY = grid.Height, maxY = -1;
-            for (int y = 0; y < grid.Height; y++)
-                for (int x = 0; x < grid.Width; x++)
-                    if (grid[x, y] != Cell.Ice)
-                    { minX = Mathf.Min(minX, x); maxX = Mathf.Max(maxX, x); minY = Mathf.Min(minY, y); maxY = Mathf.Max(maxY, y); }
+            KalleBounds(grid, out int minX, out int maxX, out int minY, out int maxY);
             var site = new GameObject("KalleSettlement").transform;
             site.SetParent(transform, false);
             site.localPosition = KallePlot;
-            Vector3 At(int x, int y) => new Vector3((x - (minX + maxX) / 2f) * KalleCell, 0, -(y - (minY + maxY) / 2f) * KalleCell);
 
             var kalle = _npcs["kalle"].Go.transform;
             kalle.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(site.position - kalle.position, Vector3.up).normalized, Vector3.up);
-            _root.Rig.LookAt(site.position + new Vector3(0.6f, 0.5f, 0), 24f, 8.5f, 0f);
+            _root.Rig.LookAt(site.position + KalleViewOffset, KalleViewPitch, KalleViewDistance, 0f);
             yield return _root.Hud.Say("kalle_intro");
 
             // Kalle baut – Stück für Stück, ohne zu rechnen
@@ -471,11 +476,9 @@ namespace SFE.Game
             {
                 for (int x = minX; x <= maxX; x++)
                 {
-                    GameObject go = null;
-                    if (grid[x, y] == Cell.Igloo) go = Prims.Igloo(site, KalleCell * 1.3f);
-                    else if (grid[x, y] == Cell.Lantern) go = Prims.Lantern(site, KalleCell * 1.3f, true);
+                    var go = KallePieceFor(site, grid[x, y]);
                     if (go == null) continue;
-                    go.transform.localPosition = At(x, y);
+                    go.transform.localPosition = KalleSpot(grid, x, y);
                     built[y * grid.Width + x] = go;
                     Sfx.Play(Sfx.Sound.Plop, 0.5f);
                     yield return new WaitForSeconds(0.12f);
@@ -493,13 +496,13 @@ namespace SFE.Game
                 {
                     float k = 1f - t / 1.4f;
                     foreach (int i in pass)
-                        built[i].transform.localScale = new Vector3(1f + 0.25f * (1 - k), Mathf.Max(0.05f, k), 1f + 0.25f * (1 - k)) * KalleCell * 1.3f;
+                        built[i].transform.localScale = new Vector3(1f + 0.25f * (1 - k), Mathf.Max(0.05f, k), 1f + 0.25f * (1 - k)) * KallePiece;
                     yield return null;
                 }
                 if (pass.Length > 0) Sfx.Play(Sfx.Sound.Splash);
                 foreach (int i in pass)
                 {
-                    var puddle = Prims.Puddle(site, KalleCell * 1.3f);
+                    var puddle = Prims.Puddle(site, KallePiece);
                     puddle.transform.localPosition = built[i].transform.localPosition;
                     Destroy(built[i]);
                     built[i] = puddle;
@@ -522,6 +525,31 @@ namespace SFE.Game
             _root.Rig.Follow(_pip.transform, 50f, 24f);
             _target = Pip.position;
             _active = true;
+        }
+
+        /// <summary>Bebauter Ausschnitt von Kalles Raster (die Stilprobe stellt ihn genauso auf wie das Spiel).</summary>
+        public static void KalleBounds(SettlementGrid grid, out int minX, out int maxX, out int minY, out int maxY)
+        {
+            minX = grid.Width; maxX = -1; minY = grid.Height; maxY = -1;
+            for (int y = 0; y < grid.Height; y++)
+                for (int x = 0; x < grid.Width; x++)
+                    if (grid[x, y] != Cell.Ice)
+                    { minX = Mathf.Min(minX, x); maxX = Mathf.Max(maxX, x); minY = Mathf.Min(minY, y); maxY = Mathf.Max(maxY, y); }
+        }
+
+        /// <summary>Platz eines Feldes in Kalles Siedlung, relativ zu ihrer Mitte.</summary>
+        public static Vector3 KalleSpot(SettlementGrid grid, int x, int y)
+        {
+            KalleBounds(grid, out int minX, out int maxX, out int minY, out int maxY);
+            return new Vector3((x - (minX + maxX) / 2f) * KalleCell, 0, -(y - (minY + maxY) / 2f) * KalleCell);
+        }
+
+        /// <summary>Was Kalle auf ein Feld baut (Iglu oder Laterne mit Licht); sonst null.</summary>
+        public static GameObject KallePieceFor(Transform site, char cell)
+        {
+            if (cell == Cell.Igloo) return Prims.Igloo(site, KallePiece);
+            if (cell == Cell.Lantern) return Prims.Lantern(site, KallePiece, true);
+            return null;
         }
 
         /// <summary>Foto der aktuellen Ansicht ohne Oberfläche (das HUD liegt als Overlay darüber und kommt nicht mit).</summary>

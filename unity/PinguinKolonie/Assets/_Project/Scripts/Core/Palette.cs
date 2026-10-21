@@ -73,6 +73,14 @@ namespace SFE.Game
 
         // ---------- Welt ----------
         public static readonly Color Sky = Tint(Siemens.Blue, 0.32f);
+        /// <summary>Realistischer Himmel (ADR-27): Tönung des Himmels, Boden unter dem Horizont, Dunst am Horizont.</summary>
+        public static readonly Color SkyTint = Siemens.DeepBlue30;
+        public static readonly Color SkyGround = Shade(Siemens.DarkBlue, 0.35f);
+        public static readonly Color Haze = Tint(Siemens.SoftBlue, 0.30f);
+        /// <summary>Himmelslicht (dreifarbig): blau von oben, hell am Horizont, vom Schnee hell zurückgeworfen.</summary>
+        public static readonly Color AmbientSky = Tint(Siemens.Blue, 0.55f);
+        public static readonly Color AmbientHorizon = Tint(Siemens.SoftBlue, 0.35f);
+        public static readonly Color AmbientGround = Tint(Siemens.SoftBlue, 0.18f);
         public static readonly Color Sea = Siemens.DarkBlue;
         public static readonly Color Ice = Tint(Siemens.SoftBlue, 0.20f);
         public static readonly Color IceShadow = Tint(Siemens.SoftBlue, 0.34f);
@@ -82,6 +90,8 @@ namespace SFE.Game
         public static readonly Color GridLineOnHeat = Siemens.DeepBlue60;
         /// <summary>Iglu und Schnee heller als das Eis darunter, sonst verschwinden sie auf der Scholle.</summary>
         public static readonly Color Igloo = Siemens.LightSand;
+        /// <summary>Fugen zwischen den Schneeblöcken: bläulich-grau wie Schnee im Schatten, damit der helle Iglu Form bekommt.</summary>
+        public static readonly Color IglooJoint = Siemens.DeepBlue40;
         public static readonly Color IglooCold = Tint(Siemens.SoftBlue, 0.40f);
         public static readonly Color IglooCozy = Tint(Siemens.SoftYellow, 0.35f);
         public static readonly Color IglooMelting = Tint(Siemens.DarkOrange, 0.30f);

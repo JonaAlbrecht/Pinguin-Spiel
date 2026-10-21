@@ -12,7 +12,9 @@ namespace SFE.Game
     {
         private static Material _lit;
         private static Material _unlit;
-        private static readonly Dictionary<Color, Material> Cache = new Dictionary<Color, Material>();
+        private static readonly Dictionary<(Color, ArtStyle.Surface, int), Material> Cache = new Dictionary<(Color, ArtStyle.Surface, int), Material>();
+        /// <summary>Welche Oberfläche ein Material hat – damit Umfärben (SetColor) Schnee Schnee bleiben lässt.</summary>
+        private static readonly Dictionary<Material, (ArtStyle.Surface, int)> SurfaceOf = new Dictionary<Material, (ArtStyle.Surface, int)>();
 
         private static Material LitBase
         {
@@ -52,17 +54,53 @@ namespace SFE.Game
         /// stufenlos nach Temperatur, ohne Rundung entstanden so rund 100 neue Materialien pro Sekunde,
         /// die der Cache nie freigab (Review zu PR #2). 32 Stufen je Kanal sieht man nicht als Sprung.
         /// </summary>
-        public static Material Mat(Color color)
+        public static Material Mat(Color color) => Mat(color, ArtStyle.Surfaces.ByColor(Quantize(color)), 1);
+
+        /// <summary>
+        /// Material mit physikalischer Oberfläche (ADR-27). <paramref name="tiling"/> = Wiederholungen der Struktur
+        /// über das ganze Teil – aus der Größe in der Welt, damit Schneekörner auf Scholle und Iglu gleich groß sind.
+        /// </summary>
+        public static Material Mat(Color color, ArtStyle.Surface surface, int tiling)
         {
             color = Quantize(color);
-            if (Cache.TryGetValue(color, out var m) && m != null) return m;
+            var key = (color, surface, tiling);
+            if (Cache.TryGetValue(key, out var m) && m != null) return m;
             m = new Material(LitBase) { color = color };
-            ArtStyle.Shading.ApplyTo(m);
-            Cache[color] = m;
+            ArtStyle.Surfaces.ApplyTo(m, surface, tiling);
+            Cache[key] = m;
+            SurfaceOf[m] = (surface, tiling);
+            if (ArtStyle.Surfaces.For(surface).Flow > 0f) RenderLook.AddFlowing(m, ArtStyle.Surfaces.For(surface));
             return m;
         }
 
-        private static Color Quantize(Color c)
+        private static readonly Dictionary<Texture, Material> TexturedCache = new Dictionary<Texture, Material>();
+
+        /// <summary>Material mit Farbbild statt Einzelfarbe (Pinguinkörper mit gemalten Farbgrenzen, ADR-27).</summary>
+        public static Material Textured(Texture2D albedo)
+        {
+            if (TexturedCache.TryGetValue(albedo, out var m) && m != null) return m;
+            m = new Material(LitBase) { color = Color.white, mainTexture = albedo };
+            ArtStyle.Surfaces.ApplyTo(m, ArtStyle.Surface.Feather);
+            TexturedCache[albedo] = m;
+            return m;
+        }
+
+        /// <summary>Wiederholungen der Struktur für ein Teil dieser Größe (Meter).</summary>
+        public static int TilingFor(ArtStyle.Surface surface, float size) =>
+            Mathf.Max(1, Mathf.RoundToInt(size * ArtStyle.Surfaces.For(surface).TilesPerMeter));
+
+        /// <summary>Oberfläche eines gebauten Teils (und aller Kinder) setzen, Farbe bleibt.</summary>
+        public static void SetSurface(GameObject go, ArtStyle.Surface surface)
+        {
+            foreach (var r in go.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r.GetComponent<TextMesh>() != null) continue; // Schilder behalten ihre Schrift
+                var b = r.bounds.size;
+                r.sharedMaterial = Mat(r.sharedMaterial.color, surface, TilingFor(surface, Mathf.Max(b.x, b.z)));
+            }
+        }
+
+        internal static Color Quantize(Color c)
         {
             const float steps = 32f;
             return new Color(Mathf.Round(c.r * steps) / steps, Mathf.Round(c.g * steps) / steps,   // Stil-Lint: Rechnung
@@ -89,11 +127,28 @@ namespace SFE.Game
             }
             var mesh = Shapes.ForPrimitive(type, segments);
             if (mesh != null) go.GetComponent<MeshFilter>().sharedMesh = mesh;
-            go.GetComponent<Renderer>().sharedMaterial = Mat(color);
+            var surface = ArtStyle.Surfaces.ByColor(Quantize(color));
+            var ws = go.transform.lossyScale;
+            go.GetComponent<Renderer>().sharedMaterial = Mat(color, surface, TilingFor(surface, Mathf.Max(ws.x, ws.z)));
             return go;
         }
 
-        public static void SetColor(GameObject go, Color color) => go.GetComponent<Renderer>().sharedMaterial = Mat(color);
+        /// <summary>Teil mit eigener Form aus <see cref="Shapes"/> (Drehprofil), sonst wie <see cref="Make"/>.</summary>
+        private static GameObject Shaped(Mesh mesh, Transform parent, Vector3 localPos, Vector3 scale, Color color, string name)
+        {
+            var go = Make(PrimitiveType.Cube, parent, localPos, scale, color, name);
+            go.GetComponent<MeshFilter>().sharedMesh = mesh;
+            return go;
+        }
+
+        /// <summary>Umfärben – die Oberfläche (Schnee, Eis …) bleibt, nur die Farbe wechselt.</summary>
+        public static void SetColor(GameObject go, Color color)
+        {
+            var r = go.GetComponent<Renderer>();
+            var (surface, tiling) = r.sharedMaterial != null && SurfaceOf.TryGetValue(r.sharedMaterial, out var st)
+                ? st : (ArtStyle.Surfaces.ByColor(Quantize(color)), 1);
+            r.sharedMaterial = Mat(color, surface, tiling);
+        }
 
         /// <summary>Destroy im Spiel, DestroyImmediate im Editor (Stilprobe baut Figuren ohne Play-Modus).</summary>
         public static void Kill(Object o)
@@ -134,35 +189,128 @@ namespace SFE.Game
 
         // ---------- Bausteine der Siedlung ----------
 
+        /// <summary>Kuppel des Iglus: Halbachsen in Metern bei Größe 1 (Mitte auf dem Boden, untere Hälfte im Eis).</summary>
+        private const float IglooRadius = 0.40f, IglooHeight = 0.31f;
+        /// <summary>Schneeblock-Reihen übereinander und angestrebte Blocklänge (Meter) – daraus die Fugen.</summary>
+        private const int IglooCourses = 4;
+        private const float IglooBlockLength = 0.22f, IglooJointWidth = 0.018f;
+
+        /// <summary>
+        /// Iglu aus Schneeblöcken. Ein heller Iglu auf hellem Eis las man nur am Schatten (Spieltest 21.10.2026). Darum
+        /// zeichnen dunklere Fugen (<see cref="Palette.IglooJoint"/>) die Blockreihen nach – wie bei einem echten Iglu,
+        /// dessen Fugen im Streiflicht dunkel stehen –, und ein Tunnel mit dunklem Eingang zeigt die Vorderseite.
+        /// Die Kuppel bleibt hell: Ihre Farbe zeigt in MG1 den Zustand (kalt, gemütlich, schmilzt) und heißt „Dome“.
+        /// </summary>
         public static GameObject Igloo(Transform parent, float scale = 1f)
         {
             var root = new GameObject("Igloo");
             root.transform.SetParent(parent, false);
             root.transform.localScale = Vector3.one * scale;
-            Make(PrimitiveType.Sphere, root.transform, new Vector3(0, 0f, 0), new Vector3(0.80f, 0.62f, 0.80f), Palette.Igloo, "Dome");
-            Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.10f, 0.36f), new Vector3(0.24f, 0.22f, 0.16f), Palette.Igloo, "Entrance");
-            Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.09f, 0.445f), new Vector3(0.14f, 0.16f, 0.02f), Palette.Door, "Door");
+            var t = root.transform;
+            SetSurface(Make(PrimitiveType.Sphere, t, Vector3.zero, new Vector3(2f * IglooRadius, 2f * IglooHeight, 2f * IglooRadius), Palette.Igloo, "Dome"),
+                ArtStyle.Surface.Snow);
+
+            // Waagerechte Fugen: dünne Scheiben, die nur mit ihrem Rand aus der Kuppel schauen.
+            for (int k = 1; k < IglooCourses; k++)
+            {
+                float y = IglooHeight * k / IglooCourses, r = IglooRing(y) + IglooJointWidth * 0.35f;
+                Make(PrimitiveType.Cylinder, t, new Vector3(0, y, 0), new Vector3(2f * r, IglooJointWidth * 0.35f, 2f * r), Palette.IglooJoint, "Joint");
+            }
+            // Senkrechte Fugen, je Reihe um einen halben Block versetzt; über dem Tunnel und im Schlussstein keine.
+            for (int c = 0; c < IglooCourses - 1; c++)
+            {
+                float y0 = IglooHeight * c / IglooCourses, y1 = IglooHeight * (c + 1) / IglooCourses;
+                float r0 = IglooRing(y0), r1 = IglooRing(y1), ym = 0.5f * (y0 + y1), rm = IglooRing(ym);
+                int n = Mathf.Max(4, Mathf.RoundToInt(2f * Mathf.PI * rm / IglooBlockLength));
+                float len = new Vector2(r1 - r0, y1 - y0).magnitude;
+                for (int i = 0; i < n; i++)
+                {
+                    float a = (i + 0.5f * (c % 2)) * 360f / n;
+                    if (Mathf.Abs(Mathf.DeltaAngle(a, 180f)) < 24f) continue;
+                    var d = Quaternion.Euler(0, a, 0) * Vector3.forward;
+                    var along = (d * (r1 - r0) + Vector3.up * (y1 - y0)).normalized;
+                    var outward = Vector3.Cross(along, Vector3.Cross(d, along)).normalized;
+                    if (Vector3.Dot(outward, d) < 0f) outward = -outward;
+                    var joint = Make(PrimitiveType.Cube, t, d * rm + Vector3.up * ym + outward * 0.004f,
+                        new Vector3(IglooJointWidth * 0.8f, len, IglooJointWidth * 0.5f), Palette.IglooJoint, "Joint");
+                    joint.transform.localRotation = Quaternion.LookRotation(outward, along);
+                }
+            }
+
+            // Tunnel: halber Schneezylinder vor der Kuppel, darin der dunkle Eingang (heißt „Door“: MG1 färbt ihn warm).
+            // Nach Süden (−z): weg vom Wind aus Nordwest (Leveldaten) und zur Spielkamera hin – früher zeigte er nach
+            // Norden und man sah ihn nie.
+            var tunnel = Make(PrimitiveType.Cylinder, t, new Vector3(0, 0.01f, -0.36f), new Vector3(0.28f, 0.11f, 0.32f), Palette.Igloo, "Entrance");
+            tunnel.transform.localRotation = Quaternion.Euler(90f, 0, 0);
+            SetSurface(tunnel, ArtStyle.Surface.Snow);
+            var door = Make(PrimitiveType.Cylinder, t, new Vector3(0, 0.01f, -0.473f), new Vector3(0.17f, 0.004f, 0.22f), Palette.Door, "Door");
+            door.transform.localRotation = Quaternion.Euler(90f, 0, 0);
             return root;
         }
 
+        /// <summary>Radius der Iglukuppel in Höhe <paramref name="y"/> (Ellipse aus <see cref="IglooRadius"/>, <see cref="IglooHeight"/>).</summary>
+        private static float IglooRing(float y) => IglooRadius * Mathf.Sqrt(Mathf.Max(0f, 1f - (y / IglooHeight) * (y / IglooHeight)));
+
+        /// <summary>
+        /// Gusseiserner Mast als Drehprofil (Höhe, Radius) in Metern bei Größe 1, von unten nach oben: runder Sockel mit
+        /// Stufe, ausgestellter Fuß, schlanker Schaft, Kragen unter dem Kopf. Doppelte Punkte = harte Kante.
+        /// </summary>
+        private static readonly Vector3[] LanternPost =
+        {
+            new Vector3(0f, 0f), new Vector3(0f, 0.14f), new Vector3(0f, 0.14f), new Vector3(0.045f, 0.14f), new Vector3(0.045f, 0.14f),
+            new Vector3(0.045f, 0.115f), new Vector3(0.045f, 0.115f), new Vector3(0.075f, 0.098f), new Vector3(0.13f, 0.078f),
+            new Vector3(0.19f, 0.062f), new Vector3(0.22f, 0.062f), new Vector3(0.245f, 0.045f), new Vector3(0.72f, 0.032f),
+            new Vector3(0.735f, 0.05f), new Vector3(0.755f, 0.05f), new Vector3(0.78f, 0.07f), new Vector3(0.78f, 0.07f), new Vector3(0.78f, 0f),
+        };
+        /// <summary>Geschwungenes Laternendach mit Knauf, gleiche Schreibweise; sitzt auf der Deckplatte.</summary>
+        private static readonly Vector3[] LanternRoof =
+        {
+            new Vector3(0f, 0f), new Vector3(0f, 0.118f), new Vector3(0f, 0.118f), new Vector3(0.012f, 0.118f), new Vector3(0.04f, 0.088f),
+            new Vector3(0.075f, 0.045f), new Vector3(0.098f, 0.022f), new Vector3(0.105f, 0.018f), new Vector3(0.115f, 0.026f),
+            new Vector3(0.13f, 0.022f), new Vector3(0.14f, 0f),
+        };
+
+        /// <summary>
+        /// Laterne nach Art einer Straßenlaterne, ca. 1,15 m bei Größe 1: Mast und Dach aus Gusseisen (Metall), dazwischen
+        /// ein Glaskasten, der leuchtet, mit Eckstreben. Das Dach ist kaum breiter als das Glas, damit man das Licht auch
+        /// von schräg oben (Spielbrett, 50–64°) sieht. „Lamp“ ist das Glas.
+        /// </summary>
         public static GameObject Lantern(Transform parent, float scale = 1f, bool withLight = true)
         {
             var root = new GameObject("Lantern");
             root.transform.SetParent(parent, false);
             root.transform.localScale = Vector3.one * scale;
-            Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.03f, 0), new Vector3(0.30f, 0.06f, 0.30f), Palette.LanternPole, "Base");
-            Make(PrimitiveType.Cylinder, root.transform, new Vector3(0, 0.45f, 0), new Vector3(0.07f, 0.42f, 0.07f), Palette.LanternPole, "Pole");
-            Make(PrimitiveType.Sphere, root.transform, new Vector3(0, 0.92f, 0), Vector3.one * 0.26f, Palette.LanternGlow, "Lamp");
-            Make(PrimitiveType.Cube, root.transform, new Vector3(0, 1.07f, 0), new Vector3(0.30f, 0.05f, 0.30f), Palette.LanternPole, "Cap");
+            var t = root.transform;
+            int segs = ArtStyle.Detail.SegmentsFor(0.28f * scale);
+            SetSurface(Shaped(Shapes.Cached("lanternPost" + segs, () => Shapes.Revolve(LanternPost, segs)), t, Vector3.zero, Vector3.one,
+                Palette.LanternPole, "Pole"), ArtStyle.Surface.Metal);
+            // Boden und Glas werfen keinen Schatten: Das Licht sitzt im Glas, der Boden darunter würde sonst einen
+            // dunklen Fleck unter die eigene Laterne legen.
+            var tray = Make(PrimitiveType.Cube, t, new Vector3(0, 0.79f, 0), new Vector3(0.19f, 0.02f, 0.19f), Palette.LanternPole, "Base");
+            SetSurface(tray, ArtStyle.Surface.Metal);
+            tray.GetComponent<Renderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            var glass = Make(PrimitiveType.Cube, t, new Vector3(0, 0.895f, 0), new Vector3(0.13f, 0.19f, 0.13f), Palette.LanternGlow, "Lamp");
+            glass.GetComponent<Renderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            for (int i = 0; i < 4; i++)
+            {
+                var corner = new Vector3(i % 2 == 0 ? -0.07f : 0.07f, 0.895f, i < 2 ? -0.07f : 0.07f);
+                SetSurface(Make(PrimitiveType.Cube, t, corner, new Vector3(0.022f, 0.21f, 0.022f), Palette.LanternPole, "Strut"), ArtStyle.Surface.Metal);
+            }
+            SetSurface(Make(PrimitiveType.Cube, t, new Vector3(0, 1.0f, 0), new Vector3(0.19f, 0.02f, 0.19f), Palette.LanternPole, "Cap"), ArtStyle.Surface.Metal);
+            SetSurface(Shaped(Shapes.Cached("lanternRoof" + segs, () => Shapes.Revolve(LanternRoof, segs)), t, new Vector3(0, 1.01f, 0), Vector3.one,
+                Palette.LanternPole, "Roof"), ArtStyle.Surface.Metal);
             if (withLight)
             {
                 var l = new GameObject("Light").AddComponent<Light>();
-                l.transform.SetParent(root.transform, false);
-                l.transform.localPosition = new Vector3(0, 0.9f, 0);
+                l.transform.SetParent(t, false);
+                l.transform.localPosition = new Vector3(0, 0.895f, 0);
                 l.type = LightType.Point;
                 l.color = Palette.LanternGlow;
-                l.range = 2.5f * scale;
-                l.intensity = 1.2f;
+                l.range = ArtStyle.Shading.LanternRange * scale;
+                l.intensity = ArtStyle.Shading.LanternIntensity * scale * scale;
+                // Schatten bekommen nur die Laternen nahe am Blickpunkt – das entscheidet RenderLook pro Bild (Audit B-02).
+                l.shadows = LightShadows.None;
+                RenderLook.AddLantern(l);
             }
             return root;
         }
@@ -172,8 +320,8 @@ namespace SFE.Game
             var root = new GameObject("SnowWall");
             root.transform.SetParent(parent, false);
             root.transform.localScale = Vector3.one * scale;
-            Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.22f, 0), new Vector3(0.92f, 0.44f, 0.92f), Palette.Wall, "Block");
-            Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.46f, 0), new Vector3(0.70f, 0.06f, 0.70f), Palette.Snow, "Top");
+            SetSurface(Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.22f, 0), new Vector3(0.92f, 0.44f, 0.92f), Palette.Wall, "Block"), ArtStyle.Surface.Snow);
+            SetSurface(Make(PrimitiveType.Cube, root.transform, new Vector3(0, 0.46f, 0), new Vector3(0.70f, 0.06f, 0.70f), Palette.Snow, "Top"), ArtStyle.Surface.Snow);
             return root;
         }
 

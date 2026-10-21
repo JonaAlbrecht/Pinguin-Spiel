@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using SFE.SimCore.Thermal;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -9,7 +10,7 @@ namespace SFE.Game.EditorTools
 {
     /// <summary>
     /// Stilprobe: stellt alle Figuren, die Bausteine der Siedlung und die Oberflächenfarben nach den aktuellen
-    /// Stilregeln (ArtStyle, Palette) auf und speichert fünf Bilder nach <c>unity/PinguinKolonie/Stilprobe/</c>.
+    /// Stilregeln (ArtStyle, Palette) auf und speichert sechs Bilder nach <c>unity/PinguinKolonie/Stilprobe/</c>.
     /// Damit sieht man eine Änderung an Farben, Schattierung, Detailgrad oder Proportionen, ohne das Spiel
     /// durchzuklicken (docs/07_Stilregeln.md).
     /// <c>Unity -batchmode -quit -projectPath unity/PinguinKolonie -executeMethod SFE.Game.EditorTools.StylePreview.Render</c>
@@ -30,6 +31,9 @@ namespace SFE.Game.EditorTools
             SceneManager.SetActiveScene(scene);
             string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Stilprobe"));
             Directory.CreateDirectory(dir);
+            // Sonst rendert das erste Bild mit Platzhalter-Shadern (grau), solange Unity Varianten im Hintergrund baut.
+            bool async = ShaderUtil.allowAsyncCompilation;
+            ShaderUtil.allowAsyncCompilation = false;
             try
             {
                 var world = new GameObject("Stilprobe").transform;
@@ -43,6 +47,7 @@ namespace SFE.Game.EditorTools
                 cam.backgroundColor = Palette.Sky;
                 cam.fieldOfView = 30f;
                 cam.allowMSAA = true;
+                RenderLook.Apply(cam, sun); // derselbe Look wie im Spiel (ADR-27)
 
                 var lineup = Group(world, "Figuren");
                 Ground(lineup);
@@ -72,11 +77,12 @@ namespace SFE.Game.EditorTools
                 for (int i = 0; i < 5; i++)
                 {
                     float a = 2.2f + i * 0.45f, s = 0.4f + 0.12f * (i % 3);
-                    Prims.Make(PrimitiveType.Sphere, village, new Vector3(Mathf.Cos(a) * 3.8f, 0, Mathf.Sin(a) * 3.8f),
-                        new Vector3(s * 1.4f, s * 0.7f, s), Palette.Snow, "SnowPile");
+                    Prims.SetSurface(Prims.Make(PrimitiveType.Sphere, village, new Vector3(Mathf.Cos(a) * 3.8f, 0, Mathf.Sin(a) * 3.8f),
+                        new Vector3(s * 1.4f, s * 0.7f, s), Palette.Snow, "SnowPile"), ArtStyle.Surface.Snow);
                 }
                 Prims.Igloo(village, 1.6f).transform.localPosition = new Vector3(-1.6f, 0, 0);
-                Prims.Lantern(village, 1.2f, false).transform.localPosition = new Vector3(-0.2f, 0, 0.4f);
+                // Mit Licht: zeigt, ob die Lampe blüht (und nur sie) und wie ihr Schatten fällt.
+                Prims.Lantern(village, 1.2f, true).transform.localPosition = new Vector3(-0.2f, 0, 0.4f);
                 Prims.SnowWall(village, 1f).transform.localPosition = new Vector3(0.9f, 0, -0.2f);
                 Prims.Puddle(village, 1f).transform.localPosition = new Vector3(2.0f, 0, 0.5f);
                 Face(Prims.Penguin(village, "Pip", Prims.Look.Pip, 1.25f), new Vector3(-0.6f, 0, -1.0f));
@@ -85,12 +91,56 @@ namespace SFE.Game.EditorTools
                 Shoot(cam, village, new Vector3(0, 0.4f, -0.3f), 8f, 28f, 20f, Path.Combine(dir, "siedlung.png"));
                 // So groß wie im Hub (CameraRig.Follow: 50 Grad, 24 m): Was hier nicht mehr zu sehen ist, lohnt kein Detail.
                 Shoot(cam, village, new Vector3(0, 0.4f, -0.3f), 24f, 50f, 0f, Path.Combine(dir, "spielansicht.png"));
+                // Dieselbe Ansicht in der Stufe „Sparsam“: soll gleich aussehen, nur einfacher (ohne Bloom, SSAO, Laternen-Schatten).
+                Settings.HighQuality = false;
+                try
+                {
+                    RenderLook.SetupCamera(cam);
+                    Shoot(cam, village, new Vector3(0, 0.4f, -0.3f), 8f, 28f, 20f, Path.Combine(dir, "siedlung_sparsam.png"));
+                }
+                finally
+                {
+                    Settings.HighQuality = true;
+                    RenderLook.SetupCamera(cam);
+                }
+
+                // Kalles Versuch draußen (HubWorld.PlayKalleAttempt): dasselbe Raster, dieselben Bausteine, dieselbe Kamera.
+                var kalleScene = Group(world, "KalleSiedlung");
+                Prims.Make(PrimitiveType.Cylinder, kalleScene, new Vector3(0, -0.6f, 0), new Vector3(120, 0.1f, 120), Palette.Sea, "Sea");
+                Prims.Make(PrimitiveType.Cylinder, kalleScene, new Vector3(0, -0.25f, 0), new Vector3(28f, 0.25f, 28f), Palette.Ice, "Floe");
+                var site = Group(kalleScene, "KalleSettlement");
+                site.localPosition = HubWorld.KallePlot;
+                var kalleGrid = SettlementGrid.FromRows(GameData.Load().Settlement.KalleTiles);
+                HubWorld.KalleBounds(kalleGrid, out int kx0, out int kx1, out int ky0, out int ky1);
+                for (int y = ky0; y <= ky1; y++)
+                    for (int x = kx0; x <= kx1; x++)
+                    {
+                        var piece = HubWorld.KallePieceFor(site, kalleGrid[x, y]);
+                        if (piece != null) piece.transform.localPosition = HubWorld.KalleSpot(kalleGrid, x, y);
+                    }
+                var kalleFig = Prims.Penguin(kalleScene, "Kalle", Prims.Look.Kalle, 1f).transform;
+                kalleFig.localPosition = new Vector3(-5.2f, 0, -0.5f);
+                kalleFig.localRotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(HubWorld.KallePlot - kalleFig.localPosition, Vector3.up), Vector3.up);
+                Shoot(cam, kalleScene, HubWorld.KallePlot + HubWorld.KalleViewOffset, HubWorld.KalleViewDistance, HubWorld.KalleViewPitch, 0f,
+                    Path.Combine(dir, "kalle_siedlung.png"));
+
+                // Laterne nah von der Seite und so wie auf dem Spielbrett in der Rechentafel (PairLessonView: 50°, 6,5 m),
+                // daneben ein Iglu im Feldabstand des Bretts (1 m).
+                var lanternScene = Group(world, "Laterne");
+                Ground(lanternScene);
+                Prims.Lantern(lanternScene, 1f, true).transform.localPosition = new Vector3(-0.5f, 0, 0);
+                Prims.Igloo(lanternScene, 1f).transform.localPosition = new Vector3(0.5f, 0, 0);
+                Prims.Lantern(lanternScene, 1f, true).transform.localPosition = new Vector3(-1.5f, 0, 1f);
+                Prims.Igloo(lanternScene, 1f).transform.localPosition = new Vector3(-0.5f, 0, 1f);
+                Shoot(cam, lanternScene, new Vector3(-0.5f, 0.55f, 0), 3.2f, 8f, 25f, Path.Combine(dir, "laterne.png"));
+                Shoot(cam, lanternScene, new Vector3(0, 0, 1.1f), 6.5f, 50f, 0f, Path.Combine(dir, "laterne_brett.png"));
 
                 ShootUi(cam, world, Path.Combine(dir, "oberflaeche.png"));
                 Debug.Log("Stilprobe gespeichert: " + dir);
             }
             finally
             {
+                ShaderUtil.allowAsyncCompilation = async;
                 if (additive)
                 {
                     EditorSceneManager.CloseScene(scene, true);
@@ -123,6 +173,7 @@ namespace SFE.Game.EditorTools
             var rot = Quaternion.Euler(pitch, yaw, 0);
             cam.transform.position = target - rot * Vector3.forward * distance;
             cam.transform.rotation = rot;
+            RenderLook.Tick(cam); // Dunst und Laternen-Schatten wie im Spiel nach der Kameraposition
             Capture(cam, file);
         }
 
@@ -214,6 +265,7 @@ namespace SFE.Game.EditorTools
             var rt = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { antiAliasing = 8 };
             cam.targetTexture = rt;
             Canvas.ForceUpdateCanvases();
+            cam.Render(); // Aufwärmen: Schatten-Kaskaden und Nachbearbeitung stehen erst ab dem zweiten Bild
             cam.Render();
             var old = RenderTexture.active;
             RenderTexture.active = rt;

@@ -66,7 +66,7 @@ Verworfen: Schaltschrank zweimal zeigen (Wiederholung).
 keines davon; sie sind wieder entfernt. `com.unity.modules.textrendering` gibt es in Unity 6.4 nicht mehr als Paket –
 die Prüfung in `check.ps1` hätte das vor dem Öffnen gemeldet.
 
-**ADR-15 Bildqualität in der eingebauten Pipeline, URP später.** Ursachen der Pixeligkeit (Spieltest 17.10.): MSAA nur 2×
+**ADR-15 Bildqualität in der eingebauten Pipeline, URP später.** *(Umstieg erfolgt mit ADR-27.)* Ursachen der Pixeligkeit (Spieltest 17.10.): MSAA nur 2×
 (WebGL 0×), 8-Texel-Felder mit 1-Texel-Gitterlinien stark vergrößert, nur 2–4 Pixel-Lichter bei bis zu 13 Laternen,
 TextMesh mit fontSize 64, 96-px-Symbolbilder. Behoben per Code (`RenderQuality`, Felder als 1 Texel ohne Glättung +
 Gitterlinien als 3D-Streifen, Schrift in 160 gerastert, Bilder 256–288 px). Verworfen für jetzt: Umstieg auf URP
@@ -75,7 +75,7 @@ weil Materialien dabei leicht rosa werden. Vorschlag für den nächsten Schritt.
 
 ## 2026-10-17 – Stilregeln und neue Pinguine
 
-**ADR-16 Ein Stil aus Code statt fremder Assets.** Die Pinguine waren Kugeln und Würfel („Schneemann“). Statt freier
+**ADR-16 Ein Stil aus Code statt fremder Assets.** *(Schattierung und Detailgrad ersetzt durch ADR-27; „aus Code statt fremder Assets“ gilt weiter.)* Die Pinguine waren Kugeln und Würfel („Schneemann“). Statt freier
 Modelle (OpenGameArt CC0, Poly Pizza CC-BY, Asset Store) baut `PenguinFigure` sie aus einem Drehprofil – Entscheidung
 von Jona, damit alles aus einem Guss bleibt. Schattierung, Detailgrad und Proportionen stehen zentral in `ArtStyle.cs`
 (docs/07); alle runden Grundformen laufen über `Shapes` und werden facettiert, Materialien matt. Prüfen per
@@ -156,3 +156,66 @@ erklären). Die Rechentafel nutzt dieselbe Simulation mit einer Station. Die Mö
 **ADR-26 Spielablauf über drei Minigames.** Siedlung → Hub → Tilda am Gleis (MG2) → Hub → Olaf an der Küste (MG3) →
 Abschluss mit drei Karten; danach lässt sich jedes Minigame wiederholen. Tilda und Olaf erscheinen im Hub erst, wenn
 sie dran sind, und haben eigene Looks. Der Zugtakt von MG3 kommt (noch) nicht aus dem MG2-Ergebnis.
+
+## 2026-10-19 – Realistischer Look
+
+**ADR-27 URP und realistische Darstellung statt Diorama-Facetten.** Wunsch von Jona: „Verpixelung und Grafikqualität
+ändern, das Spiel soll ultra realistisch aussehen“. Umgesetzt, ohne fremde Modelle oder Texturen (ADR-16 bleibt
+insoweit): Universal Render Pipeline 17.4 (Forward+, HDR, 4× MSAA + SMAA, 4096er weiche Schatten, SSAO, linearer
+Farbraum), ACES-Tonemapping, Bloom für Laternen, Farbkorrektur, Vignette, Dunst, prozeduraler Himmel mit
+Himmels-Cubemap für Spiegelungen, dreifarbiges Himmelslicht. Weiche Rundungen mit hoher Segmentzahl, physikalische
+Oberflächen (`ArtStyle.Surfaces`: Schnee, Eis, Wasser, Gefieder, Metall, Glanz, Licht) mit prozeduralen
+Normal-Maps (`SurfaceTextures`), Pinguinkörper mit gemaltem Farbbild statt Stufen-Grenzen. Pipeline-Assets entstehen
+reproduzierbar über `RenderPipelineSetup` (Menü/Batchmode); `RenderQuality` ändert nur eine Laufzeitkopie.
+Geprüft per Stilprobe im Batchmode (eigener Worktree, damit der offene Editor unberührt bleibt). Grenzen: Die Figuren
+bleiben stilisierte Pinguine aus Drehprofilen – „fotorealistisch“ ginge nur mit modellierten, texturierten Assets
+(Blender, Federn, Fell-Shader). Verworfen: HDRP (kein WebGL), Post Processing Stack v2 in der eingebauten Pipeline
+(veraltet), Umgebungslicht per `DynamicGI.UpdateEnvironment` und Reflexionssonde (asynchron – erstes Bild zufällig
+getönt).
+
+## 2026-10-19 – Grafik-Abstimmung nach Audit
+
+**ADR-28 Realistischer Look abgestimmt und Fehler aus ADR-27 behoben.** Grundlage: `GRAPHICS_AUDIT.md` (2. Fassung)
+und Stilproben vor/nach. Behoben, was ADR-27 verdeckte: (1) `Surfaces.ByColor` verglich die auf 1/32 gerundete Farbe mit
+der ungerundeten Palettenfarbe und traf nie – Meer, Eis, Wasser und Laternenglas blieben „Default“ (kein Wellenbild,
+kein Leuchten); jetzt werden beide Seiten gerundet. (2) Kugel, Zylinder und Kapsel trugen seit ADR-27 die Dreh-UV des
+Pinguinkörpers (Winkel × Höhe) – auf flachen Deckeln strahlenförmige Streifen; jetzt Box-Projektion plus Tangenten.
+(3) Die Shader-Schalter der Laufzeit-Materialien (_NORMALMAP, _EMISSION, _DETAIL_MULX2) wären im Build entfernt
+worden; `RenderPipelineSetup` legt je Oberfläche ein Material in `Resources/Materials/Varianten` an. Abgestimmt:
+Bloom-Schwelle 2,6 statt 1,05 (sonst blühte jeder Sonnenschnee), Laternenglas Emission 10, Belichtung −0,35,
+Schattenstärke 1, Dunst nach Kameraabstand (über dem Spielbrett kein Schleier mehr), bewegtes Wasser mit zweiter
+Wellenlage. „Sparsam“ behält die Nachbearbeitung (ohne Tonemapping fraß Schnee aus) und spart Bloom, SSAO,
+Laternen-Schatten, 4096er-Schattenkarte, SMAA → FXAA. Laternen-Schatten nur für die zwei Laternen am Blickpunkt.
+Verworfen: SSAO-Downsample und MSAA-oder-SMAA ohne Messung auf dem Referenzgerät; Tonemapping-Wechsel (ACES vs.
+Neutral, Datenfarben im Wärmebild) und Reflexionssonden – offen für Jona bzw. einen Spieltest.
+
+## 2026-10-21 – Laternen und Iglus lesbar (Spieltest)
+
+**ADR-29 Laterne als echtes Asset, Iglu mit Schneeblock-Fugen, Kalles Siedlung luftiger.** Rückmeldung von Jona:
+„Laternen stehen zu nah zusammen“, „Iglus vor dem Schmelzen gegen den weißen Hintergrund kaum zu sehen“, „Laterne ist
+nur ein Glühbirnen-Symbol vor einem Ständer“. Ursachen: (1) Das große gelbe Glühbirnen-Symbol mit Strahlen war Unitys
+Editor-Gizmo für Punktlichtquellen (jede Laterne mit Licht trägt eins), sichtbar mit eingeschalteten Gizmos in der
+Game-Ansicht – kein Spielinhalt, ohne Lernfunktion, im Build nie vorhanden. `Editor/LightIcons.cs` blendet nur dieses
+Symbol einmal je Editor-Sitzung aus. (2) Laternenlicht 2,2 bei 3,2 m Reichweite: Schnee und Iglus unter einer Laterne
+wurden heller als in der Sonne und fraßen gelb-weiß aus; in Kalles Siedlung (zehn Laternen) die ganze Fläche. Jetzt
+`Shading.LanternIntensity` 0,6 × Größe², `LanternRange` 2,2 m × Größe. (3) Die alte Laterne (Würfelsockel, Stab, Kugel,
+Würfeldeckel) verdeckte ihr Licht von oben mit dem Deckel. Neu: gusseiserner Mast und geschwungenes Dach als Drehprofil,
+leuchtender Glaskasten mit Eckstreben, Dach kaum breiter als das Glas. (4) Iglu: Fugen in `Palette.IglooJoint`
+(Deep Blue 40 %) und Tunnel mit dunklem Eingang, jetzt nach Süden (zur Kamera, weg vom Nordwestwind der Leveldaten).
+Kuppelfarbe bleibt Light Sand, weil sie in MG1 den Zustand zeigt. (5) Kalles Siedlung: Feldabstand 0,9 statt 0,7 m,
+Bausteine 0,9 statt 0,91, Kamera 10 statt 8,5 m – Raster und Leveldaten unverändert. Geprüft mit neuen Stilproben
+`kalle_siedlung.png`, `laterne.png`, `laterne_brett.png`. Verworfen: Iglu kühler blau tönen (verwechselbar mit dem
+Zustand „kalt“ = `IglooCold`), Laternen in Kalles Siedlung nur verkleinern (das Symbol bliebe, und neben dem Iglu wirkte
+die Laterne wie Spielzeug), Glasleuchten auf 3 senken (blieb im Tonemapping trotzdem fast weiß, ADR-28 bleibt).
+
+## 2026-10-21 – Dialog-Review
+
+**ADR-30 Auftakt und Rechentafel nach Dialog-Review (Jona).** Grete: Früher wärmte der Huddle, heute gibt es Iglus und
+Strom; Frieda: Die Kolonie wächst, und sie nennt die Frage von MG1 gleich selbst („zu weit weg kalt, zu nah schmilzt“) –
+Labor und Ausprobieren erst nach Kalles Versuch, sonst sagte Frieda dasselbe zweimal. Flockes Frage nach dem
+geschmolzenen Iglu beantwortet jetzt Frieda statt Gretes Spruch. Rechentafel: Die Formel wird in Alltagssprache erklärt
+(Sparschwein: Bestand plus Zugang minus Abgang, dann die vier Kästchen in Tafel-Reihenfolge); in `pair_done` begründet
+Frieda, warum jeder Schritt weniger bringt (kleinerer Temperaturunterschied). Der Fachsatz dazu steht im „Blick unter die
+Haube“ (`pairFlowNote`), das Popup ist dafür 1040 statt 960 hoch (der Schließen-Knopf lag über der letzten Zeile).
+Gestrichen: der Musik-Satz in `whatif_done` (die Karte „Musik im Dorf“ hat schon ihre Rückmeldung). Verworfen: das Wort
+„Grenznutzen“ im Dialog (Fachwort aus der Wirtschaft, und physikalisch ist der Grund der kleinere Temperaturunterschied).

@@ -168,6 +168,7 @@
     "pairParamAir": "Lufttemperatur",
     "pairParamValue": "= {0}",
     "pairSteadyNote": "Vereinfacht: eigene kleine Zahlen, damit man sie lesen kann. Die Siedlung rechnet ohne Wärmespeicher gleich den Endzustand aus (0 = rein - raus) – das ist der Gleichgewichtspunkt der Tafel.",
+    "pairFlowNote": "Warum jeder Schritt weniger bringt: Der Wärmefluss ist proportional zum Temperaturunterschied – darum nähert sich die Temperatur dem Gleichgewicht immer langsamer an (exponentiell).",
     "formulas": {
       "note": "LaTeX-Quellen (matplotlib-Mathtext). Nach jeder Änderung: python tools/render_formulas.py – erzeugt Resources/Formulas/*.bytes.",
       "cell_ode": "C\\,\\dfrac{\\mathrm{d}T_i}{\\mathrm{d}t} = q_i + k\\,(T_j - T_i) - h\\,(T_i - T_{\\mathrm{Luft}})",
