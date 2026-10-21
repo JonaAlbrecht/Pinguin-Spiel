@@ -23,6 +23,9 @@ dass keine Farbe an der Palette vorbeigeht.
    | `siedlung.png` | Scholle im Meer mit Iglu, Laterne, Schneewall, Pfütze und Figuren – stimmen Größen und Farben zueinander? |
    | `spielansicht.png` | dieselbe Szene so groß wie im Hub (50°, 24 m) – was hier verschwindet, lohnt kein Detail |
    | `siedlung_sparsam.png` | die Siedlung in der Stufe „Sparsam“ – muss gleich aussehen, nur ohne Bloom, Umgebungsverdeckung und Laternen-Schatten |
+   | `kalle_siedlung.png` | Kalles Versuch draußen im Hub: dasselbe Raster, dieselben Bausteine und dieselbe Kamera wie in `HubWorld.PlayKalleAttempt` – stehen Laternen und Iglus einzeln? |
+   | `laterne.png` | Laterne und Iglu nah von der Seite |
+   | `laterne_brett.png` | dieselben Bausteine so wie auf dem Spielbrett in der Rechentafel (50°, 6,5 m, Feldabstand 1 m) – Laterne von oben erkennbar? |
    | `oberflaeche.png` | Titel, Knöpfe, Fenster, Sprechernamen, Ampeln, Wärmeskala, Siemens-Primärfarben – beschriftet mit den Namen in `Palette.cs` |
 
 ## 1. Farben (`Palette.cs`)
@@ -71,6 +74,8 @@ Vorher: matte Facetten im Diorama-Look (ADR-16) – zurück mit `Flat = true` un
 | **Nur Lichtquellen blühen** | `BloomThreshold = 2.6`, Laternenglas `Emission = 10` | Schwelle über Sonnenschnee, unter Laternenglas. Bei 1,05 blühte jede besonnte Schneefläche (ADR-28). |
 | **Dunst nach Kameraabstand** | `FogAtFocus = 0.15` (Dichte = Wert / Abstand zum Blickpunkt) | Am Blickpunkt immer ≈ 2 % Dunst, am Horizont deutlich mehr – auch über dem Spielbrett aus 70 m kein Schleier (ADR-28). |
 | **Bewegtes Wasser** | `Surfaces.Water.Flow = 0.35` m/s, zweite Wellenlage `DetailTiling = 2.3` | Zwei gegeneinander laufende Wellenmuster; `RenderLook.Tick` verschiebt sie jedes Bild. |
+| **Laternenlicht am Tag** | `Shading.LanternIntensity = 0.6` (× Größe²), `LanternRange = 2.2` m (× Größe) | Nur ein warmer Schein. Bei 2,2 war der Schnee unter der Laterne heller als in der Sonne, Iglus daneben fraßen gelb-weiß aus (ADR-29). |
+| **Kein Licht-Symbol im Editor** | `Editor/LightIcons.cs` blendet Unitys Glühbirnen-Gizmo für Lichtquellen aus | Mit „Gizmos“ in der Game-Ansicht verdeckte es jede Laterne. Im fertigen Spiel gab es das Symbol nie (ADR-29). |
 | **Laternen-Schatten** | `Shading.LanternShadows = 2` | Nur die zwei Laternen am Blickpunkt werfen Schatten (je sechs Schattenbilder pro Bild); „Sparsam“: keine. |
 | **Kantenglättung** | 4× MSAA + SMAA (hoch), 2× MSAA + FXAA + 0,8–0,9 Auflösung (sparsam) | `RenderQuality` ändert eine Laufzeitkopie des Pipeline-Assets. Die Nachbearbeitung bleibt in beiden Stufen an – ohne Tonemapping frisst Schnee aus. |
 | **Neue Shader-Schalter** | Varianten-Materialien in `Resources/Materials/Varianten` | Wer in `Surfaces.ApplyTo` einen neuen Schalter (Keyword) setzt, führt danach „Render-Pipeline einrichten (URP)“ aus – sonst fehlt die Variante im Build (ADR-28). |
@@ -90,6 +95,10 @@ Regel: **Rundungen sollen auf dem Bildschirm glatt wirken.**
 - Ein Detail muss in `spielansicht.png` noch erkennbar sein, sonst lieber weglassen oder vergrößern.
   Figuren unterscheiden sich vor allem über **Silhouette und eine Signalfarbe** (Helm, Schal, Kappe), nicht über Kleinkram.
 - Neue runde Formen immer über `Prims.Make` oder `Shapes` bauen; keine eigenen Segmentzahlen oder Glanzwerte in den Code schreiben.
+- **Helles auf Hellem braucht Form, nicht Farbe.** Iglu (Light Sand) auf Eis: Fugen zwischen den Schneeblöcken in
+  `Palette.IglooJoint` und ein dunkler Eingang nach Süden (zur Kamera, weg vom Nordwestwind) – die Kuppelfarbe bleibt
+  frei für die Zustände in MG1 (kalt, gemütlich, schmilzt). Laterne: gusseiserner Mast und Dach als Drehprofil
+  (`Shapes.Revolve`), leuchtender Glaskasten, das Dach kaum breiter als das Glas, damit man das Licht auch von oben sieht.
 
 ## 4. Proportionen (`ArtStyle.Proportion`)
 

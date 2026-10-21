@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using SFE.SimCore.Thermal;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -102,6 +103,37 @@ namespace SFE.Game.EditorTools
                     Settings.HighQuality = true;
                     RenderLook.SetupCamera(cam);
                 }
+
+                // Kalles Versuch draußen (HubWorld.PlayKalleAttempt): dasselbe Raster, dieselben Bausteine, dieselbe Kamera.
+                var kalleScene = Group(world, "KalleSiedlung");
+                Prims.Make(PrimitiveType.Cylinder, kalleScene, new Vector3(0, -0.6f, 0), new Vector3(120, 0.1f, 120), Palette.Sea, "Sea");
+                Prims.Make(PrimitiveType.Cylinder, kalleScene, new Vector3(0, -0.25f, 0), new Vector3(28f, 0.25f, 28f), Palette.Ice, "Floe");
+                var site = Group(kalleScene, "KalleSettlement");
+                site.localPosition = HubWorld.KallePlot;
+                var kalleGrid = SettlementGrid.FromRows(GameData.Load().Settlement.KalleTiles);
+                HubWorld.KalleBounds(kalleGrid, out int kx0, out int kx1, out int ky0, out int ky1);
+                for (int y = ky0; y <= ky1; y++)
+                    for (int x = kx0; x <= kx1; x++)
+                    {
+                        var piece = HubWorld.KallePieceFor(site, kalleGrid[x, y]);
+                        if (piece != null) piece.transform.localPosition = HubWorld.KalleSpot(kalleGrid, x, y);
+                    }
+                var kalleFig = Prims.Penguin(kalleScene, "Kalle", Prims.Look.Kalle, 1f).transform;
+                kalleFig.localPosition = new Vector3(-5.2f, 0, -0.5f);
+                kalleFig.localRotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(HubWorld.KallePlot - kalleFig.localPosition, Vector3.up), Vector3.up);
+                Shoot(cam, kalleScene, HubWorld.KallePlot + HubWorld.KalleViewOffset, HubWorld.KalleViewDistance, HubWorld.KalleViewPitch, 0f,
+                    Path.Combine(dir, "kalle_siedlung.png"));
+
+                // Laterne nah von der Seite und so wie auf dem Spielbrett in der Rechentafel (PairLessonView: 50°, 6,5 m),
+                // daneben ein Iglu im Feldabstand des Bretts (1 m).
+                var lanternScene = Group(world, "Laterne");
+                Ground(lanternScene);
+                Prims.Lantern(lanternScene, 1f, true).transform.localPosition = new Vector3(-0.5f, 0, 0);
+                Prims.Igloo(lanternScene, 1f).transform.localPosition = new Vector3(0.5f, 0, 0);
+                Prims.Lantern(lanternScene, 1f, true).transform.localPosition = new Vector3(-1.5f, 0, 1f);
+                Prims.Igloo(lanternScene, 1f).transform.localPosition = new Vector3(-0.5f, 0, 1f);
+                Shoot(cam, lanternScene, new Vector3(-0.5f, 0.55f, 0), 3.2f, 8f, 25f, Path.Combine(dir, "laterne.png"));
+                Shoot(cam, lanternScene, new Vector3(0, 0, 1.1f), 6.5f, 50f, 0f, Path.Combine(dir, "laterne_brett.png"));
 
                 ShootUi(cam, world, Path.Combine(dir, "oberflaeche.png"));
                 Debug.Log("Stilprobe gespeichert: " + dir);

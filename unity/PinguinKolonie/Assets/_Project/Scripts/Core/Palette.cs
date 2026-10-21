@@ -90,6 +90,8 @@ namespace SFE.Game
         public static readonly Color GridLineOnHeat = Siemens.DeepBlue60;
         /// <summary>Iglu und Schnee heller als das Eis darunter, sonst verschwinden sie auf der Scholle.</summary>
         public static readonly Color Igloo = Siemens.LightSand;
+        /// <summary>Fugen zwischen den Schneeblöcken: bläulich-grau wie Schnee im Schatten, damit der helle Iglu Form bekommt.</summary>
+        public static readonly Color IglooJoint = Siemens.DeepBlue40;
         public static readonly Color IglooCold = Tint(Siemens.SoftBlue, 0.40f);
         public static readonly Color IglooCozy = Tint(Siemens.SoftYellow, 0.35f);
         public static readonly Color IglooMelting = Tint(Siemens.DarkOrange, 0.30f);
