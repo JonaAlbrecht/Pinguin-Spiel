@@ -18,7 +18,7 @@
 | Bereich | Wahl | Anmerkung |
 |---|---|---|
 | Engine | **Unity 6 LTS** (Version im Repo fixieren, `ProjectSettings/ProjectVersion.txt`) | **Lizenz:** Unity Personal ist für Siemens nicht zulässig → Unity Pro/Enterprise/Industry-Seats nötig (offener Punkt) |
-| Render-Pipeline | URP | Toon-Shader via Shader Graph, SRP Batcher |
+| Render-Pipeline | URP 17 (Forward+) | Realistischer Look (ADR-27): URP Lit mit Oberflächenklassen, HDR, Nachbearbeitung, SSAO, SRP Batcher; Einrichtung per `RenderPipelineSetup` |
 | Zielplattformen | **WebGL** (primär, Browser im Intranet), Windows Standalone (Messe/Events) | WebGPU erst, wenn in Unity stabil |
 | Scripting Backend | IL2CPP | WebGL erzwingt IL2CPP |
 | Kamera | Cinemachine 3 | Fixe Vogelperspektive, sanftes Follow |
@@ -259,7 +259,7 @@ Der Build schlägt fehl, wenn eine im Spiel referenzierte Karte kein vollständi
 ### 5.8 Kamera & Look
 - Hub: Perspektive, Pitch ~50°, niedriges FOV (~30°) für „Diorama“-Wirkung; optionaler „Curved World“-Vertex-Shader (Animal-Crossing-Effekt).
 - Minigames: Wechsel zu Top-Down/Orthografisch per Cinemachine-Blend.
-- Toon-Shading (2–3 Lichtstufen, Rim-Light), Outlines per Inverted Hull, weiche Schatten, leichter Bloom/Tilt-Shift.
+- Realistisch beleuchtet statt Toon-Shading (ADR-27, Regeln in docs/07): Polarsonne, Himmelslicht, Dunst, ACES-Tonemapping, Bloom nur für Lichtquellen, Umgebungsverdeckung, weiche Schatten. Keine Outlines.
 
 ---
 

@@ -9,7 +9,7 @@ namespace SFE.Game.EditorTools
 {
     /// <summary>
     /// Stilprobe: stellt alle Figuren, die Bausteine der Siedlung und die Oberflächenfarben nach den aktuellen
-    /// Stilregeln (ArtStyle, Palette) auf und speichert fünf Bilder nach <c>unity/PinguinKolonie/Stilprobe/</c>.
+    /// Stilregeln (ArtStyle, Palette) auf und speichert sechs Bilder nach <c>unity/PinguinKolonie/Stilprobe/</c>.
     /// Damit sieht man eine Änderung an Farben, Schattierung, Detailgrad oder Proportionen, ohne das Spiel
     /// durchzuklicken (docs/07_Stilregeln.md).
     /// <c>Unity -batchmode -quit -projectPath unity/PinguinKolonie -executeMethod SFE.Game.EditorTools.StylePreview.Render</c>
@@ -80,7 +80,8 @@ namespace SFE.Game.EditorTools
                         new Vector3(s * 1.4f, s * 0.7f, s), Palette.Snow, "SnowPile"), ArtStyle.Surface.Snow);
                 }
                 Prims.Igloo(village, 1.6f).transform.localPosition = new Vector3(-1.6f, 0, 0);
-                Prims.Lantern(village, 1.2f, false).transform.localPosition = new Vector3(-0.2f, 0, 0.4f);
+                // Mit Licht: zeigt, ob die Lampe blüht (und nur sie) und wie ihr Schatten fällt.
+                Prims.Lantern(village, 1.2f, true).transform.localPosition = new Vector3(-0.2f, 0, 0.4f);
                 Prims.SnowWall(village, 1f).transform.localPosition = new Vector3(0.9f, 0, -0.2f);
                 Prims.Puddle(village, 1f).transform.localPosition = new Vector3(2.0f, 0, 0.5f);
                 Face(Prims.Penguin(village, "Pip", Prims.Look.Pip, 1.25f), new Vector3(-0.6f, 0, -1.0f));
@@ -89,6 +90,18 @@ namespace SFE.Game.EditorTools
                 Shoot(cam, village, new Vector3(0, 0.4f, -0.3f), 8f, 28f, 20f, Path.Combine(dir, "siedlung.png"));
                 // So groß wie im Hub (CameraRig.Follow: 50 Grad, 24 m): Was hier nicht mehr zu sehen ist, lohnt kein Detail.
                 Shoot(cam, village, new Vector3(0, 0.4f, -0.3f), 24f, 50f, 0f, Path.Combine(dir, "spielansicht.png"));
+                // Dieselbe Ansicht in der Stufe „Sparsam“: soll gleich aussehen, nur einfacher (ohne Bloom, SSAO, Laternen-Schatten).
+                Settings.HighQuality = false;
+                try
+                {
+                    RenderLook.SetupCamera(cam);
+                    Shoot(cam, village, new Vector3(0, 0.4f, -0.3f), 8f, 28f, 20f, Path.Combine(dir, "siedlung_sparsam.png"));
+                }
+                finally
+                {
+                    Settings.HighQuality = true;
+                    RenderLook.SetupCamera(cam);
+                }
 
                 ShootUi(cam, world, Path.Combine(dir, "oberflaeche.png"));
                 Debug.Log("Stilprobe gespeichert: " + dir);
@@ -128,6 +141,7 @@ namespace SFE.Game.EditorTools
             var rot = Quaternion.Euler(pitch, yaw, 0);
             cam.transform.position = target - rot * Vector3.forward * distance;
             cam.transform.rotation = rot;
+            RenderLook.Tick(cam); // Dunst und Laternen-Schatten wie im Spiel nach der Kameraposition
             Capture(cam, file);
         }
 

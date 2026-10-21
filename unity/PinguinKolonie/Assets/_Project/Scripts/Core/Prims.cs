@@ -66,10 +66,10 @@ namespace SFE.Game
             var key = (color, surface, tiling);
             if (Cache.TryGetValue(key, out var m) && m != null) return m;
             m = new Material(LitBase) { color = color };
-            ArtStyle.Surfaces.ApplyTo(m, surface);
-            if (tiling > 1) m.mainTextureScale = new Vector2(tiling, tiling);
+            ArtStyle.Surfaces.ApplyTo(m, surface, tiling);
             Cache[key] = m;
             SurfaceOf[m] = (surface, tiling);
+            if (ArtStyle.Surfaces.For(surface).Flow > 0f) RenderLook.AddFlowing(m, ArtStyle.Surfaces.For(surface));
             return m;
         }
 
@@ -100,7 +100,7 @@ namespace SFE.Game
             }
         }
 
-        private static Color Quantize(Color c)
+        internal static Color Quantize(Color c)
         {
             const float steps = 32f;
             return new Color(Mathf.Round(c.r * steps) / steps, Mathf.Round(c.g * steps) / steps,   // Stil-Lint: Rechnung
@@ -210,7 +210,9 @@ namespace SFE.Game
                 l.color = Palette.LanternGlow;
                 l.range = 3.2f * scale;
                 l.intensity = 2.2f;
-                l.shadows = LightShadows.Soft; // weiche Schatten der Laternen auf dem Schnee (URP: Schatten-Atlas)
+                // Schatten bekommen nur die Laternen nahe am Blickpunkt – das entscheidet RenderLook pro Bild (Audit B-02).
+                l.shadows = LightShadows.None;
+                RenderLook.AddLantern(l);
             }
             return root;
         }

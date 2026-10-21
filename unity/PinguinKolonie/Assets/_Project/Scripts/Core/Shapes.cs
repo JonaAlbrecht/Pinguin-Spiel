@@ -47,17 +47,17 @@ namespace SFE.Game
                 float p = Mathf.PI * i / n;
                 rings[i] = new Vector3(-0.5f * Mathf.Cos(p), 0.5f * Mathf.Sin(p), 0f);
             }
-            return Revolve(rings, segments);
+            return BoxUv(Revolve(rings, segments));
         });
 
         /// <summary>Zylinder mit Radius 0,5 und Höhe 2 um den Ursprung (wie Unitys Zylinder).</summary>
         public static Mesh Cylinder(int segments) => Cached("cylinder" + segments, () =>
             // Doppelte Ringe an den Kanten trennen Deckel und Mantel, damit weiche Schattierung die Kante nicht verwischt.
-            Revolve(new[]
+            BoxUv(Revolve(new[]
             {
                 new Vector3(-1f, 0f, 0f), new Vector3(-1f, 0.5f, 0f), new Vector3(-1f, 0.5f, 0f),
                 new Vector3(1f, 0.5f, 0f), new Vector3(1f, 0.5f, 0f), new Vector3(1f, 0f, 0f),
-            }, segments));
+            }, segments)));
 
         /// <summary>Kapsel mit Radius 0,5 und Höhe 2 um den Ursprung (wie Unitys Kapsel).</summary>
         public static Mesh Capsule(int segments) => Cached("capsule" + segments, () =>
@@ -74,8 +74,31 @@ namespace SFE.Game
                 float p = 0.5f * Mathf.PI * i / h;
                 rings.Add(new Vector3(0.5f + 0.5f * Mathf.Sin(p), 0.5f * Mathf.Cos(p), 0f));
             }
-            return Revolve(rings, segments);
+            return BoxUv(Revolve(rings, segments));
         });
+
+        /// <summary>
+        /// Ersatzformen für Unitys Grundkörper tragen Struktur (Schnee, Eis, Wellen): UV als Projektion entlang der
+        /// Achse, auf die die Fläche am meisten zeigt. Die Dreh-UV aus <see cref="Revolve"/> (Winkel × Höhe, für die
+        /// gemalten Pinguinkörper) ist auf einem flachen Deckel konstant in der Höhe – Meer, Scholle und Pfützen zeigten
+        /// darum strahlenförmige Streifen (ADR-28). 0…1 überspannt den Durchmesser, passend zu <see cref="Prims.TilingFor"/>.
+        /// </summary>
+        private static Mesh BoxUv(Mesh m)
+        {
+            var v = m.vertices;
+            var n = m.normals;
+            var uv = new Vector2[v.Length];
+            for (int i = 0; i < v.Length; i++)
+            {
+                var a = new Vector3(Mathf.Abs(n[i].x), Mathf.Abs(n[i].y), Mathf.Abs(n[i].z));
+                uv[i] = a.y >= a.x && a.y >= a.z ? new Vector2(v[i].x, v[i].z)
+                    : a.x >= a.z ? new Vector2(v[i].z, v[i].y) : new Vector2(v[i].x, v[i].y);
+                uv[i] += new Vector2(0.5f, 0.5f);
+            }
+            m.uv = uv;
+            m.RecalculateTangents();
+            return m;
+        }
 
         /// <summary>Leicht gewölbter Kegel entlang +Y, Grundfläche Durchmesser 1 bei 0, Spitze bei 1 (Schnabel).</summary>
         public static Mesh Cone(int segments) => Cached("cone" + segments, () =>
@@ -242,6 +265,8 @@ namespace SFE.Game
                 m.subMeshCount = _tris.Length;
                 for (int i = 0; i < _tris.Length; i++) m.SetTriangles(_tris[i], i);
                 m.RecalculateNormals();
+                // Normal-Maps brauchen Tangenten, sonst kippt die Struktur je nach Blickrichtung (URP Lit).
+                if (_uvs.Count == _verts.Count) m.RecalculateTangents();
                 m.RecalculateBounds();
                 return m;
             }

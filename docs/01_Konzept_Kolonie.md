@@ -47,7 +47,7 @@ Der frühere Entwurf hatte die Antarktis zu einem kurzen Prolog gemacht und das 
 | 01 | **3D-Vogelperspektive**, fixe Kamera (Vorbild Animal Crossing) | Leicht geneigte Kamera (~50°) über Eisscholle und Siedlung; in Minigames Wechsel auf Top-Down für Klarheit |
 | 02 | **Kleine Open World** mit eingebetteten Minigames | Hub = Eisscholle mit drei Orten: Huddle-Platz/Siedlung, Gleis zur Küste, Fischfabrik |
 | 03 | **Setting** | Antarktische Kolonie im Aufbruch: Eis und Schnee, erste Werkzeuge, erstes Stromnetz, Industrie-Laternen, ein Zug über das Packeis |
-| 04 | **Ästhetik** | Stylized (Animal Crossing / Beacon Pines / Overcooked), weiche Formen, Toon-Shading |
+| 04 | **Ästhetik** | Realistisch beleuchtet (seit 19.10.2026, ADR-27): physikalisches Licht, Himmel, Dunst, glaubwürdige Oberflächen; die Figuren bleiben freundliche, vereinfachte Pinguine. Regeln: [07_Stilregeln.md](07_Stilregeln.md). Vorher: Stylized mit Toon-Shading |
 | 05 | **Erst simulieren, dann bauen** | Jede Mission zeigt: „einfach ausprobieren“ (Kalle Klotz) scheitert sichtbar und lustig, „vorher simulieren“ (Spieler) funktioniert |
 | 06 | **Die Simulation ist das Spielzeug** | Wärmebild, Strömungslinien und Warteschlangen sind die eigentliche Spielfläche |
 | 07 | **Für Nicht-Techniker gebaut** | Keine Formeln, keine Abkürzungen, kein Zeitdruck. Ergebnisse als Farben, Ampeln und Sterne. Modus „Blick unter die Haube“ ist optional |

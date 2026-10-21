@@ -35,8 +35,14 @@ namespace SFE.Game
             /// <summary>Kühles Himmelslicht, nur als Rückfall ohne Himmel (RenderLook nimmt sonst den Himmel selbst).</summary>
             public static readonly Color Ambient = new Color(0.46f, 0.50f, 0.57f);
             public static readonly float AmbientIntensity = 1.05f;
-            /// <summary>Echte Schatten sind satt; das Himmelslicht hellt sie bläulich auf.</summary>
-            public static readonly float ShadowStrength = 0.92f;
+            /// <summary>Echte Schatten sind satt; aufgehellt werden sie nur vom Himmelslicht und der Umgebungsverdeckung.</summary>
+            public static readonly float ShadowStrength = 1f;
+            /// <summary>
+            /// So viele Laternen nahe am Blickpunkt werfen Schatten (Stufe „Hoch“; „Sparsam“: keine). Jede Punktlicht-
+            /// Schattenquelle kostet sechs Schattenbilder pro Bild, und der 2048er-Schattenatlas fasst nur wenige in
+            /// guter Auflösung (Grafik-Audit B-02). Weiter entfernte Laternen leuchten weiter, nur ohne Schatten.
+            /// </summary>
+            public static readonly int LanternShadows = 2;
 
             public static void ApplyTo(Material m) => Surfaces.ApplyTo(m, Surface.Default);
 
@@ -71,17 +77,28 @@ namespace SFE.Game
                 public float NormalStrength = 1f;
                 /// <summary>Wiederholungen der Struktur je Meter (Struktur bleibt gleich groß, egal wie groß das Teil ist).</summary>
                 public float TilesPerMeter = 1f;
-                /// <summary>Leuchtkraft relativ zur Grundfarbe (HDR, über 1 blüht es im Bloom).</summary>
+                /// <summary>Leuchtkraft relativ zur Grundfarbe (HDR; blüht im Bloom erst über <see cref="Atmosphere.BloomThreshold"/>).</summary>
                 public float Emission;
+                /// <summary>
+                /// Bewegte Oberfläche (Wasser): Die Struktur wandert mit dieser Geschwindigkeit in m/s, eine zweite, feinere
+                /// Lage (<see cref="DetailTiling"/>-mal so dicht) läuft quer dazu – so entsteht kein starres Muster.
+                /// </summary>
+                public float Flow;
+                public float DetailTiling;
             }
 
             public static readonly Spec Default = new Spec { Smoothness = Shading.Smoothness };
             public static readonly Spec Snow = new Spec { Smoothness = 0.18f, Normal = SurfaceTextures.Kind.Snow, NormalStrength = 0.55f, TilesPerMeter = 0.9f };
             public static readonly Spec Ice = new Spec { Smoothness = 0.62f, Normal = SurfaceTextures.Kind.Snow, NormalStrength = 0.35f, TilesPerMeter = 0.35f };
-            public static readonly Spec Water = new Spec { Smoothness = 0.94f, Normal = SurfaceTextures.Kind.Waves, NormalStrength = 0.45f, TilesPerMeter = 0.12f };
+            public static readonly Spec Water = new Spec
+            {
+                Smoothness = 0.94f, Normal = SurfaceTextures.Kind.Waves, NormalStrength = 0.3f, TilesPerMeter = 0.12f,
+                Flow = 0.35f, DetailTiling = 2.3f,
+            };
             public static readonly Spec Glossy = new Spec { Smoothness = 0.86f };
             public static readonly Spec Metal = new Spec { Smoothness = 0.58f, Metallic = 0.85f };
-            public static readonly Spec Glow = new Spec { Smoothness = 0.7f, Emission = 3.2f };
+            /// <summary>Laternenglas: deutlich heller als Schnee in der Sonne (≈ 1,5), damit nur die Lampe blüht, nicht der Schnee.</summary>
+            public static readonly Spec Glow = new Spec { Smoothness = 0.7f, Emission = 10f };
             /// <summary>Gefieder: feine Struktur, leichter Glanz wie bei echtem Pinguin-Gefieder (dicht, ölig).</summary>
             public static readonly Spec Feather = new Spec { Smoothness = 0.42f, Normal = SurfaceTextures.Kind.Snow, NormalStrength = 0.11f, TilesPerMeter = 6f };
 
@@ -100,26 +117,43 @@ namespace SFE.Game
                 }
             }
 
-            /// <summary>Oberfläche nach Farbe, wo die Farbe eindeutig ist (Eis, Meer, Wasser, Laternenlicht).</summary>
+            /// <summary>
+            /// Oberfläche nach Farbe, wo die Farbe eindeutig ist (Eis, Meer, Wasser, Laternenlicht). Prims rundet Farben
+            /// auf 1/32 (ADR-06) – darum werden die Palettenfarben hier genauso gerundet. Ohne das traf der Vergleich
+            /// nie: Siemens-Werte wie #FFE270 liegen nicht auf dem 1/32-Raster, Meer, Eis und Lampen blieben „Default“.
+            /// </summary>
             public static Surface ByColor(Color c)
             {
-                if (c == Palette.Ice || c == Palette.IceShadow) return Surface.Ice;
-                if (c == Palette.Sea || c == Palette.Water) return Surface.Water;
-                if (c == Palette.LanternGlow) return Surface.Glow;
+                c = Prims.Quantize(c);
+                if (c == Prims.Quantize(Palette.Ice) || c == Prims.Quantize(Palette.IceShadow)) return Surface.Ice;
+                if (c == Prims.Quantize(Palette.Sea) || c == Prims.Quantize(Palette.Water)) return Surface.Water;
+                if (c == Prims.Quantize(Palette.LanternGlow)) return Surface.Glow;
                 return Surface.Default;
             }
 
-            public static void ApplyTo(Material m, Surface surface)
+            /// <param name="tiling">Wiederholungen der Struktur über das ganze Teil (<see cref="Prims.TilingFor"/>).</param>
+            public static void ApplyTo(Material m, Surface surface, int tiling = 1)
             {
                 var s = For(surface);
                 if (m.HasProperty("_Glossiness")) m.SetFloat("_Glossiness", s.Smoothness);   // eingebaute Pipeline
                 if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", s.Smoothness);   // URP
                 if (m.HasProperty("_Metallic")) m.SetFloat("_Metallic", s.Metallic);
+                if (tiling > 1) m.mainTextureScale = new Vector2(tiling, tiling);
                 if (s.Normal.HasValue && m.HasProperty("_BumpMap"))
                 {
                     m.SetTexture("_BumpMap", SurfaceTextures.Get(s.Normal.Value));
                     m.SetFloat("_BumpScale", s.NormalStrength);
                     m.EnableKeyword("_NORMALMAP");
+                }
+                // Zweite Wellenlage über die Detail-Normal-Map von URP Lit. Ohne Detail-Farbbild nimmt Lit ein neutrales
+                // Grau (×2 = 1), die Farbe bleibt also unverändert. Die Detail-Kachelung rechnet Lit auf die schon
+                // gekachelten Koordinaten – darum nur der Faktor, nicht noch einmal mal tiling.
+                if (s.Normal.HasValue && s.DetailTiling > 0f && m.HasProperty("_DetailNormalMap"))
+                {
+                    m.SetTexture("_DetailNormalMap", SurfaceTextures.Get(s.Normal.Value));
+                    m.SetFloat("_DetailNormalMapScale", s.NormalStrength);
+                    m.SetTextureScale("_DetailAlbedoMap", Vector2.one * s.DetailTiling);
+                    m.EnableKeyword("_DETAIL_MULX2");
                 }
                 if (s.Emission > 0f && m.HasProperty("_EmissionColor"))
                 {
@@ -139,14 +173,26 @@ namespace SFE.Game
             public static readonly float SunSize = 0.035f;
             public static readonly float AtmosphereThickness = 0.7f;
             public static readonly float SkyExposure = 1.1f;
-            /// <summary>Dichte des Dunsts (exponentiell²): ab ~150 m verschwimmt das Meer mit dem Horizont.</summary>
-            public static readonly float FogDensity = 0.0065f;
+            /// <summary>
+            /// Dunst (exponentiell²) als Produkt aus Dichte und Kameraabstand zum Blickpunkt: Am Blickpunkt liegen so
+            /// immer ≈ 2 % Dunst, beim Sechsfachen des Abstands etwa die Hälfte – egal ob die Kamera 24 m (Hub) oder
+            /// 70 m (Spielbrett) entfernt steht. Eine feste Dichte legte über das Spielbrett ≈ 19 % Schleier (Audit B-10).
+            /// Im Hub ergibt das 0,15 / 24 m ≈ 0,0063, also den früheren festen Wert.
+            /// </summary>
+            public static readonly float FogAtFocus = 0.15f;
+            /// <summary>Kürzester Abstand für die Dunst-Rechnung (Nahaufnahmen sollen nicht im Nebel versinken).</summary>
+            public static readonly float FogMinDistance = 8f;
 
-            public static readonly float PostExposure = 0.15f;
+            /// <summary>Belichtung: Sonnenschnee (≈ 1,5 vor dem Tonemapping) soll Zeichnung behalten statt weiß auszufressen.</summary>
+            public static readonly float PostExposure = -0.35f;
             public static readonly float Contrast = 14f;
             public static readonly float Saturation = 6f;
-            public static readonly float BloomThreshold = 1.05f;
-            public static readonly float BloomIntensity = 0.55f;
+            /// <summary>
+            /// Über Sonnenschnee (≈ 1,5), unter Laternenglas (≈ 9): Es blühen nur Lichtquellen. Bei 1,05 blühte jede
+            /// besonnte Schneefläche und legte einen milchigen Schleier über das Bild (Grafik-Audit B-01).
+            /// </summary>
+            public static readonly float BloomThreshold = 2.6f;
+            public static readonly float BloomIntensity = 0.4f;
             public static readonly float BloomScatter = 0.68f;
             public static readonly float Vignette = 0.2f;
             /// <summary>Umgebungsverdeckung (SSAO): dunkelt Fugen, Kontaktflächen und Ecken ab.</summary>
