@@ -165,7 +165,9 @@ namespace SFE.Game
         private static void ShowFormula(GameRoot root, SettlementPairLesson lesson)
         {
             var data = root.Data;
-            var page = root.Hud.OpenPopup(data.Tech("techTitle"), new Vector2(1400, 960));
+            // 1040 hoch: zwei Hinweiszeilen unter den Tabellen und darunter frei für den Schließen-Knopf
+            // (bei 960 lag der Knopf über der letzten Zeile).
+            var page = root.Hud.OpenPopup(data.Tech("techTitle"), new Vector2(1400, 1040));
             var ink = Palette.Text;
 
             void Heading(string text, float x, float y, float width)
@@ -227,7 +229,9 @@ namespace SFE.Game
                 Line(data.Tech(values[r].meaning), 775, y, 250, 20);
                 Line(values[r].value, 1030, y, 310, 20, FontStyle.Bold);
             }
-            Line(data.Tech("pairSteadyNote"), 60, -895, 1280, 20, FontStyle.Italic);
+            Line(data.Tech("pairSteadyNote"), 60, -868, 1280, 20, FontStyle.Italic);
+            // Antwort auf Pips „jeder Schritt bringt weniger“ (pair_done) in der Sprache der Technik
+            Line(data.Tech("pairFlowNote"), 60, -925, 1280, 20, FontStyle.Italic);
         }
     }
 }
