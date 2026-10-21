@@ -85,6 +85,9 @@ namespace SFE.Game
         public static readonly Color Ice = Tint(Siemens.SoftBlue, 0.20f);
         public static readonly Color IceShadow = Tint(Siemens.SoftBlue, 0.34f);
         public static readonly Color Snow = Siemens.LightSand;
+        /// <summary>Fels an steilen Berghängen (ArcticLandscape): Dark Sand mit Deep Blue abgedunkelt – kühles Graubraun,
+        /// das im Dunst nach hinten heller wird. Reines Deep Blue wirkte wie ein Loch in der Landschaft.</summary>
+        public static readonly Color Rock = Shade(Siemens.DarkSand, 0.45f);
         public static readonly Color GridLine = Siemens.DeepBlue20;
         /// <summary>Gitterlinien über dem Wärmebild: dunkel genug, um auf Gelb und Blau zu stehen.</summary>
         public static readonly Color GridLineOnHeat = Siemens.DeepBlue60;

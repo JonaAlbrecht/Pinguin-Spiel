@@ -22,7 +22,8 @@ namespace SFE.Game
             public string IdleNode;
         }
 
-        private const float FloeRadius = 14f;
+        /// <summary>Begehbarer Kreis um die Hub-Mitte: Pip läuft bis 1 m davor (<see cref="KeepOnFloe"/>).</summary>
+        public const float FloeRadius = 14f;
         /// <summary>Hier baut Kalle seine Siedlung – draußen neben seiner Baustelle, nicht im Labor.</summary>
         public static readonly Vector3 KallePlot = new Vector3(-8.6f, 0, 1.6f);
         /// <summary>Feldgröße von Kalles echter Siedlung in Metern (im Modell 2 m, hier passend zu den Figuren).</summary>
@@ -64,15 +65,70 @@ namespace SFE.Game
             return hub;
         }
 
+        /// <summary>Wo die Figuren im Hub stehen (Position, Blickrichtung) – Spiel und Stilprobe stellen sie gleich auf.</summary>
+        public static readonly (string Id, Prims.Look Look, Vector3 Pos, float Yaw)[] NpcSpots =
+        {
+            ("grete", Prims.Look.Grete, new Vector3(-1.8f, 0, 5f), 160f),
+            ("frieda", Prims.Look.Frieda, new Vector3(5.2f, 0, 0.8f), 230f),
+            ("kalle", Prims.Look.Kalle, new Vector3(-5.2f, 0, -0.5f), 120f),
+            // Neu in v0.2: Theo misst nach (Lernziel 5), Klara rechnet den Nutzen vor (Lernziel 4), Flocke fragt „warum?“
+            ("theo", Prims.Look.Theo, new Vector3(8.6f, 0, 2.2f), 250f),
+            ("klara", Prims.Look.Klara, new Vector3(-3.4f, 0, -4.6f), 30f),
+            ("flocke", Prims.Look.Flocke, new Vector3(1.6f, 0, 6.4f), 190f),
+            // Release 1: Tilda am Gleis (MG2), Olaf an der Küste (MG3) – erscheinen erst, wenn sie dran sind
+            ("tilda", Prims.Look.Tilda, new Vector3(10.6f, 0, 1.2f), 250f),
+            ("olaf", Prims.Look.Olaf, new Vector3(6.6f, 0, -9.8f), 330f),
+        };
+
+        /// <summary>Drei Pinguine der Kolonie, die auf dem Huddle-Platz umherwatscheln.</summary>
+        public static readonly Vector3[] ColonySpots = { new Vector3(-0.6f, 0, 4.4f), new Vector3(0.1f, 0, 3.6f), new Vector3(0.8f, 0, 4.6f) };
+        /// <summary>Hier steht Pip, wenn der Hub beginnt.</summary>
+        public static readonly Vector3 PipStart = new Vector3(0, 0, -2f);
+
         private void Build()
         {
             var t = transform;
-            Prims.Make(PrimitiveType.Cylinder, t, new Vector3(0, -0.6f, 0), new Vector3(120, 0.1f, 120), Palette.Sea, "Sea");
-            Prims.Make(PrimitiveType.Cylinder, t, new Vector3(0, -0.25f, 0), new Vector3(FloeRadius * 2, 0.25f, FloeRadius * 2), Palette.Ice, "Floe");
+            var rnd = new System.Random(11);
+            var ui = _root.Data;
+            _lab = BuildScenery(t, ui, rnd);
+
+            // Figuren
+            foreach (var n in NpcSpots) AddNpc(n.Id, n.Look, n.Pos, n.Yaw);
+            ShowNpc("tilda", false);
+            ShowNpc("olaf", false);
+            foreach (var p in ColonySpots)
+            {
+                var extra = Prims.Penguin(t, "Colony", Prims.Look.Plain, 1.3f);
+                extra.transform.localPosition = p;
+                extra.transform.localRotation = Quaternion.Euler(0, rnd.Next(0, 360), 0);
+                extra.AddComponent<Wanderer>().Radius = 1.1f; // klein genug, um nicht durch Grete und Flocke zu laufen
+            }
+
+            _pip = Prims.Penguin(t, "Pip", Prims.Look.Pip, 1.25f);
+            _pip.transform.localPosition = PipStart;
+            _target = _pip.transform.position;
+
+            _clickMarker = Prims.Make(PrimitiveType.Cylinder, t, Vector3.zero, new Vector3(0.5f, 0.01f, 0.5f), Palette.Selected, "ClickMarker").transform;
+            _clickMarker.gameObject.SetActive(false);
+
+            _talkPrompt = Prims.Label(t, ui.Ui("hubTalkPrompt"), Vector3.zero, 0.03f, Palette.Text);
+            _talkPrompt.fontStyle = FontStyle.Bold;
+            _talkPrompt.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// Alles Feste im Hub: Boden und Landschaft, Schilder, Labor, Kalles Baustelle, Laternen, Gleis. Statisch, damit
+        /// die Stilprobe genau denselben Hub aufstellt wie das Spiel (wie <see cref="KalleSpot"/>, ADR-29).
+        /// Gibt das Labor zurück – seine Wände begrenzen Pips Weg.
+        /// </summary>
+        public static Building BuildScenery(Transform t, GameData ui, System.Random rnd)
+        {
+            // Eis, verschneite Ebene, Berge ringsum und der Pass in Gleisrichtung (ADR-31). Das Eis ist bis weit über
+            // FloeRadius hinaus eben – die Grenze von Pips Weg ist keine sichtbare Kante mehr.
+            ArcticLandscape.Build(t);
             Prims.Make(PrimitiveType.Cylinder, t, new Vector3(0, 0.005f, 4f), new Vector3(7f, 0.01f, 7f), Palette.IceShadow, "HuddlePlaza");
 
             // Schneehaufen und Eisbrocken
-            var rnd = new System.Random(11);
             for (int i = 0; i < 18; i++)
             {
                 float a = (float)(rnd.NextDouble() * Math.PI * 2), r = 9f + (float)rnd.NextDouble() * 4f;
@@ -90,7 +146,6 @@ namespace SFE.Game
             sign.localRotation = Quaternion.Euler(0, 200, 0);
             Prims.Make(PrimitiveType.Cylinder, sign, new Vector3(0, 0.8f, 0), new Vector3(0.12f, 0.8f, 0.12f), Palette.Wood, "Post");
             Prims.Make(PrimitiveType.Cube, sign, new Vector3(0, 1.75f, 0), new Vector3(2.8f, 1.1f, 0.08f), Palette.SignBoard, "Board");
-            var ui = _root.Data;
             var l1 = Prims.Label(sign, ui.Ui("signPlaza"), new Vector3(0, 2.0f, -0.06f), 0.05f, Palette.Text);
             l1.transform.localRotation = Quaternion.Euler(0, 180, 0);
             var l2 = Prims.Label(sign, ui.Ui("signBusiness"), new Vector3(0, 1.6f, -0.06f), 0.028f, Palette.SignAccent);
@@ -99,7 +154,7 @@ namespace SFE.Game
             // Friedas Labor
             // Begehbar: Wände mit Tür zum Platz (Westen), Dach und Südwand blenden aus, sobald Pip drin ist.
             // v0.1 war ein geschlossener Block – Pip lief hinein und verschwand (Spieltest 17.10.2026).
-            _lab = BuildLab(t, new Vector3(7f, 0, -1f), ui.Ui("signLab"));
+            var lab = BuildLab(t, new Vector3(7f, 0, -1f), ui.Ui("signLab"));
 
             // Kalles Baustelle
             var site = new GameObject("KalleSite").transform;
@@ -114,15 +169,29 @@ namespace SFE.Game
             foreach (var p in new[] { new Vector3(-3.5f, 0, 2f), new Vector3(3.5f, 0, 2.2f), new Vector3(0, 0, 8.2f) })
                 Prims.Lantern(t, 1.2f, true).transform.localPosition = p;
 
-            // Gleis des Polar-Express: von Tildas Bahnsteig über die Scholle hinaus aufs Meer
+            // Gleis des Polar-Express: von Tildas Bahnsteig über das Eis, dann auf einem Damm durch den Pass in die Ferne –
+            // zur Küste sind es tausende Kilometer (docs/02). Höhe und Länge kommen aus der Landschaft (ArcticLandscape).
             var track = new GameObject("Track").transform;
             track.SetParent(t, false);
-            track.localPosition = new Vector3(11.8f, 0, -1f);
-            track.localRotation = Quaternion.Euler(0, 20f, 0);
+            track.localPosition = ArtStyle.Landscape.TrackOrigin;
+            track.localRotation = Quaternion.Euler(0, ArtStyle.Landscape.TrackYaw, 0);
+            float start = ArtStyle.Landscape.TrackStart, end = ArcticLandscape.TrackLength;
             for (int side = -1; side <= 1; side += 2)
-                Prims.Make(PrimitiveType.Cube, track, new Vector3(side * 0.45f, 0.06f, 0), new Vector3(0.08f, 0.08f, 9f), Palette.LanternPole, "Rail");
-            for (int i = 0; i < 12; i++)
-                Prims.Make(PrimitiveType.Cube, track, new Vector3(0, 0.02f, -4.2f + i * 0.75f), new Vector3(1.3f, 0.04f, 0.22f), Palette.Wood, "Sleeper");
+            {
+                // Das alte Stück am Bahnsteig liegt eben auf dem Eis, danach folgen die Schienen der Höhe in kurzen Stücken.
+                Prims.Make(PrimitiveType.Cube, track, new Vector3(side * 0.45f, 0.06f, 0), new Vector3(0.08f, 0.08f, 2f * start), Palette.LanternPole, "Rail");
+                for (float s0 = start; s0 < end; s0 += ArtStyle.Landscape.TrackPiece)
+                {
+                    float s1 = Mathf.Min(s0 + ArtStyle.Landscape.TrackPiece, end);
+                    float h0 = ArcticLandscape.TrackHeight(s0), h1 = ArcticLandscape.TrackHeight(s1);
+                    var rail = Prims.Make(PrimitiveType.Cube, track, new Vector3(side * 0.45f, 0.5f * (h0 + h1) + 0.06f, 0.5f * (s0 + s1)),
+                        new Vector3(0.08f, 0.08f, Mathf.Sqrt((s1 - s0) * (s1 - s0) + (h1 - h0) * (h1 - h0)) + 0.02f), Palette.LanternPole, "Rail");
+                    rail.transform.localRotation = Quaternion.Euler(-Mathf.Atan2(h1 - h0, s1 - s0) * Mathf.Rad2Deg, 0, 0);
+                }
+            }
+            for (float z = -4.2f; z < end; z += 0.75f)
+                Prims.Make(PrimitiveType.Cube, track, new Vector3(0, ArcticLandscape.TrackHeight(z) + 0.02f, z), new Vector3(1.3f, 0.04f, 0.22f), Palette.Wood, "Sleeper");
+            Prims.Merge(track); // zwei Objekte statt gut 300 Einzelteilen
 
             // Wegweiser zu Gleis und Küste (MG2, MG3)
             var future = new GameObject("FutureSign").transform;
@@ -133,42 +202,11 @@ namespace SFE.Game
             Prims.Make(PrimitiveType.Cube, future, new Vector3(0, 1.5f, 0), new Vector3(2.4f, 0.8f, 0.06f), Palette.SignBoard, "Board");
             var fl = Prims.Label(future, ui.Ui("signFuture"), new Vector3(0, 1.5f, -0.05f), 0.026f, Palette.Text);
             fl.transform.localRotation = Quaternion.Euler(0, 180, 0);
-
-            // Figuren
-            AddNpc("grete", Prims.Look.Grete, new Vector3(-1.8f, 0, 5f), 160f);
-            AddNpc("frieda", Prims.Look.Frieda, new Vector3(5.2f, 0, 0.8f), 230f);
-            AddNpc("kalle", Prims.Look.Kalle, new Vector3(-5.2f, 0, -0.5f), 120f);
-            // Neu in v0.2: Theo misst nach (Lernziel 5), Klara rechnet den Nutzen vor (Lernziel 4), Flocke fragt „warum?“
-            AddNpc("theo", Prims.Look.Theo, new Vector3(8.6f, 0, 2.2f), 250f);
-            AddNpc("klara", Prims.Look.Klara, new Vector3(-3.4f, 0, -4.6f), 30f);
-            AddNpc("flocke", Prims.Look.Flocke, new Vector3(1.6f, 0, 6.4f), 190f);
-            // Release 1: Tilda am Gleis (MG2), Olaf an der Küste (MG3) – erscheinen erst, wenn sie dran sind
-            AddNpc("tilda", Prims.Look.Tilda, new Vector3(10.6f, 0, 1.2f), 250f);
-            AddNpc("olaf", Prims.Look.Olaf, new Vector3(6.6f, 0, -9.8f), 330f);
-            ShowNpc("tilda", false);
-            ShowNpc("olaf", false);
-            foreach (var p in new[] { new Vector3(-0.6f, 0, 4.4f), new Vector3(0.1f, 0, 3.6f), new Vector3(0.8f, 0, 4.6f) })
-            {
-                var extra = Prims.Penguin(t, "Colony", Prims.Look.Plain, 1.3f);
-                extra.transform.localPosition = p;
-                extra.transform.localRotation = Quaternion.Euler(0, rnd.Next(0, 360), 0);
-                extra.AddComponent<Wanderer>().Radius = 1.1f; // klein genug, um nicht durch Grete und Flocke zu laufen
-            }
-
-            _pip = Prims.Penguin(t, "Pip", Prims.Look.Pip, 1.25f);
-            _pip.transform.localPosition = new Vector3(0, 0, -2f);
-            _target = _pip.transform.position;
-
-            _clickMarker = Prims.Make(PrimitiveType.Cylinder, t, Vector3.zero, new Vector3(0.5f, 0.01f, 0.5f), Palette.Selected, "ClickMarker").transform;
-            _clickMarker.gameObject.SetActive(false);
-
-            _talkPrompt = Prims.Label(t, ui.Ui("hubTalkPrompt"), Vector3.zero, 0.03f, Palette.Text);
-            _talkPrompt.fontStyle = FontStyle.Bold;
-            _talkPrompt.gameObject.SetActive(false);
+            return lab;
         }
 
         /// <summary>Ein begehbares Gebäude: Grundriss für Wände und Tür, dazu was beim Betreten ausgeblendet wird.</summary>
-        private sealed class Building
+        public sealed class Building
         {
             public Vector3 Center;
             public Vector2 Half;          // halbe Außenmaße (x, z)
@@ -181,7 +219,7 @@ namespace SFE.Game
         private const float PipRadius = 0.3f;
         private Building _lab;
 
-        private Building BuildLab(Transform parent, Vector3 pos, string sign)
+        private static Building BuildLab(Transform parent, Vector3 pos, string sign)
         {
             var lab = new GameObject("Lab").transform;
             lab.SetParent(parent, false);

@@ -14,6 +14,7 @@ dass keine Farbe an der Palette vorbeigeht.
 1. Wert in `Palette.cs` oder `ArtStyle.cs` ändern.
 2. In Unity **Pinguin-Spiel → Stilprobe rendern** wählen. Ohne offenen Editor geht das auch im Batchmode:
    `Unity -batchmode -quit -projectPath unity/PinguinKolonie -executeMethod SFE.Game.EditorTools.StylePreview.Render`
+   (nur die Hub-Bilder: `…StylePreview.RenderHub`; das Log nennt Objekte und Dreiecke der Landschaft)
 3. Die Bilder in `unity/PinguinKolonie/Stilprobe/` ansehen (sie liegen nicht im Repository):
 
    | Bild | Zeigt |
@@ -24,6 +25,11 @@ dass keine Farbe an der Palette vorbeigeht.
    | `spielansicht.png` | dieselbe Szene so groß wie im Hub (50°, 24 m) – was hier verschwindet, lohnt kein Detail |
    | `siedlung_sparsam.png` | die Siedlung in der Stufe „Sparsam“ – muss gleich aussehen, nur ohne Bloom, Umgebungsverdeckung und Laternen-Schatten |
    | `kalle_siedlung.png` | Kalles Versuch draußen im Hub: dasselbe Raster, dieselben Bausteine und dieselbe Kamera wie in `HubWorld.PlayKalleAttempt` – stehen Laternen und Iglus einzeln? |
+   | `hub.png` | der Hub aus der Spielkamera (50°, 24 m) über dem Huddle-Platz – Figuren, Labor, Gleis wie im Spiel (`HubWorld.BuildScenery`) |
+   | `hub_rand.png` | Pip am Nordostrand der begehbaren Fläche, Blick Richtung Gleis – darf keine Kante ins Leere zeigen |
+   | `hub_west.png` | Pip am Westrand vor Kalles Baustelle – Übergang vom Eis in die verschneite Ebene |
+   | `hub_weit.png` | vom Pass zurück auf Hub, Schneeebene und die gestaffelten Berge |
+   | `hub_pass.png` | aus Augenhöhe am Bahnsteig das Gleis entlang in den Pass – verschwindet es über dem Sattel in der Ferne, trifft der Himmel nur auf Berge? |
    | `laterne.png` | Laterne und Iglu nah von der Seite |
    | `laterne_brett.png` | dieselben Bausteine so wie auf dem Spielbrett in der Rechentafel (50°, 6,5 m, Feldabstand 1 m) – Laterne von oben erkennbar? |
    | `oberflaeche.png` | Titel, Knöpfe, Fenster, Sprechernamen, Ampeln, Wärmeskala, Siemens-Primärfarben – beschriftet mit den Namen in `Palette.cs` |
@@ -63,8 +69,8 @@ Vorher: matte Facetten im Diorama-Look (ADR-16) – zurück mit `Flat = true` un
 
 | Regel | Wert | Warum |
 |---|---|---|
-| **Weiche Rundungen** | `Flat = false` | Realistische Formen; Segmentzahlen (Abschnitt 3) hoch genug, dass man keine Kanten sieht. |
-| **Physikalische Oberflächen** | `Surfaces`: Schnee, Eis, Wasser, Gefieder, Metall, Glanz, Licht | Glanz, Metall, Struktur (prozedurale Normal-Map aus `SurfaceTextures`) und Leuchten je Oberfläche. Eis, Meer, Wasser und Laternenlicht erkennt `Prims` an der Farbe; Schnee, Metall und Augen setzt der Bau mit `Prims.SetSurface`. |
+| **Weiche Rundungen** | `Flat = false` | Realistische Formen; Segmentzahlen (Abschnitt 4) hoch genug, dass man keine Kanten sieht. |
+| **Physikalische Oberflächen** | `Surfaces`: Schnee, Eis, Wasser, Gefieder, Metall, Glanz, Licht, Gelände | Glanz, Metall, Struktur (prozedurale Normal-Map aus `SurfaceTextures`) und Leuchten je Oberfläche. Eis, Meer, Wasser und Laternenlicht erkennt `Prims` an der Farbe; Schnee, Metall und Augen setzt der Bau mit `Prims.SetSurface`. |
 | **Gemalte Farbgrenzen** | Pinguinkörper als Farbbild (`PenguinFigure.TorsoTexture`) | Bauch, Kopf und Maske mit weicher Kante statt Stufen aus Dreiecken („Verpixelung“). |
 | **Tiefe Polarsonne** | `SunIntensity = 2.1`, `SunAngles` 32°, `ShadowStrength = 1` | Lange Schatten, Streiflicht auf Schnee; Verhältnisse wie draußen (linearer Farbraum, HDR). Schatten hellt nur das Himmelslicht auf. |
 | **Himmelslicht dreifarbig** | `Palette.AmbientSky/Horizon/Ground` | Bläulich von oben, hell vom Schnee zurückgeworfen – ab dem ersten Bild, ohne Hintergrundrechnung. |
@@ -80,7 +86,32 @@ Vorher: matte Facetten im Diorama-Look (ADR-16) – zurück mit `Flat = true` un
 | **Kantenglättung** | 4× MSAA + SMAA (hoch), 2× MSAA + FXAA + 0,8–0,9 Auflösung (sparsam) | `RenderQuality` ändert eine Laufzeitkopie des Pipeline-Assets. Die Nachbearbeitung bleibt in beiden Stufen an – ohne Tonemapping frisst Schnee aus. |
 | **Neue Shader-Schalter** | Varianten-Materialien in `Resources/Materials/Varianten` | Wer in `Surfaces.ApplyTo` einen neuen Schalter (Keyword) setzt, führt danach „Render-Pipeline einrichten (URP)“ aus – sonst fehlt die Variante im Build (ADR-28). |
 
-## 3. Detailgrad (`ArtStyle.Detail`)
+## 3. Landschaft um den Hub (`ArtStyle.Landscape`, `ArcticLandscape`)
+
+Seit 21.10.2026 (ADR-31, Spieltest: „Rand und Hintergrund müssen besser aussehen“). Vorher: runde Scholle in einem
+flachen Meer-Zylinder – aus der Spielkamera sah man die harte Kreiskante und dahinter nur Wasser. **Kein Meer:** Die
+Kolonie liegt weit im Inland (docs/02, Entscheidung Jona); das Gleis zur Küste läuft durch einen Pass in die Ferne.
+
+| Regel | Wert | Warum |
+|---|---|---|
+| **Keine Kante am Weg** | Eis eben bis `FlatRadius` 15 m, Pip läuft bis 13 m (`HubWorld.FloeRadius − 1`) | Das Eis geht über den Bildrand hinaus weiter; die Grenze von Pips Weg sieht man nicht. |
+| **Schnee steigt aus dem Eis** | Rand bei `SnowEdge` 19,5 m ± `SnowEdgeJag`, weicher Wulst `SnowBank` | Ein unregelmäßiger Rand statt eines zweiten Kreises; der Schnee liegt im Gelände knapp unter dem Eis und steigt heraus. |
+| **Wind formt den Schnee** | Dünen quer zum Nordwestwind (`DuneSpacing` 6 m), Windgangeln längs | Unter der Südostsonne fangen die Kämme Licht und Schatten; nur längs liegende Verwehungen wirkten flach. |
+| **Berge ringsum** | Vorberge 36 m / 7 m hoch, Kette 70 m / 22 m, Hauptkamm 108 m / 48 m | Vorne runde Kuppen, hinten scharfe Grate; der Dunst hellt die hinteren Ketten auf. |
+| **Gleis durch den Pass** | Damm `EmbankmentHeight` 0,6 m, Talsohle steigt ab `PassFrom` 30 m bis zum Sattel bei `SaddleAt` 105 m um `PassHeight` 10 m | Das Gleis verschwindet über dem Sattel in der Ferne – man versteht: zur Küste ist es weit. Es endet in der Senke dahinter (`TrackEndRadius`), nie im Blick. |
+| **Pass geschlossen** | Hinter dem Sattel stehen die Berge nach `PassClose` 20 m wieder ganz | Durch den Pass trifft der Himmel auf Berge bzw. den Sattel, nie auf das Ende der Landschaft. |
+| **Fels nach Hangneigung** | ab `RockSlope` 38° ± `RockBlend`, erst ab den Felsbuckeln (`KnollRadius` 23 m) | Gemaltes Farbbild (Oberfläche `Terrain`) statt Dreiecksstufen: Fels geht weich in Schnee über. Farbe `Palette.Rock`. |
+| **Presseis** | Rücken bei `RidgeRadius` 17,5 m im Norden | Inlandeis, das sich unter Druck aufgeworfen hat; teils vom Schnee verschluckt. |
+| **Grenze für die Minigames** | nichts weiter als `OuterRadius` 130 m | MG1/MG2 bauen bei x = 200 (Tundra ab x = 140), MG3 bei x = 400. Der Hub ist während der Minigames ohnehin ausgeschaltet. |
+| **Leistung** | Landschaft 4 Objekte, ≈ 44 800 Dreiecke; Gleis 3 Objekte, ≈ 2 800 Dreiecke; nur Nahbereich (bis `NearRadius` 44 m), Presseis und Gleis werfen Schatten | Wenige große Meshes im Cache von `Shapes`; das Gleis wird mit `Prims.Merge` zusammengefasst. |
+
+- Die Spielkamera (50°, Sichtfeld 30°) sieht nie den Horizont: Sie reicht etwa 11 m über Pip hinaus. Berge und Pass
+  zeigen nur die Stilprobe und flachere Kameras; im Spiel sieht man Eis, Schneerand, Dünen, Presseis und den Bahndamm.
+- Eine Kamera, die höher steht als die Kämme bzw. der Sattel, sähe dahinter das Ende der Landschaft.
+- Neue Werte nur in `ArtStyle.Landscape`; `ArcticLandscape.Build` baut für Spiel und Stilprobe dasselbe, Gleishöhe und
+  -länge kommen aus `ArcticLandscape.TrackHeight` / `TrackLength`.
+
+## 4. Detailgrad (`ArtStyle.Detail`)
 
 Regel: **Rundungen sollen auf dem Bildschirm glatt wirken.**
 
@@ -100,7 +131,7 @@ Regel: **Rundungen sollen auf dem Bildschirm glatt wirken.**
   frei für die Zustände in MG1 (kalt, gemütlich, schmilzt). Laterne: gusseiserner Mast und Dach als Drehprofil
   (`Shapes.Revolve`), leuchtender Glaskasten, das Dach kaum breiter als das Glas, damit man das Licht auch von oben sieht.
 
-## 4. Proportionen (`ArtStyle.Proportion`)
+## 5. Proportionen (`ArtStyle.Proportion`)
 
 - **Der Pinguin ist das Maß der Welt.** `PenguinHeight` (0,76 m bei Größe 1) ist die Bezugsgröße; Türen, Laternen
   und Iglus richten sich danach. *Offen:* docs/04 nennt 0,6 m; die bestehenden Szenen sind auf 0,76 m eingerichtet.

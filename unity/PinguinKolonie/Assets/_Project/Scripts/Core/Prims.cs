@@ -76,11 +76,12 @@ namespace SFE.Game
         private static readonly Dictionary<Texture, Material> TexturedCache = new Dictionary<Texture, Material>();
 
         /// <summary>Material mit Farbbild statt Einzelfarbe (Pinguinkörper mit gemalten Farbgrenzen, ADR-27).</summary>
-        public static Material Textured(Texture2D albedo)
+        /// <param name="surface">Oberfläche dazu – Gefieder für Pinguine, Gelände für die Landschaft.</param>
+        public static Material Textured(Texture2D albedo, ArtStyle.Surface surface = ArtStyle.Surface.Feather)
         {
             if (TexturedCache.TryGetValue(albedo, out var m) && m != null) return m;
             m = new Material(LitBase) { color = Color.white, mainTexture = albedo };
-            ArtStyle.Surfaces.ApplyTo(m, ArtStyle.Surface.Feather);
+            ArtStyle.Surfaces.ApplyTo(m, surface);
             TexturedCache[albedo] = m;
             return m;
         }
@@ -148,6 +149,40 @@ namespace SFE.Game
             var (surface, tiling) = r.sharedMaterial != null && SurfaceOf.TryGetValue(r.sharedMaterial, out var st)
                 ? st : (ArtStyle.Surfaces.ByColor(Quantize(color)), 1);
             r.sharedMaterial = Mat(color, surface, tiling);
+        }
+
+        /// <summary>
+        /// Fasst alle Teile unter <paramref name="group"/> mit gleichem Material zu einem Objekt zusammen – für feste Bauten
+        /// aus vielen gleichen Teilen (Gleis: Schienen, Schwellen). Jedes Teil kostet sonst einen eigenen Zeichenaufruf
+        /// (docs/04: unter 300). Schilder (TextMesh) bleiben einzeln. Danach lässt sich kein Einzelteil mehr bewegen.
+        /// </summary>
+        public static void Merge(Transform group)
+        {
+            var parts = new Dictionary<Material, List<CombineInstance>>();
+            var used = new List<GameObject>();
+            var toGroup = group.worldToLocalMatrix;
+            foreach (var mf in group.GetComponentsInChildren<MeshFilter>())
+            {
+                var r = mf.GetComponent<MeshRenderer>();
+                // Nicht lesbare Meshes lassen sich nicht zusammenfassen – sie bleiben einzeln stehen, statt zu verschwinden.
+                if (r == null || mf.sharedMesh == null || !mf.sharedMesh.isReadable || mf.GetComponent<TextMesh>() != null) continue;
+                if (!parts.TryGetValue(r.sharedMaterial, out var list)) parts[r.sharedMaterial] = list = new List<CombineInstance>();
+                list.Add(new CombineInstance { mesh = mf.sharedMesh, transform = toGroup * mf.transform.localToWorldMatrix });
+                used.Add(mf.gameObject);
+            }
+            foreach (var kv in parts)
+            {
+                var mesh = new Mesh { name = group.name + "_" + kv.Key.name };
+                int count = 0;
+                foreach (var ci in kv.Value) count += ci.mesh.vertexCount;
+                if (count > 65000) mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+                mesh.CombineMeshes(kv.Value.ToArray(), true, true);
+                var go = new GameObject(group.name + "Merged");
+                go.transform.SetParent(group, false);
+                go.AddComponent<MeshFilter>().sharedMesh = mesh;
+                go.AddComponent<MeshRenderer>().sharedMaterial = kv.Key;
+            }
+            foreach (var go in used) Kill(go);
         }
 
         /// <summary>Destroy im Spiel, DestroyImmediate im Editor (Stilprobe baut Figuren ohne Play-Modus).</summary>

@@ -20,7 +20,13 @@ namespace SFE.Game.EditorTools
         private const int Width = 1600, Height = 900;
 
         [MenuItem("Pinguin-Spiel/Stilprobe rendern", priority = 20)]
-        public static void Render()
+        public static void Render() => Run(true);
+
+        /// <summary>Nur die Hub-Bilder (schneller beim Abstimmen der Landschaft).</summary>
+        [MenuItem("Pinguin-Spiel/Stilprobe rendern (nur Hub)", priority = 21)]
+        public static void RenderHub() => Run(false);
+
+        private static void Run(bool all)
         {
             // Eine eigene, zusätzliche Szene: die offene Szene des Nutzers bleibt unberührt. Neben einer unbenannten
             // Szene (Batchmode, frisch geöffneter Editor) erlaubt Unity keine zusätzliche – dann ersetzt die Probe sie.
@@ -46,8 +52,17 @@ namespace SFE.Game.EditorTools
                 cam.clearFlags = CameraClearFlags.SolidColor;
                 cam.backgroundColor = Palette.Sky;
                 cam.fieldOfView = 30f;
+                cam.nearClipPlane = 0.3f;   // wie CameraRig: Was dort hinter der Sichtweite liegt, fehlt auch hier
+                cam.farClipPlane = 300f;
                 cam.allowMSAA = true;
                 RenderLook.Apply(cam, sun); // derselbe Look wie im Spiel (ADR-27)
+
+                ShootHub(cam, world, dir);
+                if (!all)
+                {
+                    Debug.Log("Stilprobe (Hub) gespeichert: " + dir);
+                    return;
+                }
 
                 var lineup = Group(world, "Figuren");
                 Ground(lineup);
@@ -69,7 +84,7 @@ namespace SFE.Game.EditorTools
                 }
                 Shoot(cam, turn, new Vector3(0, 0.4f, 0), 3.6f, 10f, 0f, Path.Combine(dir, "pinguin.png"));
 
-                // Siedlung auf einer Scholle im Meer wie im Hub (HubWorld): zeigt auch, wie große Rundungen facettiert werden.
+                // Siedlung auf einer Scholle im Meer (Stilprobe der Bausteine, nicht der Hub): zeigt auch, wie große Rundungen facettiert werden.
                 var village = Group(world, "Siedlung");
                 Prims.Make(PrimitiveType.Cylinder, village, new Vector3(0, -0.6f, 0), new Vector3(120, 0.1f, 120), Palette.Sea, "Sea");
                 Prims.Make(PrimitiveType.Cylinder, village, new Vector3(0, -0.25f, 0), new Vector3(9f, 0.25f, 9f), Palette.Ice, "Floe");
@@ -106,8 +121,7 @@ namespace SFE.Game.EditorTools
 
                 // Kalles Versuch draußen (HubWorld.PlayKalleAttempt): dasselbe Raster, dieselben Bausteine, dieselbe Kamera.
                 var kalleScene = Group(world, "KalleSiedlung");
-                Prims.Make(PrimitiveType.Cylinder, kalleScene, new Vector3(0, -0.6f, 0), new Vector3(120, 0.1f, 120), Palette.Sea, "Sea");
-                Prims.Make(PrimitiveType.Cylinder, kalleScene, new Vector3(0, -0.25f, 0), new Vector3(28f, 0.25f, 28f), Palette.Ice, "Floe");
+                ArcticLandscape.Build(kalleScene); // dieselbe Landschaft wie im Hub (ADR-31)
                 var site = Group(kalleScene, "KalleSettlement");
                 site.localPosition = HubWorld.KallePlot;
                 var kalleGrid = SettlementGrid.FromRows(GameData.Load().Settlement.KalleTiles);
@@ -147,6 +161,62 @@ namespace SFE.Game.EditorTools
                     if (previous.IsValid()) SceneManager.SetActiveScene(previous);
                 }
             }
+        }
+
+        /// <summary>
+        /// Der Hub so wie im Spiel (HubWorld.BuildScenery, Figuren an ihren Plätzen) mit Landschaft:
+        /// hub.png – Spielkamera (50°, 24 m) über dem Huddle-Platz; hub_rand.png – Pip am Nordostrand der begehbaren
+        /// Fläche, Blick Richtung Gleis; hub_west.png – Pip am Westrand vor Kalles Baustelle;
+        /// hub_weit.png – vom Pass zurück auf Hub, Ebene und Berge; hub_pass.png – aus Augenhöhe am Bahnsteig das Gleis entlang
+        /// in den Pass: Es soll über den Sattel in der Ferne verschwinden.
+        /// </summary>
+        private static void ShootHub(Camera cam, Transform world, string dir)
+        {
+            var hub = Group(world, "Hub");
+            var data = GameData.Load();
+            HubWorld.BuildScenery(hub, data, new System.Random(11));
+            foreach (var n in HubWorld.NpcSpots)
+            {
+                if (n.Id == "tilda" || n.Id == "olaf") continue; // erscheinen erst später (HubWorld.Build)
+                var npc = Prims.Penguin(hub, n.Id, n.Look, 1.4f).transform;
+                npc.localPosition = n.Pos;
+                npc.localRotation = Quaternion.Euler(0, n.Yaw, 0);
+            }
+            foreach (var p in HubWorld.ColonySpots)
+                Face(Prims.Penguin(hub, "Colony", Prims.Look.Plain, 1.3f), p);
+            var pip = Prims.Penguin(hub, "Pip", Prims.Look.Pip, 1.25f).transform;
+            LogCost(hub.Find("Landscape"));
+            LogCost(hub.Find("Track"));
+
+            pip.localPosition = HubWorld.PipStart;
+            Shoot(cam, hub, new Vector3(0, 0, 4f), 24f, 50f, 0f, Path.Combine(dir, "hub.png"));
+            // Rand: Pip so weit nach Nordosten, wie HubWorld.KeepOnFloe ihn lässt – die Kamera folgt ihm wie im Spiel.
+            var edge = Quaternion.Euler(0, 40f, 0) * Vector3.forward * (HubWorld.FloeRadius - 1f);
+            pip.localPosition = edge;
+            Shoot(cam, hub, edge, 24f, 50f, 0f, Path.Combine(dir, "hub_rand.png"));
+            var west = Quaternion.Euler(0, -95f, 0) * Vector3.forward * (HubWorld.FloeRadius - 1f);
+            pip.localPosition = west;
+            Shoot(cam, hub, west, 24f, 50f, 0f, Path.Combine(dir, "hub_west.png"));
+            pip.localPosition = HubWorld.PipStart;
+            // Vom Pass zurück: Die Kamera steht über der Talsohle auf der Gleislinie (Gierwinkel = Gleis + 180°).
+            Shoot(cam, hub, new Vector3(0, 1f, 0), 88f, 12f, ArtStyle.Landscape.TrackYaw + 185f, Path.Combine(dir, "hub_weit.png"));
+            // Das Gleis entlang: Blickpunkt 40 m weiter auf dem Gleis, Kamera knapp hinter dem Bahnsteig in Augenhöhe.
+            Shoot(cam, hub, ArcticLandscape.TrackPoint(45f) + Vector3.up * 1.5f, 40f, 4f, ArtStyle.Landscape.TrackYaw, Path.Combine(dir, "hub_pass.png"));
+        }
+
+        /// <summary>Objekte, Teilmeshes (≈ Zeichenaufrufe) und Dreiecke eines Teils – für das Leistungsbudget (docs/04).</summary>
+        private static void LogCost(Transform part)
+        {
+            if (part == null) return;
+            int objects = 0, submeshes = 0, triangles = 0, shadows = 0;
+            foreach (var mf in part.GetComponentsInChildren<MeshFilter>())
+            {
+                objects++;
+                submeshes += mf.sharedMesh.subMeshCount;
+                for (int i = 0; i < mf.sharedMesh.subMeshCount; i++) triangles += (int)mf.sharedMesh.GetIndexCount(i) / 3;
+                if (mf.GetComponent<Renderer>().shadowCastingMode != UnityEngine.Rendering.ShadowCastingMode.Off) shadows++;
+            }
+            Debug.Log($"Stilprobe {part.name}: {objects} Objekte, {submeshes} Teilmeshes, {triangles} Dreiecke, {shadows} mit Schatten");
         }
 
         /// <summary>Figuren schauen zur Kamera; die Spielkamera blickt von −Z nach +Z (CameraRig, Gierwinkel 0).</summary>
