@@ -188,3 +188,22 @@ Wellenlage. „Sparsam“ behält die Nachbearbeitung (ohne Tonemapping fraß Sc
 Laternen-Schatten, 4096er-Schattenkarte, SMAA → FXAA. Laternen-Schatten nur für die zwei Laternen am Blickpunkt.
 Verworfen: SSAO-Downsample und MSAA-oder-SMAA ohne Messung auf dem Referenzgerät; Tonemapping-Wechsel (ACES vs.
 Neutral, Datenfarben im Wärmebild) und Reflexionssonden – offen für Jona bzw. einen Spieltest.
+
+## 2026-10-21 – Laternen und Iglus lesbar (Spieltest)
+
+**ADR-29 Laterne als echtes Asset, Iglu mit Schneeblock-Fugen, Kalles Siedlung luftiger.** Rückmeldung von Jona:
+„Laternen stehen zu nah zusammen“, „Iglus vor dem Schmelzen gegen den weißen Hintergrund kaum zu sehen“, „Laterne ist
+nur ein Glühbirnen-Symbol vor einem Ständer“. Ursachen: (1) Das große gelbe Glühbirnen-Symbol mit Strahlen war Unitys
+Editor-Gizmo für Punktlichtquellen (jede Laterne mit Licht trägt eins), sichtbar mit eingeschalteten Gizmos in der
+Game-Ansicht – kein Spielinhalt, ohne Lernfunktion, im Build nie vorhanden. `Editor/LightIcons.cs` blendet nur dieses
+Symbol einmal je Editor-Sitzung aus. (2) Laternenlicht 2,2 bei 3,2 m Reichweite: Schnee und Iglus unter einer Laterne
+wurden heller als in der Sonne und fraßen gelb-weiß aus; in Kalles Siedlung (zehn Laternen) die ganze Fläche. Jetzt
+`Shading.LanternIntensity` 0,6 × Größe², `LanternRange` 2,2 m × Größe. (3) Die alte Laterne (Würfelsockel, Stab, Kugel,
+Würfeldeckel) verdeckte ihr Licht von oben mit dem Deckel. Neu: gusseiserner Mast und geschwungenes Dach als Drehprofil,
+leuchtender Glaskasten mit Eckstreben, Dach kaum breiter als das Glas. (4) Iglu: Fugen in `Palette.IglooJoint`
+(Deep Blue 40 %) und Tunnel mit dunklem Eingang, jetzt nach Süden (zur Kamera, weg vom Nordwestwind der Leveldaten).
+Kuppelfarbe bleibt Light Sand, weil sie in MG1 den Zustand zeigt. (5) Kalles Siedlung: Feldabstand 0,9 statt 0,7 m,
+Bausteine 0,9 statt 0,91, Kamera 10 statt 8,5 m – Raster und Leveldaten unverändert. Geprüft mit neuen Stilproben
+`kalle_siedlung.png`, `laterne.png`, `laterne_brett.png`. Verworfen: Iglu kühler blau tönen (verwechselbar mit dem
+Zustand „kalt“ = `IglooCold`), Laternen in Kalles Siedlung nur verkleinern (das Symbol bliebe, und neben dem Iglu wirkte
+die Laterne wie Spielzeug), Glasleuchten auf 3 senken (blieb im Tonemapping trotzdem fast weiß, ADR-28 bleibt).
