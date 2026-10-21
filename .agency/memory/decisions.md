@@ -219,3 +219,27 @@ Frieda, warum jeder Schritt weniger bringt (kleinerer Temperaturunterschied). De
 Haube“ (`pairFlowNote`), das Popup ist dafür 1040 statt 960 hoch (der Schließen-Knopf lag über der letzten Zeile).
 Gestrichen: der Musik-Satz in `whatif_done` (die Karte „Musik im Dorf“ hat schon ihre Rückmeldung). Verworfen: das Wort
 „Grenznutzen“ im Dialog (Fachwort aus der Wirtschaft, und physikalisch ist der Grund der kleinere Temperaturunterschied).
+
+## 2026-10-21 – Arktische Landschaft um den Hub (Spieltest)
+
+**ADR-31 Hub in einer Landschaft statt runder Scholle im Meer-Zylinder.** Rückmeldung von Jona: „Der Rand und
+Hintergrund müssen besser aussehen. Mache hier eine arktische, bergige Landschaft und auf der einen Seite das Meer.“
+Vorher sah man aus der Hub-Kamera die harte Kreiskante der Scholle (r = 14 m) und dahinter flaches Wasser.
+Neu (`Core/ArcticLandscape.cs`, Werte in `ArtStyle.Landscape`): ebenes Festeis bis weit über Pips Weg hinaus
+(Laufgrenze `HubWorld.FloeRadius − 1` unverändert), daraus steigt mit unregelmäßigem Rand eine verschneite Ebene mit
+Dünen quer zum Nordwestwind; Felsbuckel, dann drei gestaffelte Bergketten (Höhenfeld auf einem Polarnetz, Kamm-Rauschen,
+Fels nach Hangneigung als gemaltes Farbbild – Oberfläche `Terrain`, gleiche Shader-Schalter wie Wasser, Varianten-
+Material per „Render-Pipeline einrichten“). In Richtung Gleis (Schild „an die Küste“) eine Bucht: Eiskante, Treibeis,
+Presseisrücken, Inseln am anderen Ufer schließen sie. Das Gleis reicht jetzt bis vor die Eiskante (Prellbock) und ist
+mit `Prims.Merge` zu drei Objekten zusammengefasst. Spiel und Stilprobe bauen den Hub über `HubWorld.BuildScenery`
+(neue Bilder `hub.png`, `hub_rand.png`, `hub_west.png`, `hub_weit.png`, `hub_bucht.png`). Kosten: 6 Objekte,
+7 Teilmeshes, ≈ 48 500 Dreiecke, Schatten nur im Nahbereich. Alles liegt innerhalb 130 m – die Minigames bei x = 200/400
+bleiben frei (und der Hub ist während der Minigames ausgeschaltet). Grenze: Die Spielkamera (50°, Sichtfeld 30°) zeigt
+nie den Horizont; im Spiel wirken Eis, Schneerand, Eiskante und Treibeis, die Berge nur aus flacheren Blickwinkeln.
+Offen: docs/02 legt die Kolonie „weit im Inland, tausende Kilometer zum Meer“ – die Bucht widerspricht dem; Jona
+entscheidet (Bucht als Eismeer am Horizont deuten, Bucht zu einem See machen oder docs/02 anpassen).
+Verworfen: Unitys Terrain-System (eigene Shader und Splatmaps, schwer für WebGL, nicht über `Palette`/`ArtStyle`
+steuerbar), ein gemaltes Berg-Panorama im Himmel (fremde Textur, keine Tiefe, ADR-16/27), Fels als eigenes Teilmesh je
+Dreieck (erster Versuch: harte Dreiecksstufen), offenes Meer bis zum Horizont (Wasser müsste bis über die Sichtweite von
+300 m und in Richtung der Minigames reichen), Hub-Kamera flacher stellen, damit die Berge im Bild sind (ändert das
+Spielgefühl – Frage an Jona).

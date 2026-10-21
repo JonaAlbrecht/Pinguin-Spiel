@@ -65,7 +65,7 @@ namespace SFE.Game
         }
 
         /// <summary>Oberflächenarten. Welche ein Teil hat, entscheidet der Bau (Prims) – die Werte stehen in <see cref="Surfaces"/>.</summary>
-        public enum Surface { Default, Snow, Ice, Water, Glossy, Metal, Glow, Feather }
+        public enum Surface { Default, Snow, Ice, Water, Glossy, Metal, Glow, Feather, Terrain }
 
         /// <summary>
         /// Physikalische Oberflächen (URP Lit): Glanz, Metall, Struktur (prozedurale Normal-Map) und Leuchten.
@@ -108,6 +108,13 @@ namespace SFE.Game
             /// <summary>Gefieder: feine Struktur, leichter Glanz wie bei echtem Pinguin-Gefieder (dicht, ölig).</summary>
             public static readonly Spec Feather = new Spec { Smoothness = 0.42f, Normal = SurfaceTextures.Kind.Snow, NormalStrength = 0.11f, TilesPerMeter = 6f };
 
+            /// <summary>
+            /// Gelände (ArcticLandscape): Schnee und Fels als gemaltes Farbbild über das ganze Netz, die Schneekörnung als
+            /// zweite Lage (Detail-Normal-Map) mit eigener Kachelung – so geht Fels weich in Schnee über statt in Dreiecksstufen.
+            /// Gleiche Shader-Schalter wie Wasser (_NORMALMAP, _DETAIL_MULX2).
+            /// </summary>
+            public static readonly Spec Terrain = new Spec { Smoothness = 0.2f, Normal = SurfaceTextures.Kind.Snow, NormalStrength = 0.5f, DetailTiling = 1f };
+
             public static Spec For(Surface s)
             {
                 switch (s)
@@ -119,6 +126,7 @@ namespace SFE.Game
                     case Surface.Metal: return Metal;
                     case Surface.Glow: return Glow;
                     case Surface.Feather: return Feather;
+                    case Surface.Terrain: return Terrain;
                     default: return Default;
                 }
             }
@@ -203,6 +211,109 @@ namespace SFE.Game
             public static readonly float Vignette = 0.2f;
             /// <summary>Umgebungsverdeckung (SSAO): dunkelt Fugen, Kontaktflächen und Ecken ab.</summary>
             public static readonly float AmbientOcclusion = 1.1f;
+        }
+
+        /// <summary>
+        /// Die arktische Landschaft um den Hub (<see cref="ArcticLandscape"/>, ADR-31): Festeis unter dem Hub, verschneite
+        /// Ebene mit Verwehungen, gestaffelte Bergketten ringsum, auf einer Seite eine Bucht mit Eiskante, Treibeis und
+        /// Inseln am anderen Ufer. Alle Maße in Metern, Winkel in Grad (0 = Norden/+Z, 90 = Osten/+X wie der Gierwinkel).
+        /// </summary>
+        public static class Landscape
+        {
+            /// <summary>Startwert des Rauschens: Gleicher Wert ergibt dieselbe Landschaft (Spiel, Stilprobe, jeder Start).</summary>
+            public static readonly int Seed = 7;
+
+            // ---------- Grundriss ----------
+            /// <summary>Bis hier liegt das Eis eben. Pip läuft bis 13 m (HubWorld.FloeRadius − 1) – die Kante der
+            /// begehbaren Fläche sieht man darum nicht: Das Eis geht einfach weiter und wird erst dahinter verschneit.</summary>
+            public static readonly float FlatRadius = 15f;
+            /// <summary>
+            /// Rand der Schneedecke: mittlerer Abstand, wie weit er ein- und ausbuchtet (Rauschmaßstab in m) und wie breit
+            /// der weiche Wulst ist, mit dem der Schnee auf dem Eis aufliegt. Unregelmäßig, damit kein zweiter Kreis entsteht.
+            /// </summary>
+            public static readonly float SnowEdge = 19.5f, SnowEdgeJag = 6f, SnowEdgeScale = 9f, SnowBank = 1.3f;
+            /// <summary>So tief liegt der Schnee unter dem Eis, wo er nicht zu sehen sein soll, und so hoch liegt die Ebene.</summary>
+            public static readonly float UnderIce = 0.35f, SnowLevel = 0.45f;
+            /// <summary>
+            /// Nichts liegt weiter weg. Die Minigames bauen bei x = 200 und 400 (GameRoot), die Tundra von MG2 reicht bis
+            /// x = 140 herein – so überdeckt die Landschaft nie etwas, selbst wenn der Hub einmal sichtbar bliebe.
+            /// </summary>
+            public static readonly float OuterRadius = 130f;
+            /// <summary>Bis hier wirft die Landschaft Schatten (Verwehungen, Presseis); die Berge dahinter nicht (Leistung).</summary>
+            public static readonly float NearRadius = 44f;
+            /// <summary>Unter dem Festeis bis hier, im Landesinneren verdeckt vom Schnee.</summary>
+            public static readonly float IceRadius = 44f;
+
+            // ---------- Meer ----------
+            /// <summary>
+            /// Richtung der Bucht: dorthin, wohin das Gleis führt (Schild „Zum Gleis und an die Küste“, Gleis mit 20° nach
+            /// Nordnordost). Halbe Breite und weicher Übergang zum Land in Grad.
+            /// </summary>
+            public static readonly float SeaAzimuth = 32f, SeaHalfWidth = 46f, SeaFeather = 14f;
+            /// <summary>Wasserspiegel und Grund der Bucht (unter dem Spiegel unsichtbar). Die Eiskante ragt 0,9 m heraus.</summary>
+            public static readonly float SeaLevel = -0.9f, SeaFloor = -5f;
+            /// <summary>Eiskante: mittlerer Abstand zur Hub-Mitte, wie weit sie ausfranst, und wie weit sie zu den Seiten der
+            /// Bucht hin zurückweicht, bis sie im Land verschwindet.</summary>
+            public static readonly float CoastRadius = 22f, CoastJag = 4.5f, CoastRecede = 30f;
+            /// <summary>Senkrechte Eiswand an der Kante: Tiefe unter den Spiegel und Neigung (m nach außen).</summary>
+            public static readonly float CliffDepth = 0.8f, CliffSlant = 0.25f;
+            /// <summary>Verwehungen auf dem Festeis (Anteil der Verwehungshöhe): nur die höchsten ragen als Schneeflecken heraus.</summary>
+            public static readonly float FastIceSnow = 0.85f;
+            /// <summary>Inseln am anderen Ufer: Abstand und Höhe. Sie schließen die Bucht, damit der Himmel nie an eine Kante stößt.</summary>
+            public static readonly float FarShoreRadius = 112f, IslandHeight = 24f;
+            /// <summary>Inseln in der Mitte der Bucht: dieser Anteil der Höhe (dort öffnet sich die Bucht zum Meer), und so hoch
+            /// ragt das Ufer mindestens aus dem Wasser.</summary>
+            public static readonly float IslandMouth = 0.5f, ShoreMin = 1.5f;
+
+            // ---------- Verwehungen ----------
+            /// <summary>
+            /// Wind aus Nordwest (Leveldaten MG1), weht nach <see cref="WindAzimuth"/>. Er formt zweierlei: Schneedünen quer
+            /// zum Wind (Abstand der Kämme in Windrichtung, Länge quer dazu) und schmale Windgangeln längs des Windes (Länge,
+            /// Breite). Nur längs wirkten sie unter der Südostsonne flach – quer liegende Kämme fangen Licht und Schatten.
+            /// </summary>
+            public static readonly float DriftHeight = 1.3f, WindAzimuth = 135f;
+            public static readonly float DuneSpacing = 6f, DuneLength = 16f, DriftLength = 7f, DriftWidth = 2.2f;
+
+            // ---------- Berge ----------
+            /// <summary>Felsbuckel, die vor den Bergen aus dem Schnee ragen (ab diesem Abstand): Höhe und Abstand. Ihre steilen
+            /// Flanken werden Fels – dunkle Tupfer, an denen das Auge Maß und Entfernung abliest.</summary>
+            public static readonly float KnollHeight = 2.4f, KnollSpacing = 11f, KnollRadius = 23f;
+            /// <summary>Drei gestaffelte Ketten: Vorberge, mittlere Kette, Hauptkamm (Abstand, Höhe). Die hinteren sind höher und
+            /// liegen tiefer im Dunst – so lesen sie sich als Staffelung.</summary>
+            public static readonly float FoothillRadius = 36f, FoothillHeight = 7f;
+            public static readonly float RangeRadius = 70f, RangeHeight = 22f;
+            public static readonly float PeakRadius = 108f, PeakHeight = 48f;
+            /// <summary>Wie weit die Ketten je Richtung vor- und zurückspringen, damit sie keinen Kreis bilden.</summary>
+            public static readonly float RangeJitter = 12f;
+            /// <summary>Abstand der Gipfel (Rauschmaßstab) und Talboden als Anteil der Kammhöhe.</summary>
+            public static readonly float PeakSpacing = 46f, ValleyFloor = 0.25f;
+            /// <summary>Hinter dem Hauptkamm fällt das Gelände um diesen Anteil ab – der Kamm bleibt die Silhouette.</summary>
+            public static readonly float BackDrop = 0.6f;
+            /// <summary>Ab dieser Hangneigung liegt kein Schnee mehr: Fels – weich übergehend über ± RockBlend Grad.
+            /// Nur in den Bergen; steile Flanken von Verwehungen bleiben Schnee.</summary>
+            public static readonly float RockSlope = 38f, RockBlend = 7f;
+
+            // ---------- Treibeis und Presseis ----------
+            public static readonly int FloeCount = 34;
+            /// <summary>Treibende Schollen bis zu dieser Entfernung, Radius klein–groß, Dicke (davon ragt ein Drittel heraus).</summary>
+            public static readonly float FloeReach = 80f, FloeMin = 0.5f, FloeMax = 3.6f, FloeThickness = 0.45f;
+            /// <summary>Presseisrücken auf dem Festeis: so weit innerhalb der Eiskante, über diesen Winkelbereich, Blockgröße.</summary>
+            public static readonly float RidgeInset = 4f, RidgeFrom = -10f, RidgeTo = 22f, RidgeBlockMin = 0.3f, RidgeBlockMax = 1.05f;
+            /// <summary>Blöcke je Meter Rücken.</summary>
+            public static readonly float RidgeDensity = 3.2f;
+            /// <summary>Das Gleis endet so weit vor der Eiskante (Prellbock).</summary>
+            public static readonly float TrackStop = 2.2f;
+
+            // ---------- Detail ----------
+            /// <summary>
+            /// Segmente rundum und Startradius des Geländenetzes. Die Ringe wachsen nach außen mit (Zellen bleiben etwa
+            /// quadratisch): 0,4 m am Rand der begehbaren Fläche, gut 3 m bei den fernen Bergen – dort reicht das im Dunst.
+            /// </summary>
+            public static readonly int Segments = 240;
+            public static readonly float InnerRadius = 13.5f;
+            /// <summary>Schneekörnung (Detail-Normal-Map) je Netzzelle: 0,4 ergibt am Rand der begehbaren Fläche etwa 1 m je
+            /// Wiederholung wie <see cref="Surfaces.Snow"/>; weiter draußen wächst sie mit den Zellen (im Dunst unsichtbar).</summary>
+            public static readonly float GrainPerCell = 0.4f;
         }
 
         /// <summary>
