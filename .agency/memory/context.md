@@ -9,7 +9,7 @@
 | Unity-Schicht | kompiliert gegen Unity 6000.4.10f1 (alt + neu Input, Editor); **nie im Editor gespielt** |
 | Texte | alle in JSON, Lint inkl. C#-Literale und Schlüssel-Verweise |
 | Grafik (19.10.) | URP, realistischer Look (ADR-27), abgestimmt mit ADR-28; nur per Stilprobe im Batchmode geprüft, kein WebGL-Build, keine Messung |
-| Hub-Landschaft (21.10.) | Festeis, Schneeebene, Berge, Bucht in Richtung Gleis (ADR-31); Stilprobe `hub*.png`; Play-Modus, WebGL und Bildrate ungeprüft; Widerspruch zu docs/02 (Inland) offen |
+| Hub-Landschaft (21.10.) | Inland: Eis, Schneeebene, Berge ringsum, Gleis durch einen Pass in die Ferne (ADR-31); Stilprobe `hub*.png`; Play-Modus, WebGL und Bildrate ungeprüft |
 
 Nächste Schritte: Spieltest nach Spec 002 Abschnitt 4 · `.meta`-Dateien nach dem ersten Import committen ·
 offene Fragen (45 s vs. 60 s, Igluwärme) mit dem Team klären · Freigabe der Siemens-Inhalte.

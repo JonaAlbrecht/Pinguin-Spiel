@@ -84,7 +84,7 @@ namespace SFE.Game.EditorTools
                 }
                 Shoot(cam, turn, new Vector3(0, 0.4f, 0), 3.6f, 10f, 0f, Path.Combine(dir, "pinguin.png"));
 
-                // Siedlung auf einer Scholle im Meer wie im Hub (HubWorld): zeigt auch, wie große Rundungen facettiert werden.
+                // Siedlung auf einer Scholle im Meer (Stilprobe der Bausteine, nicht der Hub): zeigt auch, wie große Rundungen facettiert werden.
                 var village = Group(world, "Siedlung");
                 Prims.Make(PrimitiveType.Cylinder, village, new Vector3(0, -0.6f, 0), new Vector3(120, 0.1f, 120), Palette.Sea, "Sea");
                 Prims.Make(PrimitiveType.Cylinder, village, new Vector3(0, -0.25f, 0), new Vector3(9f, 0.25f, 9f), Palette.Ice, "Floe");
@@ -166,8 +166,9 @@ namespace SFE.Game.EditorTools
         /// <summary>
         /// Der Hub so wie im Spiel (HubWorld.BuildScenery, Figuren an ihren Plätzen) mit Landschaft:
         /// hub.png – Spielkamera (50°, 24 m) über dem Huddle-Platz; hub_rand.png – Pip am Nordostrand der begehbaren
-        /// Fläche, Blick Richtung Gleis und Meer; hub_west.png – Pip am Westrand vor Kalles Baustelle;
-        /// hub_weit.png – von der Bucht aus auf Hub, Eiskante und Berge; hub_bucht.png – vom Land aus über den Hub aufs Meer.
+        /// Fläche, Blick Richtung Gleis; hub_west.png – Pip am Westrand vor Kalles Baustelle;
+        /// hub_weit.png – vom Pass zurück auf Hub, Ebene und Berge; hub_pass.png – aus Augenhöhe am Bahnsteig das Gleis entlang
+        /// in den Pass: Es soll über den Sattel in der Ferne verschwinden.
         /// </summary>
         private static void ShootHub(Camera cam, Transform world, string dir)
         {
@@ -197,8 +198,10 @@ namespace SFE.Game.EditorTools
             pip.localPosition = west;
             Shoot(cam, hub, west, 24f, 50f, 0f, Path.Combine(dir, "hub_west.png"));
             pip.localPosition = HubWorld.PipStart;
-            Shoot(cam, hub, new Vector3(0, 1f, 0), 95f, 9f, 215f, Path.Combine(dir, "hub_weit.png"));
-            Shoot(cam, hub, new Vector3(4f, 1f, 6f), 34f, 9f, 35f, Path.Combine(dir, "hub_bucht.png"));
+            // Vom Pass zurück: Die Kamera steht über der Talsohle auf der Gleislinie (Gierwinkel = Gleis + 180°).
+            Shoot(cam, hub, new Vector3(0, 1f, 0), 88f, 12f, ArtStyle.Landscape.TrackYaw + 185f, Path.Combine(dir, "hub_weit.png"));
+            // Das Gleis entlang: Blickpunkt 40 m weiter auf dem Gleis, Kamera knapp hinter dem Bahnsteig in Augenhöhe.
+            Shoot(cam, hub, ArcticLandscape.TrackPoint(45f) + Vector3.up * 1.5f, 40f, 4f, ArtStyle.Landscape.TrackYaw, Path.Combine(dir, "hub_pass.png"));
         }
 
         /// <summary>Objekte, Teilmeshes (≈ Zeichenaufrufe) und Dreiecke eines Teils – für das Leistungsbudget (docs/04).</summary>

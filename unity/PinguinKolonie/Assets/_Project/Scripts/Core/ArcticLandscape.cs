@@ -7,18 +7,19 @@ namespace SFE.Game
 {
     /// <summary>
     /// Die arktische Landschaft um den Hub (ADR-31, Spieltest 21.10.2026, Jona: „Rand und Hintergrund müssen besser
-    /// aussehen – arktische, bergige Landschaft, auf der einen Seite das Meer“). Ersetzt die runde Scholle im Meer-Zylinder.
+    /// aussehen – arktische, bergige Landschaft“). Ersetzt die runde Scholle im Meer-Zylinder. Kein Meer: Die Kolonie liegt
+    /// weit im Inland (docs/02, Entscheidung Jona) – das Gleis zur Küste läuft durch einen Pass in die Ferne.
     ///
     /// Aufbau, von innen nach außen:
-    /// - <b>Festeis</b> (eben, y = 0): trägt den begehbaren Hub und reicht bis über den Bildrand. Zur Bucht hin endet es an
-    ///   einer ausgefransten Eiskante (<see cref="CoastAt"/>), sonst verschwindet es unter dem Schnee.
+    /// - <b>Eis</b> (eben, y = 0): trägt den begehbaren Hub und reicht bis über den Bildrand; sein Rand liegt unter dem Schnee.
     /// - <b>Gelände</b> (ein Höhenfeld auf einem Polarnetz): liegt innen knapp unter dem Eis, steigt nach außen aus ihm
-    ///   heraus – mit unregelmäßigem Rand und Dünen quer zum Wind, dann Felsbuckel und drei gestaffelte Bergketten.
-    ///   Wo es steil ist, Fels (gemaltes Farbbild, <see cref="TerrainMaterial"/>). In Richtung Bucht sinkt es unter den Wasserspiegel und
-    ///   steigt erst am anderen Ufer wieder als Inseln auf. Nah = mit Schatten, fern = ohne.
-    /// - <b>Meer</b>, <b>Treibeis</b> und ein <b>Presseisrücken</b> auf dem Festeis vor der Kante.
+    ///   heraus – mit unregelmäßigem Rand und Dünen quer zum Wind, dann Felsbuckel und drei gestaffelte Bergketten ringsum.
+    ///   Wo es steil ist, Fels (gemaltes Farbbild, <see cref="TerrainMaterial"/>). Nah = mit Schatten, fern = ohne.
+    /// - <b>Pass</b>: In Gleisrichtung weichen die Berge einem Tal; die Talsohle steigt zu einem Sattel, über den das Gleis
+    ///   aus dem Blick verschwindet (<see cref="TrackHeight"/>). Unter den Schienen ein ebener Damm.
+    /// - ein <b>Presseisrücken</b> auf dem Eis im Norden.
     ///
-    /// Wenige große Meshes (ein Objekt je Teil, zusammen etwa 48 500 Dreiecke), gleiche Eingabe = gleiche Landschaft.
+    /// Wenige große Meshes (ein Objekt je Teil), gleiche Eingabe = gleiche Landschaft.
     /// Die Meshes liegen im Cache von <see cref="Shapes"/> – ein zweiter Hub (Stilprobe) baut nichts neu.
     /// </summary>
     public static class ArcticLandscape
@@ -28,75 +29,86 @@ namespace SFE.Game
         {
             var root = new GameObject("Landscape").transform;
             root.SetParent(parent, false);
-            var snow = Prims.Mat(Palette.Snow, ArtStyle.Surface.Snow, 1);
             var ice = Prims.Mat(Palette.Ice, ArtStyle.Surface.Ice, 1);
             var terrain = LandGrid().Material;
-            Part(root, "FastIce", IceMesh(), false, ice);
+            Part(root, "Ice", IceMesh(), false, ice);
             Part(root, "LandNear", LandMesh(true), true, terrain);
             Part(root, "LandFar", LandMesh(false), false, terrain);
-            Part(root, "DriftIce", FloeMesh(), false, snow, ice);
             Part(root, "PressureRidge", RidgeMesh(), true, ice);
-            var sea = Prims.Make(PrimitiveType.Cylinder, root, new Vector3(0, L.SeaLevel - 0.05f, 0),
-                new Vector3(L.OuterRadius * 2f, 0.05f, L.OuterRadius * 2f), Palette.Sea, "Sea");
-            sea.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
             return root;
         }
 
         /// <summary>Richtung eines Punkts in Grad: 0 = Norden (+Z), 90 = Osten (+X) – wie der Gierwinkel der Kamera.</summary>
         public static float Azimuth(float x, float z) => Mathf.Atan2(x, z) * Mathf.Rad2Deg;
 
+        // ---------- Gleis und Pass ----------
+
+        /// <summary>Richtung des Gleises (waagerecht, Länge 1).</summary>
+        private static Vector3 TrackDir => Quaternion.Euler(0f, L.TrackYaw, 0f) * Vector3.forward;
+
+        /// <summary>Punkt auf der Gleismitte, <paramref name="s"/> Meter entlang des Gleises ab <see cref="L.TrackOrigin"/>, auf Gleishöhe.</summary>
+        public static Vector3 TrackPoint(float s) => L.TrackOrigin + TrackDir * s + Vector3.up * TrackHeight(s);
+
         /// <summary>
-        /// Abstand der Eiskante zur Hub-Mitte in dieser Richtung. Mitten in der Bucht etwa <see cref="L.CoastRadius"/>,
-        /// zu ihren Seiten hin weicht sie zurück, bis sie unter dem Land liegt. Das Gleis endet davor (HubWorld).
+        /// So weit reicht das Gleis: bis kurz vor den Rand der Landschaft, hinter dem Sattel des Passes – von unten sieht
+        /// man es über den Sattel in die Ferne verschwinden, sein Ende nie.
         /// </summary>
-        public static float CoastAt(float azimuth)
+        public static float TrackLength
         {
-            float a = azimuth * Mathf.Deg2Rad;
-            // Rauschen auf einem Kreis: rundum stetig, ohne Naht bei 0°/360°
-            float cx = Mathf.Sin(a) * L.CoastRadius, cz = Mathf.Cos(a) * L.CoastRadius;
-            float jag = (Fbm(cx, cz, 5f, 3, 11) - 0.5f) * 2f * L.CoastJag;
-            return L.CoastRadius + jag + (1f - BayDirection(azimuth)) * L.CoastRecede;
+            get
+            {
+                float s = L.TrackStart;
+                while (new Vector2(L.TrackOrigin.x + TrackDir.x * s, L.TrackOrigin.z + TrackDir.z * s).magnitude < L.TrackEndRadius) s += 0.5f;
+                return s;
+            }
         }
 
-        /// <summary>Höhe des Geländes (ohne Festeis und Meer) an diesem Punkt.</summary>
+        /// <summary>
+        /// Höhe der Schienenauflage: auf dem Eis 0, dann ein niedriger Bahndamm über die Schneeebene, dann die Talsohle
+        /// des Passes hinauf zum Sattel und dahinter wieder etwas hinab.
+        /// </summary>
+        public static float TrackHeight(float s) =>
+            L.EmbankmentHeight * Smooth(L.TrackStart, L.TrackStart + L.EmbankmentRamp, s) + PassFloor(s);
+
+        /// <summary>Talsohle des Passes über der Ebene: steigt zum Sattel, fällt dahinter ab.</summary>
+        private static float PassFloor(float s) =>
+            L.PassHeight * Smooth(L.PassFrom, L.SaddleAt, s) - L.PassDrop * Smooth(L.SaddleAt, L.SaddleAt + 15f, s);
+
+        /// <summary>Lage eines Punkts zum Gleis: entlang (s, Meter ab TrackOrigin) und quer (d, Abstand zur Gleismitte).</summary>
+        private static void TrackCoords(float x, float z, out float s, out float d)
+        {
+            var dir = TrackDir;
+            float dx = x - L.TrackOrigin.x, dz = z - L.TrackOrigin.z;
+            s = dx * dir.x + dz * dir.z;
+            d = Mathf.Abs(dx * dir.z - dz * dir.x);
+        }
+
+        /// <summary>Höhe des Geländes (ohne das Eis) an diesem Punkt.</summary>
         public static float Height(float x, float z)
         {
             float r = Mathf.Sqrt(x * x + z * z), az = Azimuth(x, z);
             // Rand der Schneedecke: buchtet unregelmäßig ein und aus, nie näher als FlatRadius
             float edge = Mathf.Max(L.FlatRadius + L.SnowBank, L.SnowEdge + (Fbm(x, z, L.SnowEdgeScale, 3, 5) - 0.5f) * 2f * L.SnowEdgeJag);
-            float dunes = Drift(x, z) * Smooth(L.FlatRadius - 1f, L.FlatRadius + 3f, r);
-            float drift = dunes * Smooth(edge - 3f, edge + 3f, r);
-
-            // Land: unter dem Eis, dann ein weicher Schneewulst auf dem Eis, Verwehungen, Felsbuckel, dann Berge
+            float drift = Drift(x, z) * Smooth(L.FlatRadius - 1f, L.FlatRadius + 3f, r) * Smooth(edge - 3f, edge + 3f, r);
             float plain = Mathf.Lerp(-L.UnderIce, L.SnowLevel, Smooth(-0.5f * L.SnowBank, L.SnowBank, r - edge));
             float knolls = L.KnollHeight * Smooth(0.64f, 0.85f, Fbm(x, z, L.KnollSpacing, 2, 61)) * Smooth(L.KnollRadius, L.KnollRadius + 6f, r);
-            float land = plain + L.DriftHeight * drift + knolls + Mountains(x, z, r, az);
 
-            // Bucht: unter dem Festeis nur die höchsten Verwehungen als Schneeflecken, hinter der Kante Meeresgrund,
-            // am anderen Ufer Inseln
-            float coast = CoastAt(az);
-            float open = Smooth(coast - 1.5f, coast + 0.5f, r);
-            float fast = -L.UnderIce + L.FastIceSnow * L.DriftHeight * dunes;
-            // Das andere Ufer ragt überall aus dem Wasser (sonst sähe man durch eine Lücke das Ende des Netzes) und steigt
-            // bis zum Rand an – sein Kamm ist die Silhouette. In der Mitte der Bucht niedriger: Dort öffnet sie sich zum Meer.
-            float mouth = Mathf.Lerp(L.IslandMouth, 1f, Smooth(0f, L.SeaHalfWidth, Mathf.Abs(Mathf.DeltaAngle(az, L.SeaAzimuth))));
-            float peaks = Ridged(x, z, L.PeakSpacing * 0.8f, 4, 23);
-            float islands = Smooth(L.FarShoreRadius - 16f, L.FarShoreRadius + 4f, r)
-                * (L.SeaLevel - L.SeaFloor + L.ShoreMin + L.IslandHeight * mouth * peaks * peaks);
-            float bay = Mathf.Lerp(fast, L.SeaFloor, open) + islands;
-
-            float inBay = BayDirection(az) * Smooth(L.FlatRadius - 1f, L.FlatRadius + 2f, r);
-            return Mathf.Lerp(land, bay, inBay);
+            // Das Gleis läuft aus dem Hub hinaus durch ein Tal: Dort weichen Berge, Buckel und Dünen, die Talsohle steigt
+            // zum Sattel, und unter den Schienen liegt ein ebener Damm. Hinter dem Hub (s < TrackStart) wirkt nichts davon.
+            TrackCoords(x, z, out float s, out float d);
+            float ahead = Smooth(L.TrackStart - 1f, L.TrackStart, s);
+            // Hinter dem Sattel schließt sich das Tal wieder: Dort steht eine ferne Kette quer – durch den Pass trifft der
+            // Himmel auf Berge, nicht auf den Rand der Landschaft. Das Gleis endet vorher in der Senke dahinter.
+            float carve = ahead * (1f - Smooth(L.SaddleAt + L.PassClose * 0.4f, L.SaddleAt + L.PassClose, s));
+            float floorWidth = L.PassFloorWidth + L.PassWiden * 0.3f * s, wallWidth = L.PassWallWidth + L.PassWiden * s;
+            float open = 1f - carve * (1f - Smooth(floorWidth, wallWidth, d)); // 0 im Tal, 1 draußen
+            float lift = ahead * PassFloor(s) * (1f - Smooth(floorWidth, wallWidth * 1.2f, d));
+            float land = plain + lift + L.DriftHeight * drift + (knolls + Mountains(x, z, r, az)) * open;
+            float bed = ahead * (1f - Smooth(L.BedHalfWidth, L.BedHalfWidth + L.BedBlend, d));
+            return Mathf.Lerp(land, TrackHeight(s) - L.BedDepth, bed);
         }
 
         // ---------- Formen ----------
-
-        /// <summary>1 in Richtung Bucht, 0 über Land, weich dazwischen.</summary>
-        private static float BayDirection(float azimuth)
-        {
-            float off = Mathf.Abs(Mathf.DeltaAngle(azimuth, L.SeaAzimuth));
-            return 1f - Smooth(L.SeaHalfWidth - L.SeaFeather, L.SeaHalfWidth + L.SeaFeather, off);
-        }
 
         /// <summary>Verwehungen (0…1): Dünenkämme quer zum Wind, darauf Windgangeln längs des Windes, runde Kuppen.</summary>
         private static float Drift(float x, float z)
@@ -305,31 +317,35 @@ namespace SFE.Game
         });
 
 
-        // ---------- Festeis ----------
+        // ---------- Eis ----------
 
         /// <summary>
-        /// Ebenes Eis (y = 0) bis zur Eiskante bzw. unter das Land, an der Kante eine fast senkrechte Eiswand bis unter den
-        /// Wasserspiegel. Die Wand hat eigene Eckpunkte, damit die Kante scharf bleibt statt weich verschliffen.
+        /// Ebenes Eis (y = 0) unter dem Hub bis <see cref="L.IceRadius"/>. Sein Rand liegt überall unter dem Schnee – man
+        /// sieht nur, wo der Schnee aus dem Eis steigt, und das ist unregelmäßig.
         /// </summary>
         private static Mesh IceMesh() => Shapes.Cached("landscape_ice" + L.Seed, () =>
         {
             int seg = L.Segments;
-            float[] frac = { 0.3f, 0.55f, 0.75f, 0.87f, 0.94f, 0.98f, 1f };
-            int top = frac.Length;
+            float[] frac = { 0.3f, 0.55f, 0.75f, 0.9f, 1f };
             var v = new List<Vector3> { Vector3.zero };
-            for (int k = 0; k < top; k++)
-                for (int j = 0; j < seg; j++) v.Add(OnIce(j, frac[k], 0f));
-            int lip = v.Count;
-            for (int j = 0; j < seg; j++) v.Add(OnIce(j, 1f, 0f));
-            for (int j = 0; j < seg; j++) v.Add(OnIce(j, 1f, L.CliffSlant) + Vector3.up * (L.SeaLevel - L.CliffDepth));
+            foreach (float f in frac)
+                for (int j = 0; j < seg; j++)
+                {
+                    float a = j * 2f * Mathf.PI / seg;
+                    v.Add(new Vector3(Mathf.Sin(a), 0f, Mathf.Cos(a)) * (L.IceRadius * f));
+                }
             var t = new List<int>();
             for (int j = 0; j < seg; j++) { t.Add(0); t.Add(1 + j); t.Add(1 + (j + 1) % seg); }
-            for (int k = 0; k < top - 1; k++) Band(t, 1 + k * seg, seg);
-            Band(t, lip, seg);
+            for (int k = 0; k < frac.Length - 1; k++)
+                for (int j = 0; j < seg; j++)
+                {
+                    int a = 1 + k * seg + j, b = 1 + k * seg + (j + 1) % seg, c = a + seg, d = b + seg;
+                    t.Add(a); t.Add(c); t.Add(b);
+                    t.Add(b); t.Add(c); t.Add(d);
+                }
             var uv = new Vector2[v.Count];
             float tiles = ArtStyle.Surfaces.Ice.TilesPerMeter;
-            for (int i = 0; i < uv.Length; i++)
-                uv[i] = i >= lip ? new Vector2(v[i].x + v[i].z, v[i].y) * tiles : new Vector2(v[i].x, v[i].z) * tiles;
+            for (int i = 0; i < uv.Length; i++) uv[i] = new Vector2(v[i].x, v[i].z) * tiles;
             var m = new Mesh();
             m.SetVertices(v);
             m.uv = uv;
@@ -340,108 +356,12 @@ namespace SFE.Game
             return m;
         });
 
-        /// <summary>Punkt auf dem Festeis in Spalte <paramref name="j"/>: Anteil des Kantenabstands plus Zugabe in Metern.</summary>
-        private static Vector3 OnIce(int j, float frac, float extra)
-        {
-            float az = j * 360f / L.Segments;
-            float edge = Mathf.Min(L.IceRadius, CoastAt(az));
-            float r = edge * frac + extra, a = az * Mathf.Deg2Rad;
-            return new Vector3(Mathf.Sin(a) * r, 0f, Mathf.Cos(a) * r);
-        }
-
-        /// <summary>Zwei Ringe ab <paramref name="first"/> (je <paramref name="seg"/> Punkte) zu einem Band verbinden.</summary>
-        private static void Band(List<int> t, int first, int seg)
-        {
-            for (int j = 0; j < seg; j++)
-            {
-                int a = first + j, b = first + (j + 1) % seg, c = a + seg, d = b + seg;
-                t.Add(a); t.Add(c); t.Add(b);
-                t.Add(b); t.Add(c); t.Add(d);
-            }
-        }
-
-        // ---------- Treibeis ----------
-
-        /// <summary>Treibende Schollen in der Bucht: verschneit (Teilmesh 0), mit Eiskanten (Teilmesh 1), dicht an der Kante kleiner.</summary>
-        private static Mesh FloeMesh() => Shapes.Cached("landscape_floes" + L.Seed, () =>
-        {
-            var rnd = new System.Random(L.Seed);
-            var placed = new List<Vector3>(); // x, z, Radius
-            var v = new List<Vector3>();
-            var uv = new List<Vector2>();
-            var snow = new List<int>();
-            var ice = new List<int>();
-            float tiles = ArtStyle.Surfaces.Ice.TilesPerMeter;
-            float yTop = L.SeaLevel + L.FloeThickness / 3f, yBottom = yTop - L.FloeThickness;
-            for (int tries = 0; tries < L.FloeCount * 20 && placed.Count < L.FloeCount; tries++)
-            {
-                float az = L.SeaAzimuth + ((float)rnd.NextDouble() * 2f - 1f) * L.SeaHalfWidth * 0.8f;
-                float coast = CoastAt(az);
-                float near = (float)rnd.NextDouble();
-                float r = Mathf.Lerp(coast + 2.5f, L.FloeReach, near * near);
-                float size = Mathf.Lerp(L.FloeMin, L.FloeMax, Mathf.Lerp((float)rnd.NextDouble(), near, 0.5f));
-                float a = az * Mathf.Deg2Rad;
-                var c = new Vector3(Mathf.Sin(a) * r, 0f, Mathf.Cos(a) * r);
-                bool free = true;
-                foreach (var p in placed)
-                    if (new Vector2(p.x - c.x, p.y - c.z).magnitude < p.z + size + 0.6f) { free = false; break; }
-                // nur im offenen Wasser, nicht auf Inseln oder Ufer
-                for (int s = 0; s < 4 && free; s++)
-                {
-                    float sa = s * Mathf.PI / 2f;
-                    if (Height(c.x + Mathf.Sin(sa) * size * 1.5f, c.z + Mathf.Cos(sa) * size * 1.5f) > L.SeaLevel - 0.4f) free = false;
-                }
-                if (!free) continue;
-                placed.Add(new Vector3(c.x, c.z, size));
-
-                // Umriss: gestreckt und mit Ausbuchtungen verschiedener Größe (Wellen 2., 3. und 5. Ordnung), dazu
-                // kleine Zacken – gleichmäßige Vielecke wirkten wie Pfannkuchen.
-                const int n = 18;
-                float spin = (float)rnd.NextDouble() * Mathf.PI * 2f, stretch = 0.55f + 0.45f * (float)rnd.NextDouble();
-                float p2 = (float)rnd.NextDouble() * 6.3f, p3 = (float)rnd.NextDouble() * 6.3f, p5 = (float)rnd.NextDouble() * 6.3f;
-                var rim = new Vector3[n];
-                for (int k = 0; k < n; k++)
-                {
-                    float ang = (k + ((float)rnd.NextDouble() - 0.5f) * 0.5f) * Mathf.PI * 2f / n;
-                    float rr = 1f + 0.16f * Mathf.Sin(2f * ang + p2) + 0.12f * Mathf.Sin(3f * ang + p3)
-                        + 0.07f * Mathf.Sin(5f * ang + p5) + 0.1f * ((float)rnd.NextDouble() - 0.5f);
-                    float lx = Mathf.Sin(ang) * rr * size, lz = Mathf.Cos(ang) * rr * size * stretch;
-                    rim[k] = c + new Vector3(lx * Mathf.Cos(spin) + lz * Mathf.Sin(spin), 0f, -lx * Mathf.Sin(spin) + lz * Mathf.Cos(spin));
-                }
-                // Deckel: Fächer um die Mitte
-                int centre = v.Count;
-                v.Add(c + Vector3.up * yTop);
-                for (int k = 0; k < n; k++) v.Add(rim[k] + Vector3.up * yTop);
-                for (int k = 0; k < n; k++) { snow.Add(centre); snow.Add(centre + 1 + k); snow.Add(centre + 1 + (k + 1) % n); }
-                // Seiten: eigene Eckpunkte je Fläche, damit die Kante scharf bleibt
-                for (int k = 0; k < n; k++)
-                {
-                    var p0 = rim[k]; var p1 = rim[(k + 1) % n];
-                    int b = v.Count;
-                    v.Add(p0 + Vector3.up * yTop); v.Add(p1 + Vector3.up * yTop);
-                    v.Add(p0 + Vector3.up * yBottom); v.Add(p1 + Vector3.up * yBottom);
-                    ice.Add(b); ice.Add(b + 2); ice.Add(b + 1);
-                    ice.Add(b + 1); ice.Add(b + 2); ice.Add(b + 3);
-                }
-            }
-            foreach (var p in v) uv.Add(new Vector2(p.x + p.y, p.z + p.y) * tiles);
-            var m = new Mesh();
-            m.SetVertices(v);
-            m.SetUVs(0, uv);
-            m.subMeshCount = 2;
-            m.SetTriangles(snow, 0);
-            m.SetTriangles(ice, 1);
-            m.RecalculateNormals();
-            m.RecalculateTangents();
-            m.RecalculateBounds();
-            return m;
-        });
 
         // ---------- Presseis ----------
 
         /// <summary>
-        /// Presseisrücken: verkantete Eisblöcke in einer Linie auf dem Festeis, parallel zur Eiskante – dort, wo Schollen
-        /// gegeneinander gedrückt wurden. In der Mitte des Rückens höher, an den Enden flach auslaufend.
+        /// Presseisrücken: verkantete Eisblöcke in einem Bogen auf dem Eis vor dem Schneerand – dort, wo sich das Eis unter
+        /// Druck aufgeworfen hat. In der Mitte des Rückens höher, an den Enden flach auslaufend; teils vom Schnee verschluckt.
         /// </summary>
         private static Mesh RidgeMesh() => Shapes.Cached("landscape_ridge" + L.Seed, () =>
         {
@@ -449,14 +369,13 @@ namespace SFE.Game
             var v = new List<Vector3>();
             var n = new List<Vector3>();
             var t = new List<int>();
-            float a0 = L.SeaAzimuth + L.RidgeFrom, a1 = L.SeaAzimuth + L.RidgeTo;
-            float mid = CoastAt(0.5f * (a0 + a1)) - L.RidgeInset;
-            int count = Mathf.RoundToInt(mid * (a1 - a0) * Mathf.Deg2Rad * L.RidgeDensity);
+            float a0 = L.RidgeFrom, a1 = L.RidgeTo;
+            int count = Mathf.RoundToInt(L.RidgeRadius * (a1 - a0) * Mathf.Deg2Rad * L.RidgeDensity);
             for (int i = 0; i < count; i++)
             {
                 float u = (i + (float)rnd.NextDouble()) / count;
                 float az = Mathf.Lerp(a0, a1, u);
-                float r = CoastAt(az) - L.RidgeInset + ((float)rnd.NextDouble() - 0.5f) * 1.4f;
+                float r = L.RidgeRadius + 0.8f * Mathf.Sin(az * 0.21f) + ((float)rnd.NextDouble() - 0.5f) * 1.4f;
                 float a = az * Mathf.Deg2Rad;
                 float swell = 0.35f + 0.65f * Mathf.Sin(Mathf.PI * u);
                 float s = Mathf.Lerp(L.RidgeBlockMin, L.RidgeBlockMax, (float)rnd.NextDouble() * swell);

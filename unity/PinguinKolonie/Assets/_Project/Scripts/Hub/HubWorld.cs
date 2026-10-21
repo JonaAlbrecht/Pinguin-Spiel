@@ -123,7 +123,7 @@ namespace SFE.Game
         /// </summary>
         public static Building BuildScenery(Transform t, GameData ui, System.Random rnd)
         {
-            // Festeis, verschneite Ebene, Berge und die Bucht in Richtung Gleis (ADR-31). Das Eis ist bis weit über
+            // Eis, verschneite Ebene, Berge ringsum und der Pass in Gleisrichtung (ADR-31). Das Eis ist bis weit über
             // FloeRadius hinaus eben – die Grenze von Pips Weg ist keine sichtbare Kante mehr.
             ArcticLandscape.Build(t);
             Prims.Make(PrimitiveType.Cylinder, t, new Vector3(0, 0.005f, 4f), new Vector3(7f, 0.01f, 7f), Palette.IceShadow, "HuddlePlaza");
@@ -169,20 +169,29 @@ namespace SFE.Game
             foreach (var p in new[] { new Vector3(-3.5f, 0, 2f), new Vector3(3.5f, 0, 2.2f), new Vector3(0, 0, 8.2f) })
                 Prims.Lantern(t, 1.2f, true).transform.localPosition = p;
 
-            // Gleis des Polar-Express: von Tildas Bahnsteig über das Festeis bis an die Küste (Prellbock vor der Eiskante)
+            // Gleis des Polar-Express: von Tildas Bahnsteig über das Eis, dann auf einem Damm durch den Pass in die Ferne –
+            // zur Küste sind es tausende Kilometer (docs/02). Höhe und Länge kommen aus der Landschaft (ArcticLandscape).
             var track = new GameObject("Track").transform;
             track.SetParent(t, false);
-            track.localPosition = new Vector3(11.8f, 0, -1f);
-            track.localRotation = Quaternion.Euler(0, 20f, 0);
-            float end = TrackEnd(track);
+            track.localPosition = ArtStyle.Landscape.TrackOrigin;
+            track.localRotation = Quaternion.Euler(0, ArtStyle.Landscape.TrackYaw, 0);
+            float start = ArtStyle.Landscape.TrackStart, end = ArcticLandscape.TrackLength;
             for (int side = -1; side <= 1; side += 2)
-                Prims.Make(PrimitiveType.Cube, track, new Vector3(side * 0.45f, 0.06f, (end - 4.5f) / 2f), new Vector3(0.08f, 0.08f, end + 4.5f), Palette.LanternPole, "Rail");
-            for (float z = -4.2f; z < end - 0.2f; z += 0.75f)
-                Prims.Make(PrimitiveType.Cube, track, new Vector3(0, 0.02f, z), new Vector3(1.3f, 0.04f, 0.22f), Palette.Wood, "Sleeper");
-            for (int side = -1; side <= 1; side += 2)
-                Prims.Make(PrimitiveType.Cube, track, new Vector3(side * 0.45f, 0.3f, end), new Vector3(0.14f, 0.6f, 0.14f), Palette.Wood, "StopPost");
-            Prims.Make(PrimitiveType.Cube, track, new Vector3(0, 0.5f, end - 0.06f), new Vector3(1.2f, 0.22f, 0.1f), Palette.TrackStop, "StopBeam");
-            Prims.Merge(track); // ein Objekt je Material statt gut 40 Einzelteilen
+            {
+                // Das alte Stück am Bahnsteig liegt eben auf dem Eis, danach folgen die Schienen der Höhe in kurzen Stücken.
+                Prims.Make(PrimitiveType.Cube, track, new Vector3(side * 0.45f, 0.06f, 0), new Vector3(0.08f, 0.08f, 2f * start), Palette.LanternPole, "Rail");
+                for (float s0 = start; s0 < end; s0 += ArtStyle.Landscape.TrackPiece)
+                {
+                    float s1 = Mathf.Min(s0 + ArtStyle.Landscape.TrackPiece, end);
+                    float h0 = ArcticLandscape.TrackHeight(s0), h1 = ArcticLandscape.TrackHeight(s1);
+                    var rail = Prims.Make(PrimitiveType.Cube, track, new Vector3(side * 0.45f, 0.5f * (h0 + h1) + 0.06f, 0.5f * (s0 + s1)),
+                        new Vector3(0.08f, 0.08f, Mathf.Sqrt((s1 - s0) * (s1 - s0) + (h1 - h0) * (h1 - h0)) + 0.02f), Palette.LanternPole, "Rail");
+                    rail.transform.localRotation = Quaternion.Euler(-Mathf.Atan2(h1 - h0, s1 - s0) * Mathf.Rad2Deg, 0, 0);
+                }
+            }
+            for (float z = -4.2f; z < end; z += 0.75f)
+                Prims.Make(PrimitiveType.Cube, track, new Vector3(0, ArcticLandscape.TrackHeight(z) + 0.02f, z), new Vector3(1.3f, 0.04f, 0.22f), Palette.Wood, "Sleeper");
+            Prims.Merge(track); // zwei Objekte statt gut 300 Einzelteilen
 
             // Wegweiser zu Gleis und Küste (MG2, MG3)
             var future = new GameObject("FutureSign").transform;
@@ -194,22 +203,6 @@ namespace SFE.Game
             var fl = Prims.Label(future, ui.Ui("signFuture"), new Vector3(0, 1.5f, -0.05f), 0.026f, Palette.Text);
             fl.transform.localRotation = Quaternion.Euler(0, 180, 0);
             return lab;
-        }
-
-        /// <summary>
-        /// Wie weit das Gleis (lokal entlang +Z, Mitte des alten 9-m-Stücks bei 0) reicht: bis kurz vor die Eiskante in seiner
-        /// Richtung. So folgt das Gleisende der Küste, wenn jemand die Landschaft in ArtStyle.Landscape verändert.
-        /// </summary>
-        private static float TrackEnd(Transform track)
-        {
-            const float start = 4.5f, longest = 30f;
-            for (float s = start; s < longest; s += 0.25f)
-            {
-                var p = track.localPosition + track.localRotation * new Vector3(0, 0, s);
-                if (new Vector2(p.x, p.z).magnitude > ArcticLandscape.CoastAt(ArcticLandscape.Azimuth(p.x, p.z)) - ArtStyle.Landscape.TrackStop)
-                    return s;
-            }
-            return start;
         }
 
         /// <summary>Ein begehbares Gebäude: Grundriss für Wände und Tür, dazu was beim Betreten ausgeblendet wird.</summary>

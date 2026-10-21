@@ -88,8 +88,6 @@ namespace SFE.Game
         /// <summary>Fels an steilen Berghängen (ArcticLandscape): Dark Sand mit Deep Blue abgedunkelt – kühles Graubraun,
         /// das im Dunst nach hinten heller wird. Reines Deep Blue wirkte wie ein Loch in der Landschaft.</summary>
         public static readonly Color Rock = Shade(Siemens.DarkSand, 0.45f);
-        /// <summary>Prellbock am Gleisende an der Küste: Signalrot, damit man sieht, dass das Gleis dort endet.</summary>
-        public static readonly Color TrackStop = Siemens.Red;
         public static readonly Color GridLine = Siemens.DeepBlue20;
         /// <summary>Gitterlinien über dem Wärmebild: dunkel genug, um auf Gelb und Blau zu stehen.</summary>
         public static readonly Color GridLineOnHeat = Siemens.DeepBlue60;

@@ -214,9 +214,9 @@ namespace SFE.Game
         }
 
         /// <summary>
-        /// Die arktische Landschaft um den Hub (<see cref="ArcticLandscape"/>, ADR-31): Festeis unter dem Hub, verschneite
-        /// Ebene mit Verwehungen, gestaffelte Bergketten ringsum, auf einer Seite eine Bucht mit Eiskante, Treibeis und
-        /// Inseln am anderen Ufer. Alle Maße in Metern, Winkel in Grad (0 = Norden/+Z, 90 = Osten/+X wie der Gierwinkel).
+        /// Die arktische Landschaft um den Hub (<see cref="ArcticLandscape"/>, ADR-31): Eis unter dem Hub, verschneite
+        /// Ebene mit Verwehungen, gestaffelte Bergketten ringsum, in Gleisrichtung ein Pass. Kein Meer – die Kolonie liegt
+        /// im Inland (docs/02). Alle Maße in Metern, Winkel in Grad (0 = Norden/+Z, 90 = Osten/+X wie der Gierwinkel).
         /// </summary>
         public static class Landscape
         {
@@ -241,29 +241,36 @@ namespace SFE.Game
             public static readonly float OuterRadius = 130f;
             /// <summary>Bis hier wirft die Landschaft Schatten (Verwehungen, Presseis); die Berge dahinter nicht (Leistung).</summary>
             public static readonly float NearRadius = 44f;
-            /// <summary>Unter dem Festeis bis hier, im Landesinneren verdeckt vom Schnee.</summary>
+            /// <summary>So weit reicht das Eis; sein Rand liegt unter dem Schnee.</summary>
             public static readonly float IceRadius = 44f;
 
-            // ---------- Meer ----------
+            // ---------- Gleis und Pass ----------
             /// <summary>
-            /// Richtung der Bucht: dorthin, wohin das Gleis führt (Schild „Zum Gleis und an die Küste“, Gleis mit 20° nach
-            /// Nordnordost). Halbe Breite und weicher Übergang zum Land in Grad.
+            /// Das Gleis des Polar-Express: Mitte des alten 9-m-Stücks am Bahnsteig und Richtung (20° nach Nordnordost).
+            /// Von dort läuft es zur Küste – tausende Kilometer weit (docs/02), also durch einen Pass aus dem Bild.
             /// </summary>
-            public static readonly float SeaAzimuth = 32f, SeaHalfWidth = 46f, SeaFeather = 14f;
-            /// <summary>Wasserspiegel und Grund der Bucht (unter dem Spiegel unsichtbar). Die Eiskante ragt 0,9 m heraus.</summary>
-            public static readonly float SeaLevel = -0.9f, SeaFloor = -5f;
-            /// <summary>Eiskante: mittlerer Abstand zur Hub-Mitte, wie weit sie ausfranst, und wie weit sie zu den Seiten der
-            /// Bucht hin zurückweicht, bis sie im Land verschwindet.</summary>
-            public static readonly float CoastRadius = 22f, CoastJag = 4.5f, CoastRecede = 30f;
-            /// <summary>Senkrechte Eiswand an der Kante: Tiefe unter den Spiegel und Neigung (m nach außen).</summary>
-            public static readonly float CliffDepth = 0.8f, CliffSlant = 0.25f;
-            /// <summary>Verwehungen auf dem Festeis (Anteil der Verwehungshöhe): nur die höchsten ragen als Schneeflecken heraus.</summary>
-            public static readonly float FastIceSnow = 0.85f;
-            /// <summary>Inseln am anderen Ufer: Abstand und Höhe. Sie schließen die Bucht, damit der Himmel nie an eine Kante stößt.</summary>
-            public static readonly float FarShoreRadius = 112f, IslandHeight = 24f;
-            /// <summary>Inseln in der Mitte der Bucht: dieser Anteil der Höhe (dort öffnet sich die Bucht zum Meer), und so hoch
-            /// ragt das Ufer mindestens aus dem Wasser.</summary>
-            public static readonly float IslandMouth = 0.5f, ShoreMin = 1.5f;
+            public static readonly Vector3 TrackOrigin = new Vector3(11.8f, 0f, -1f);
+            public static readonly float TrackYaw = 20f;
+            /// <summary>Bis hier (m entlang des Gleises) liegt es auf dem Eis; dahinter beginnen Damm und Tal.
+            /// Es endet so weit von der Hub-Mitte entfernt – in der Senke hinter dem Sattel, also nie im Blick.</summary>
+            public static readonly float TrackStart = 4.5f, TrackEndRadius = 116f;
+            /// <summary>Bahndamm über der Schneeebene: Höhe und Anlauflänge vom Eis aus. Ohne ihn versänke das Gleis in den Dünen.</summary>
+            public static readonly float EmbankmentHeight = 0.6f, EmbankmentRamp = 8f;
+            /// <summary>Länge eines Schienenstücks hinter dem Bahnsteig: kurz genug, dass die Schienen der Talsohle ohne Knick folgen.</summary>
+            public static readonly float TrackPiece = 3f;
+            /// <summary>Damm unter den Schienen: halbe Breite der ebenen Krone, Übergang ins Gelände, Tiefe unter der Schwellenauflage.</summary>
+            public static readonly float BedHalfWidth = 1.4f, BedBlend = 2.5f, BedDepth = 0.05f;
+            /// <summary>
+            /// Pass: Die Talsohle steigt ab <see cref="PassFrom"/> (m entlang des Gleises) bis zum Sattel bei <see cref="SaddleAt"/>
+            /// um <see cref="PassHeight"/> und fällt dahinter um <see cref="PassDrop"/>. Der Sattel ist höher als jede Kamera im
+            /// Tal – dahinter verschwindet das Gleis, das Ende der Landschaft sieht man nicht.
+            /// </summary>
+            public static readonly float PassFrom = 30f, SaddleAt = 105f, PassHeight = 10f, PassDrop = 4f;
+            /// <summary>Halbe Breite der Talsohle und Abstand, ab dem die Berge wieder ganz stehen; beides wächst um
+            /// <see cref="PassWiden"/> je Meter (Sohle um ein Drittel davon) – das Tal öffnet sich in die Ferne.</summary>
+            public static readonly float PassFloorWidth = 3f, PassWallWidth = 10f, PassWiden = 0.18f;
+            /// <summary>So weit hinter dem Sattel (m entlang des Gleises) stehen die Berge wieder ganz – eine ferne Kette quer zum Tal.</summary>
+            public static readonly float PassClose = 20f;
 
             // ---------- Verwehungen ----------
             /// <summary>
@@ -293,16 +300,11 @@ namespace SFE.Game
             /// Nur in den Bergen; steile Flanken von Verwehungen bleiben Schnee.</summary>
             public static readonly float RockSlope = 38f, RockBlend = 7f;
 
-            // ---------- Treibeis und Presseis ----------
-            public static readonly int FloeCount = 34;
-            /// <summary>Treibende Schollen bis zu dieser Entfernung, Radius klein–groß, Dicke (davon ragt ein Drittel heraus).</summary>
-            public static readonly float FloeReach = 80f, FloeMin = 0.5f, FloeMax = 3.6f, FloeThickness = 0.45f;
-            /// <summary>Presseisrücken auf dem Festeis: so weit innerhalb der Eiskante, über diesen Winkelbereich, Blockgröße.</summary>
-            public static readonly float RidgeInset = 4f, RidgeFrom = -10f, RidgeTo = 22f, RidgeBlockMin = 0.3f, RidgeBlockMax = 1.05f;
+            // ---------- Presseis ----------
+            /// <summary>Presseisrücken auf dem Eis im Norden: Abstand zur Hub-Mitte, Richtungsbereich (Grad), Blockgröße.</summary>
+            public static readonly float RidgeRadius = 17.5f, RidgeFrom = -28f, RidgeTo = 8f, RidgeBlockMin = 0.3f, RidgeBlockMax = 1.05f;
             /// <summary>Blöcke je Meter Rücken.</summary>
             public static readonly float RidgeDensity = 3.2f;
-            /// <summary>Das Gleis endet so weit vor der Eiskante (Prellbock).</summary>
-            public static readonly float TrackStop = 2.2f;
 
             // ---------- Detail ----------
             /// <summary>
