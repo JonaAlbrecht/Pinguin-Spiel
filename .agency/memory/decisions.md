@@ -188,3 +188,15 @@ Wellenlage. „Sparsam“ behält die Nachbearbeitung (ohne Tonemapping fraß Sc
 Laternen-Schatten, 4096er-Schattenkarte, SMAA → FXAA. Laternen-Schatten nur für die zwei Laternen am Blickpunkt.
 Verworfen: SSAO-Downsample und MSAA-oder-SMAA ohne Messung auf dem Referenzgerät; Tonemapping-Wechsel (ACES vs.
 Neutral, Datenfarben im Wärmebild) und Reflexionssonden – offen für Jona bzw. einen Spieltest.
+
+## 2026-10-21 – Dialog-Review
+
+**ADR-30 Auftakt und Rechentafel nach Dialog-Review (Jona).** Grete: Früher wärmte der Huddle, heute gibt es Iglus und
+Strom; Frieda: Die Kolonie wächst, und sie nennt die Frage von MG1 gleich selbst („zu weit weg kalt, zu nah schmilzt“) –
+Labor und Ausprobieren erst nach Kalles Versuch, sonst sagte Frieda dasselbe zweimal. Flockes Frage nach dem
+geschmolzenen Iglu beantwortet jetzt Frieda statt Gretes Spruch. Rechentafel: Die Formel wird in Alltagssprache erklärt
+(Sparschwein: Bestand plus Zugang minus Abgang, dann die vier Kästchen in Tafel-Reihenfolge); in `pair_done` begründet
+Frieda, warum jeder Schritt weniger bringt (kleinerer Temperaturunterschied). Der Fachsatz dazu steht im „Blick unter die
+Haube“ (`pairFlowNote`), das Popup ist dafür 1040 statt 960 hoch (der Schließen-Knopf lag über der letzten Zeile).
+Gestrichen: der Musik-Satz in `whatif_done` (die Karte „Musik im Dorf“ hat schon ihre Rückmeldung). Verworfen: das Wort
+„Grenznutzen“ im Dialog (Fachwort aus der Wirtschaft, und physikalisch ist der Grund der kleinere Temperaturunterschied).

@@ -48,15 +48,19 @@
       "lines": [
         {
           "speaker": "grete",
-          "text": "Brrr! Spürst du den Wind, Pip? Früher sind wir bei jedem Sturm eng zusammengerückt – im Huddle."
+          "text": "Brrr! Spürst du den Wind, Pip? Früher sind wir bei jedem Sturm eng zusammengerückt und haben uns im Huddle gegenseitig gewärmt."
+        },
+        {
+          "speaker": "grete",
+          "text": "Heute haben wir dafür Iglus und Strom."
         },
         {
           "speaker": "frieda",
-          "text": "Damit ist bald Schluss! Ich habe ein Stromnetz gebaut – mit Laternen, die Licht und Wärme geben."
+          "text": "Und die Kolonie wächst! Für die neuen Familien bauen wir eine ganze Siedlung – mit Iglus und Laternen, die Licht und Wärme geben."
         },
         {
           "speaker": "frieda",
-          "text": "Ab jetzt bauen wir Iglus. Pip, komm zu meinem Labor. Ich brauche Hilfe!"
+          "text": "Aber wohin mit den Laternen? Zu weit weg, und es wird kalt. Zu nah, und das Iglu schmilzt. Pip, komm zu mir – das müssen wir gut planen!"
         }
       ]
     },
@@ -77,7 +81,19 @@
         },
         {
           "speaker": "frieda",
-          "text": "Schritt für Schritt. In jedem Zeitschritt gilt dieselbe Regel – sie steht oben. Drück auf „Nächster Zeitschritt“."
+          "text": "Schritt für Schritt. In jedem Zeitschritt gilt dieselbe Regel – sie steht oben."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Die Regel funktioniert wie ein Sparschwein: Was schon drin ist, plus was dazukommt, minus was rausgeht – das ist der neue Stand."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Dazu kommt Wärme, die ein Feld selbst erzeugt, und Wärme vom Nachbarfeld. Weg geht die Wärme, die der Wind mitnimmt."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Drück auf „Nächster Zeitschritt“ – dann siehst du die Regel bei der Arbeit."
         }
       ]
     },
@@ -103,7 +119,11 @@
         },
         {
           "speaker": "frieda",
-          "text": "Genau. Irgendwann ändert sich fast nichts mehr: Rein und raus halten sich die Waage. Das ist der Gleichgewichtspunkt."
+          "text": "Genau. Je wärmer das Iglu schon ist, desto kleiner der Unterschied zur Laterne – und desto weniger Wärme fließt hinüber."
+        },
+        {
+          "speaker": "frieda",
+          "text": "Irgendwann ändert sich fast nichts mehr: Rein und raus halten sich die Waage. Das ist der Gleichgewichtspunkt."
         },
         {
           "speaker": "frieda",
@@ -177,8 +197,8 @@
           "text": "Juhu, eine Pfütze! … Aber warum ist das Iglu eigentlich geschmolzen?"
         },
         {
-          "speaker": "grete",
-          "text": "Gute Frage, Flocke. Früher hatten wir wenigstens trockene Füße."
+          "speaker": "frieda",
+          "text": "Zu viele Laternen, zu dicht am Iglu – so viel Wärme hält kein Schnee aus."
         },
         {
           "speaker": "frieda",
@@ -388,10 +408,6 @@
         {
           "speaker": "frieda",
           "text": "Darum gehört der Wind ins Modell. Lässt man etwas Wichtiges weg, stimmt die Vorhersage nicht."
-        },
-        {
-          "speaker": "frieda",
-          "text": "Die Musik im Dorf hätten wir dagegen ruhig weglassen können. Die ändert gar nichts."
         },
         {
           "speaker": "flocke",
