@@ -43,6 +43,12 @@ namespace SFE.Game
             /// guter Auflösung (Grafik-Audit B-02). Weiter entfernte Laternen leuchten weiter, nur ohne Schatten.
             /// </summary>
             public static readonly int LanternShadows = 2;
+            /// <summary>
+            /// Laternenlicht bei Größe 1 (wächst mit der Fläche, also Größe²) und Reichweite in Metern (wächst mit der Größe).
+            /// Am Tag nur ein warmer Schein: Bei 2,2 war der Schnee unter einer Laterne heller als in der Sonne, Iglus daneben
+            /// fraßen gelb-weiß aus, und in Kalles Siedlung (zehn Laternen dicht beieinander) verschwand die ganze Fläche (ADR-29).
+            /// </summary>
+            public static readonly float LanternIntensity = 0.6f, LanternRange = 2.2f;
 
             public static void ApplyTo(Material m) => Surfaces.ApplyTo(m, Surface.Default);
 
