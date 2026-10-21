@@ -6,6 +6,7 @@
 > **„Für Spielende“** beschreibt, was man sieht und tut – ohne Formeln.
 > **„Technik (nur Entwicklerteam)“** beschreibt das Modell im Hintergrund. Der Spieler sieht davon nichts, außer im optionalen Modus „Blick unter die Haube“.
 > Die Minigames der Smart-City-Erweiterung stehen in [05_Erweiterung_Pingopolis_SmartCity.md](05_Erweiterung_Pingopolis_SmartCity.md), Teil C.
+> Rechenschritte (kleinstes Beispiel zum Durchklicken) und Formeln für alle Minigames: [08_Rechenschritte_und_Formeln.md](08_Rechenschritte_und_Formeln.md) (Plan).
 
 ## Übersicht
 
